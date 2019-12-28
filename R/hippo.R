@@ -100,44 +100,78 @@ preprocess_homogeneous = function(X, label, normalize = FALSE){
   for (i in 1:length(labelnames)){
     ind = which(label==labelnames[i])
     det_rate[,i] = colMeans(X[ind, ])
-    positive_mean[,i] = apply(Y[ind, ], 2, get_positive_mean)
     gene_mean[,i] = colMeans(Y[ind, ])
     gene_var[,i] = matrixStats::colVars(Y[ind,])
   }
   colnames(det_rate) =
     colnames(gene_mean) =
-    colnames(positive_mean) =
     colnames(gene_var) = labelnames
 
   zero_proportion = 1-det_rate
-  rm(X, Y); gc()
+
   gene_mean = as.data.frame(gene_mean)
   det_rate = as.data.frame(det_rate)
   zero_proportion = as.data.frame(zero_proportion)
-  positive_mean = as.data.frame(positive_mean)
   gene_var = as.data.frame(gene_var)
 
-  gene_mean$id = det_rate$id = zero_proportion$id = positive_mean$id = gene_var$id = colnames(X)
+  gene_mean$id = det_rate$id = zero_proportion$id  = gene_var$id = colnames(X)
 
   mgm = melt(gene_mean, id = "id")
   mdr = melt(det_rate, id = "id")
   mdor = melt(zero_proportion, id = "id")
-  mpm = melt(positive_mean, id = "id")
   mgv = melt(gene_var, id = "id")
 
   df = data.frame(gene = colnames(X),
-                  celltype = mgm$variable,
                   det_rate = mdr$value,
                   gene_mean = mgm$value,
+                  gene_var = mgv$value,
                   zero_proportion = mdor$value,
-                  positive_mean = mpm$value,
-                  gene_var = mgv$value)
+                  celltype = mgm$variable)
   df$samplesize = NA
   for (i in names(samplesize)){
     df[df$celltype == i, "samplesize"] = samplesize[i]
   }
   rownames(df) = c()
   return(df)
+}
+
+visualize_hippo = function(hippo_object){
+  plist = list()
+  dflist = list()
+  K = ncol(hippo_object$labelmatrix)
+  df = preprocess_heterogeneous(hippo_object$X)
+  df$celltype = "combined"
+  df$selected_feature = FALSE
+  df$K = 1
+  dflist[[1]] = df
+  um = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]], ])+1))
+  um = as.data.frame(um$layout)
+  umdf = data.frame()
+  for (i in 2:K){
+    df = preprocess_homogeneous(hippo_object$X, label = hippo_object$labelmatrix[,i])
+    df$selected_feature = df$gene %in% hippo_object$features[[i-1]]
+    df$K = i
+    dflist[[i]] = df
+    umdf = rbind(umdf, data.frame(umap1 = um$V1,
+                                    umap2 = um$V2,
+                                    K = i,
+                                    label = hippo_object$labelmatrix[,i]))
+  }
+  df = do.call(rbind, dflist)
+  df = df[sample(nrow(df)), ]
+  zero_plot = ggplot(df, aes(x = gene_mean, y = zero_proportion, col = celltype)) +
+    geom_point(size = 0.8, alpha = 0.4) +
+    facet_wrap(~K) +
+    geom_line(aes(x = gene_mean, y = exp(-gene_mean)), col = 'black') +
+    xlim(c(0,10))+
+    theme(legend.position = "none") +
+    theme_bw()
+
+  umap_plot = ggplot(umdf, aes(x = umap1, y= umap2, col = factor(label))) +
+    facet_wrap(~K) +
+    geom_point(size = 0.8, alpha = 0.4)
+  return(list(zero_plot = zero_plot,
+              umap_plot = umap_plot))
 }
 
 #' Likelihood ratio test for dispersion parameter = 0
@@ -218,7 +252,7 @@ one_level_clustering = function(subX, z_threshold){
   pcs = irlba::irlba(log(subX[features, ]+1), 10)$v
   unscaledpc = prcomp(log(t(subX[features,])+1), scale.=FALSE, center=FALSE)$x[,1:10]
   km = kmeans(pcs, 2, nstart = 500)
-  return(list(features = features, pcs = pcs, km = km, unscaled_pcs = unscaledpc))
+  return(list(features = features, pcs = pcs, km = km, unscaled_pcs = unscaledpc, subdf = subdf))
 }
 
 #' HIPPO's hierarchical clustering
@@ -226,8 +260,7 @@ one_level_clustering = function(subX, z_threshold){
 #' @param X gene by cell matrix
 #' @param K number of clusters to ultimately get
 #' @return a list of clustering result for each level of k=1, 2, ... K.
-hippo = function(sce, K=10, z_threshold = 20){
-  X = sce@assays$data$counts
+hippo = function(X, K=10, z_threshold = 20){
   labelmatrix = matrix(NA, ncol(X), K)
   labelmatrix[,1] = 1
   eachlevel = list()
@@ -236,6 +269,7 @@ hippo = function(sce, K=10, z_threshold = 20){
   withinss = rep(0, K)
   oldk = 1
   features = list()
+  featuredata = list()
   for (k in 2:K){
     thisk = one_level_clustering(subX, z_threshold)
     if(is.na(thisk$features[1])){
@@ -251,8 +285,9 @@ hippo = function(sce, K=10, z_threshold = 20){
     subX = X[thisk$features, which(labelmatrix[,k]==oldk)]
     subXind = which(labelmatrix[,k]==oldk)
     features[[k-1]] = thisk$features
+    featuredata[[k-1]] = thisk$subdf
   }
-  return(list(features = features, labelmatrix = labelmatrix))
+  return(list(X = X, features = features, labelmatrix = labelmatrix))
 }
 
 
