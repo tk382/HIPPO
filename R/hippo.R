@@ -146,7 +146,9 @@ visualize_hippo = function(hippo_object){
   dflist[[1]] = df
   um = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]], ])+1))
   um = as.data.frame(um$layout)
+  tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]], ])+1))
   umdf = data.frame()
+  tsnedf = data.frame()
   for (i in 2:K){
     df = preprocess_homogeneous(hippo_object$X, label = hippo_object$labelmatrix[,i])
     df$selected_feature = df$gene %in% hippo_object$features[[i-1]]
@@ -156,6 +158,12 @@ visualize_hippo = function(hippo_object){
                                     umap2 = um$V2,
                                     K = i,
                                     label = hippo_object$labelmatrix[,i]))
+    tsnedf = rbind(tsnedf, data.frame(tsne1 = tsne$Y[,1],
+                                      tsne2 = tsne$Y[,2],
+                                      K=i,
+                                      label = hippo_object$labelmatrix[,i]))
+
+
   }
   df = do.call(rbind, dflist)
   df = df[sample(nrow(df)), ]
@@ -170,8 +178,14 @@ visualize_hippo = function(hippo_object){
   umap_plot = ggplot(umdf, aes(x = umap1, y= umap2, col = factor(label))) +
     facet_wrap(~K) +
     geom_point(size = 0.8, alpha = 0.4)
+
+  tsne_plot = ggplot(tsnedf, aes(x = tsne1, y=tsne2, col=factor(label))) +
+    facet_wrap(~K) +
+    geom_point(size=.8, alpha = 0.4)
   return(list(zero_plot = zero_plot,
-              umap_plot = umap_plot))
+              umap_plot = umap_plot,
+              tsne_plot = tsne_plot
+              ))
 }
 
 #' Likelihood ratio test for dispersion parameter = 0
