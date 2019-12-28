@@ -237,22 +237,22 @@ hippo = function(sce, K=10, z_threshold = 20){
   oldk = 1
   features = list()
   for (k in 2:K){
-    eachlevel[[k-1]] = one_level_clustering(subX, z_threshold)
-    if(is.na(eachlevel[[k-1]]$features[1])){
+    thisk = one_level_clustering(subX, z_threshold)
+    if(is.na(thisk$features[1])){
       print("ran out of important features")
       labelmatrix = labelmatrix[,1:(k-1)]
       break
     }
     labelmatrix[,k] = labelmatrix[,k-1]
-    labelmatrix[subXind[eachlevel[[k-1]]$km$cluster==2], k] = k
-    withinss[oldk] = sum(apply(eachlevel[[k-1]]$unscaled_pcs[eachlevel[[k-1]]$km$cluster==1, ], 1, var)^2)
-    withinss[k] = sum(apply(eachlevel[[k-1]]$unscaled_pcs[eachlevel[[k-1]]$km$cluster==2, ], 1, var)^2)
+    labelmatrix[subXind[thisk$km$cluster==2], k] = k
+    withinss[oldk] = sum(apply(thisk$unscaled_pcs[thisk$km$cluster==1, ], 1, var)^2)
+    withinss[k] = sum(apply(thisk$unscaled_pcs[thisk$km$cluster==2, ], 1, var)^2)
     oldk = which.max(withinss[1:k])
-    subX = X[eachlevel[[k-1]]$features, which(labelmatrix[,k]==oldk)]
+    subX = X[thisk$features, which(labelmatrix[,k]==oldk)]
     subXind = which(labelmatrix[,k]==oldk)
-
+    features[[k-1]] = thisk$features
   }
-  return(list(intermediate_data = eachlevel, labelmatrix = labelmatrix, withinss = withinss))
+  return(list(features = features, labelmatrix = labelmatrix))
 }
 
 
@@ -273,7 +273,7 @@ diffexp = function(sce, hippo, top.n = 10){
   result = list()
   count = sce@assays$data$counts
   for (k in 2:K){
-    features = clust$intermediate_data[[k-1]]$features
+    features = hippo$features[[k-1]]
     cellind = which(labelmatrix[,k-1] == labelmatrix[which(labelmatrix[,k-1] != labelmatrix[,k])[1], k-1])
     types = unique(clust$labelmatrix[cellind, k])
     cellgroup1 = which(clust$labelmatrix[,k] == types[1])
