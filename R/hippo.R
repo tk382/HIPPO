@@ -181,11 +181,10 @@ visualize_hippo = function(hippo_object){
 
   tsne_plot = ggplot(tsnedf, aes(x = tsne1, y=tsne2, col=factor(label))) +
     facet_wrap(~K) +
-    geom_point(size=.8, alpha = 0.4)
+    geom_point(size=0.8, alpha = 0.4)
   return(list(zero_plot = zero_plot,
               umap_plot = umap_plot,
-              tsne_plot = tsne_plot
-              ))
+              tsne_plot = tsne_plot))
 }
 
 #' Likelihood ratio test for dispersion parameter = 0
@@ -310,33 +309,46 @@ hippo = function(X, K=10, z_threshold = 20){
 #' @param sce single cell experiment object
 #' @param clust hierarchical_clustering object
 #' @param top.n number of markers to return
+#' @param ref a data frame with columns "hgnc" and "ensg" to match each other
 #' @return list of differential expression result
-diffexp = function(sce, hippo, top.n = 10){
-  K = ncol(clust$labelmatrix)
+diffexp = function(hippo_object, top.n = 10, switch_to_hgnc=FALSE, ref = NA){
+  if(switch_to_hgnc & is.na(ref)){
+    stop("A reference must be provided in order to match ENSG ids to HGNC symbols")
+  }
+  K = ncol(hippo_object$labelmatrix)
   featureind = list()
   cellind = list()
-  featureind[[1]] = 1:nrow(rowData(sce))
-  cellind[[1]] = 1:nrow(colData(sce))
-  labelmatrix = clust$labelmatrix
-  rowd = rowData(sce)
+  plist = list()
+  featureind[[1]] = 1:nrow(hippo_object$X)
+  cellind[[1]] = 1:ncol(hippo_object$X)
+  labelmatrix = hippo_object$labelmatrix
   result = list()
-  count = sce@assays$data$counts
+  count = hippo_object$X
   for (k in 2:K){
-    features = hippo$features[[k-1]]
+    features = hippo_object$features[[k-1]]
+
     cellind = which(labelmatrix[,k-1] == labelmatrix[which(labelmatrix[,k-1] != labelmatrix[,k])[1], k-1])
-    types = unique(clust$labelmatrix[cellind, k])
-    cellgroup1 = which(clust$labelmatrix[,k] == types[1])
-    cellgroup2 = which(clust$labelmatrix[,k] == types[2])
-    rowdata = as.data.frame(rowData(sce)[features, ])
+    types = unique(hippo_object$labelmatrix[cellind, k])
+    cellgroup1 = which(hippo_object$labelmatrix[,k] == types[1])
+    cellgroup2 = which(hippo_object$labelmatrix[,k] == types[2])
+    rowdata = data.frame(genes = features)
     rowdata$meandiff = rowMeans(count[features,cellgroup1]) - rowMeans(count[features,cellgroup2])
     rowdata$sd = sqrt(rowMeans(count[features,cellgroup1])/length(cellgroup1) +
                         rowMeans(count[features,cellgroup2])/length(cellgroup2))
     rowdata$z = rowdata$meandiff/rowdata$sd
     rowdata = rowdata[order(rowdata$z, decreasing=TRUE), ]
-    newcount = t(log(cbind(count[rowdata$id[1:top.n], cellgroup1],
-                           count[rowdata$id[1:top.n], cellgroup2])+1))
+    rowdata$genes = as.character(rowdata$genes)
+    newcount = t(log(cbind(count[rowdata$genes[1:top.n], cellgroup1],
+                           count[rowdata$genes[1:top.n], cellgroup2])+1))
+    topgenes = rowdata$genes[1:top.n]
+    if(switch_to_hgnc){
+      features_hgnc = ref$hgnc[match(topgenes, ref$ensg)]
+    }
     newcount = as.data.frame(newcount)
-    colnames(newcount) = rowdata$symbol[1:top.n]
+    colnames(newcount) = rowdata$genes[1:top.n]
+    if(switch_to_hgnc){
+      colnames(newcount) = features_hgnc
+    }
     newcount$celltype = c(rep(types[1], length(cellgroup1)), rep(types[2], length(cellgroup2)))
     newcount = reshape::melt(newcount, id="celltype")
     newcount$celltype = as.factor(newcount$celltype)
@@ -347,10 +359,13 @@ diffexp = function(sce, hippo, top.n = 10){
       ggtitle(paste("Round", k-1)) +
       xlab("") +
       theme(legend.position='bottom')
-    result[[k-1]] = list(features = rowdata[,c("symbol","meandiff","sd","z")],
-                         boxplot = g)
+    plist[[k-1]] = g
+    result[[k-1]] = rowdata
   }
-  return(result)
+  bpl = gridExtra::grid.arrange(grobs = plist, ncol = 2)
+
+  return(list(result_table = result,
+              result_boxplot = bpl))
 }
 
 
@@ -379,7 +394,7 @@ hierarchical_dimred = function(sce, clust, top.n = 10){
     newset = count[features, c(cellgroup1, cellgroup2)]
     tsne = Rtsne(newset)
 
-    rowdata = as.data.frame(rowData(sce)[features, ])
+    rowdata = data.frame(gene = features)
     rowdata$meandiff = rowMeans(count[features,cellgroup1]) - rowMeans(count[features,cellgroup2])
     rowdata$sd = sqrt(rowMeans(count[features,cellgroup1])/length(cellgroup1) +
                         rowMeans(count[features,cellgroup2])/length(cellgroup2))
@@ -388,7 +403,7 @@ hierarchical_dimred = function(sce, clust, top.n = 10){
     newcount = t(log(cbind(count[rowdata$id[1:top.n], cellgroup1],
                            count[rowdata$id[1:top.n], cellgroup2])+1))
     newcount = as.data.frame(newcount)
-    colnames(newcount) = rowdata$symbol[1:top.n]
+    colnames(newcount) = rowdata$gene[1:top.n]
     newcount$celltype = c(rep(types[1], length(cellgroup1)), rep(types[2], length(cellgroup2)))
     newcount = reshape::melt(newcount, id="celltype")
     newcount$celltype = as.factor(newcount$celltype)
@@ -399,7 +414,7 @@ hierarchical_dimred = function(sce, clust, top.n = 10){
       ggtitle(paste("Round", k-1)) +
       xlab("") +
       theme(legend.position='bottom')
-    result[[k-1]] = list(features = rowdata[,c("symbol","meandiff","sd","z")],
+    result[[k-1]] = list(features = rowdata,
                          boxplot = g)
   }
   return(result)

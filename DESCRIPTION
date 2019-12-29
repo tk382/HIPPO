@@ -1,0 +1,11 @@
+Package: HIPPO
+Type: Package
+Title: Heterogeneity-Induced Pre-Processing tOol
+Version: 0.1.0
+Author: Tae Kim
+Maintainer: Tae Kim <tk382@uchicago.edu>
+Description: Selects features and clusters the cells simultaneously. 
+License: GPA (>=2)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
