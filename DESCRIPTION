@@ -4,7 +4,7 @@ Title: Heterogeneity-Induced Pre-Processing tOol
 Version: 0.1.0
 Author: Tae Kim
 Maintainer: Tae Kim <tk382@uchicago.edu>
-Description: Selects features and clusters the cells simultaneously. 
+Description: Selects features and clusters the cells simultaneously for single-cell UMI data.
 License: GPA (>=2)
 Encoding: UTF-8
 LazyData: true
@@ -12,12 +12,10 @@ Depends: R (>= 3.5.0)
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 Imports:
-    Matrix,
-    SingleCellExperiment,
     ggplot2,
+    graphics,
+    matrixStats,
+    stats,
     reshape2,
-    dplyr,
-    broom,
-    ggpubr,
     gridExtra
 RoxygenNote: 6.1.1
