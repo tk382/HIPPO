@@ -1,0 +1,55 @@
+---
+title: "fig4_zhengmix4eq"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      dpi = 150,
+                      comment = NA)
+source("../R/hippo.R")
+library(Matrix)
+library(ggplot2)
+library(reshape2) #preprocessing
+library(dplyr) #preprocessing
+library(broom) #preprocessing
+library(SingleCellExperiment)
+library(ggpubr) #plotting
+library(gridExtra)
+```
+
+
+## Read the data
+
+```{r}
+sce = readRDS("../data/sce_full_Zhengmix4eq.rds")
+```
+
+## Feature Selection and Hierarchical Clustering
+
+```{r}
+set.seed(20191031)
+hippo_object = hippo(sce@assays$data$counts, K = 4, z_threshold = 5)
+```
+
+## Visualize the selected features at each round
+
+```{r}
+hippo_plots = visualize_hippo(hippo_object)
+```
+
+```{r}
+hippo_plots$zero_plot
+hippo_plots$umap_plot
+hippo_plots$tsne_plot
+```
+
+## Differential Expression Example
+
+```{r}
+ref = data.frame(ensg = rowData(sce)$id,
+                 hgnc = rowData(sce)$symbol)
+out = diffexp(hippo_object, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
+```
