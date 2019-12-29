@@ -2,15 +2,18 @@
 #'
 #' @param lambda gene mean
 #' @return expected proportion of zero under poisson
+#' @export
 pois_prob_zero = function(lambda){
   exp(-lambda)
 }
+
 #' Expected zero proportion under Negative Binomial
 #'
 #' @param lambda gene mean
 #' @param theta dispersion parameter, 0 if poisson
 #' @param theta expected proportion of zero under poisson
 #' @return Expected zero proportion under Negative Binomial
+#' @export
 nb_prob_zero = function(lambda, theta){
   if(theta==0){
     return(exp(-lambda))
@@ -36,6 +39,7 @@ zinb_prob_zero = function(lambda, theta, pi){
 #'
 #' @param X gene by cell matrix
 #' @return data frame with one row for each gene.
+#' @export
 preprocess_heterogeneous = function(X){
   X = t(X)
   Y = X
@@ -66,7 +70,6 @@ preprocess_heterogeneous = function(X){
                   zero_proportion = zero_proportion)
   df$samplesize = nrow(X)
   return(df)
-
 }
 
 #' Preprocess UMI data with inferred or known labels
@@ -75,6 +78,7 @@ preprocess_heterogeneous = function(X){
 #' @param label inferred or known label in factor
 #' @param normalize normalize each cell to have the same sequencing depth. Default as FALSE
 #' @return data frame with one row for each gene.
+#' @export
 preprocess_homogeneous = function(X, label, normalize = FALSE){
   X = t(X)
   sf = median(rowSums(X))
@@ -135,6 +139,7 @@ preprocess_homogeneous = function(X, label, normalize = FALSE){
   return(df)
 }
 
+#' @export
 visualize_hippo = function(hippo_object){
   plist = list()
   dflist = list()
@@ -191,6 +196,7 @@ visualize_hippo = function(hippo_object){
 #'
 #' @param y a vector of each gene across cells
 #' @return p-value for the significance for non-zero dispersion parameter
+#' @export
 pois_vs_nb = function(y){
   require(MASS)
   pois = sum(dpois(y, mean(y), log = TRUE))
@@ -210,6 +216,7 @@ pois_vs_nb = function(y){
 #'
 #' @param ensg a vector of ENSG names
 #' @return a dataframe of both ENSG id's and HGNC symbol
+#' @export
 ensg_to_hgnc = function(ensg){
   maps = read.table("~/Work/SC/data/Annotations/hgnc_ensembl.txt", header=TRUE, stringsAsFactors = FALSE)
   maps2 = data.frame(ensg = ensg,
@@ -228,6 +235,7 @@ ensg_to_hgnc = function(ensg){
 #'
 #' @param df pre-processed data frame
 #' @return data frame with added columns with test results
+#' @export
 compute_test_statistic = function(df){
   ind = which(df$gene_mean==0)
   if(length(ind)>0){
@@ -273,6 +281,7 @@ one_level_clustering = function(subX, z_threshold){
 #' @param X gene by cell matrix
 #' @param K number of clusters to ultimately get
 #' @return a list of clustering result for each level of k=1, 2, ... K.
+#' @export
 hippo = function(X, K=10, z_threshold = 20){
   labelmatrix = matrix(NA, ncol(X), K)
   labelmatrix[,1] = 1
@@ -306,12 +315,13 @@ hippo = function(X, K=10, z_threshold = 20){
 
 #' HIPPO's differential expression
 #'
-#' @param sce single cell experiment object
-#' @param clust hierarchical_clustering object
+#' @param hippo_object object of hippo
 #' @param top.n number of markers to return
-#' @param ref a data frame with columns "hgnc" and "ensg" to match each other
+#' @param switch_to_hgnc if the current gene names are ensemble ids, and would like to switch to hgnc
+#' @param ref a data frame with columns "hgnc" and "ensg" to match each other, only required when switch_to_hgnc is set to TRUE
 #' @return list of differential expression result
-diffexp = function(hippo_object, top.n = 10, switch_to_hgnc=FALSE, ref = NA){
+#' @export
+diffexp = function(hippo_object, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
   if(switch_to_hgnc & is.na(ref)){
     stop("A reference must be provided in order to match ENSG ids to HGNC symbols")
   }
@@ -350,7 +360,7 @@ diffexp = function(hippo_object, top.n = 10, switch_to_hgnc=FALSE, ref = NA){
       colnames(newcount) = features_hgnc
     }
     newcount$celltype = c(rep(types[1], length(cellgroup1)), rep(types[2], length(cellgroup2)))
-    newcount = reshape::melt(newcount, id="celltype")
+    newcount = reshape2::melt(newcount, id="celltype")
     newcount$celltype = as.factor(newcount$celltype)
     colnames(newcount) = c("celltype", "gene", "logcount")
     g = ggplot(newcount, aes(x = gene, y = logcount, col = celltype)) +
@@ -366,56 +376,4 @@ diffexp = function(hippo_object, top.n = 10, switch_to_hgnc=FALSE, ref = NA){
 
   return(list(result_table = result,
               result_boxplot = bpl))
-}
-
-
-#' HIPPO's differential expression
-#'
-#' @param sce single cell experiment object
-#' @param clust hierarchical_clustering object
-#' @param top.n number of markers to return
-#' @return list of differential expression result
-hierarchical_dimred = function(sce, clust, top.n = 10){
-  K = ncol(clust$labelmatrix)
-  featureind = list()
-  cellind = list()
-  featureind[[1]] = 1:nrow(rowData(sce))
-  cellind[[1]] = 1:nrow(colData(sce))
-  labelmatrix = clust$labelmatrix
-  rowd = rowData(sce)
-  result = list()
-  count = sce@assays$data$counts
-  for (k in 2:K){
-    features = clust$intermediate_data[[k-1]]$features
-    cellind = which(labelmatrix[,k-1] == labelmatrix[which(labelmatrix[,k-1] != labelmatrix[,k])[1], k-1])
-    types = unique(clust$labelmatrix[cellind, k])
-    cellgroup1 = which(clust$labelmatrix[,k] == types[1])
-    cellgroup2 = which(clust$labelmatrix[,k] == types[2])
-    newset = count[features, c(cellgroup1, cellgroup2)]
-    tsne = Rtsne(newset)
-
-    rowdata = data.frame(gene = features)
-    rowdata$meandiff = rowMeans(count[features,cellgroup1]) - rowMeans(count[features,cellgroup2])
-    rowdata$sd = sqrt(rowMeans(count[features,cellgroup1])/length(cellgroup1) +
-                        rowMeans(count[features,cellgroup2])/length(cellgroup2))
-    rowdata$z = rowdata$meandiff/rowdata$sd
-    rowdata = rowdata[order(rowdata$z, decreasing=TRUE), ]
-    newcount = t(log(cbind(count[rowdata$id[1:top.n], cellgroup1],
-                           count[rowdata$id[1:top.n], cellgroup2])+1))
-    newcount = as.data.frame(newcount)
-    colnames(newcount) = rowdata$gene[1:top.n]
-    newcount$celltype = c(rep(types[1], length(cellgroup1)), rep(types[2], length(cellgroup2)))
-    newcount = reshape::melt(newcount, id="celltype")
-    newcount$celltype = as.factor(newcount$celltype)
-    colnames(newcount) = c("celltype", "gene", "logcount")
-    g = ggplot(newcount, aes(x = gene, y = logcount, col = celltype)) +
-      geom_boxplot(outlier.size = 0.2) +
-      theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
-      ggtitle(paste("Round", k-1)) +
-      xlab("") +
-      theme(legend.position='bottom')
-    result[[k-1]] = list(features = rowdata,
-                         boxplot = g)
-  }
-  return(result)
 }
