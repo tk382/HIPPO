@@ -15,23 +15,22 @@ knitr::opts_chunk$set(echo = TRUE,
                       comment = NA)
 library(HIPPO)
 library(ggplot2)
-library(SingleCellExperiment)
+library(Matrix)
 ```
 
 
 ## Read the data
 
 ```{r}
-sce = readRDS("../sce_full_Zhengmix4eq.rds")
-ref = data.frame(ensg = rowData(sce)$id,
-                 hgnc = rowData(sce)$symbol)
+X = readRDS("../zhengmix4eq_counts.rds")
+ref = read.table("../ensg_hgnc_reference.txt", header=TRUE)
 ```
 
 ## Feature Selection and Hierarchical Clustering
 
 ```{r}
 set.seed(20191031)
-hippo_object = hippo(sce@assays$data$counts, K = 4, z_threshold = 5)
+hippo_object = hippo(X, K = 4, z_threshold = 5)
 ```
 
 ## Visualize the selected features at each round
@@ -40,7 +39,7 @@ hippo_object = hippo(sce@assays$data$counts, K = 4, z_threshold = 5)
 hippo_plots = visualize_hippo(hippo_object)
 ```
 
-```{r, fig.width=3, fig.height=1.5}
+```{r, fig.width=6, fig.height=4}
 hippo_plots$zero_plot
 hippo_plots$umap_plot
 hippo_plots$tsne_plot
@@ -48,6 +47,6 @@ hippo_plots$tsne_plot
 
 ## Differential Expression Example
 
-```{r, fig.width=4, fig.height=4}
+```{r, fig.width=6, fig.height=6}
 out = diffexp(hippo_object, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 ```

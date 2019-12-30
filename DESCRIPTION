@@ -23,5 +23,6 @@ Imports:
     dplyr,
     rlang,
     magrittr,
-    irlba
+    irlba,
+    Matrix
 RoxygenNote: 6.1.1
