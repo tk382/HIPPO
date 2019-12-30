@@ -7,8 +7,14 @@ Single cell UMI analysis tool that focuses on zero-inflation to detect biologica
 
 ## Getting Started
 
+For the software alone, 
 ```
 devtools::install_github("tk382/HIPPO")
+```
+
+To install the vignette as well,
+```
+install_github("tk382/HIPPO", build_opts = c("--no-resave-data", "--no-manual"))
 ```
 
 ## Example Analysis
