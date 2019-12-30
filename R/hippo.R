@@ -17,7 +17,7 @@ nb_prob_zero = function(lambda, theta){
   if(theta==0){
     return(exp(-lambda))
   }else{
-    return((1/(mu * theta + 1))^(1/theta))
+    return((1/(lambda * theta + 1))^(1/theta))
   }
 }
 #' Expected zero proportion under Negative Binomial
@@ -253,12 +253,11 @@ compute_test_statistic = function(df){
   if(length(ind) > 0){
     df = df[-grep("^MT-", df$gene), ]
   }
-  require(dplyr)
   df = df %>% mutate(expected_pi= 2*.data$samplesize/(2*.data$samplesize-1) * exp(-.data$gene_mean)) %>%
-      mutate(se = sqrt(data$expected_pi * (1-data$expected_pi) / (data$samplesize-1.25))) %>%
-      mutate(minus_logp = -pnorm(data$zero_proportion, data$expected_pi, data$se, log.p = TRUE, lower.tail=FALSE)) %>%
-      mutate(minus_logp = pmin(data$minus_logp, 500)) %>%
-      mutate(zvalue = -qnorm(exp(-data$minus_logp)))
+      mutate(se = sqrt(.data$expected_pi * (1-.data$expected_pi) / (.data$samplesize-1.25))) %>%
+      mutate(minus_logp = -pnorm(.data$zero_proportion, .data$expected_pi, .data$se, log.p = TRUE, lower.tail=FALSE)) %>%
+      mutate(minus_logp = pmin(.data$minus_logp, 500)) %>%
+      mutate(zvalue = -qnorm(exp(-.data$minus_logp)))
   df$gene = as.character(df$gene)
   return(df)
 }
@@ -267,7 +266,6 @@ compute_test_statistic = function(df){
 
 
 #' Clustering of one-step
-#'
 #' @param subX gene by cell matrix that needs clustering
 #' @param z_threshold z-value threshold for feature selection
 #' @return a list of clustering result. km object contains the k-means result
@@ -278,7 +276,7 @@ one_level_clustering = function(subX, z_threshold){
   if(length(features)<10){
     return(list(features = NA, pcs = NA, km = NA))
   }
-  pcs = irlba::irlba(log(subX[features, ]+1), 10)$v
+  pcs = irlba(log(subX[features, ]+1), 10)$v
   unscaledpc = prcomp(log(t(subX[features,])+1), scale.=FALSE, center=FALSE)$x[,1:10]
   km = kmeans(pcs, 2, nstart = 500, algorithm="MacQueen")
   return(list(features = features, pcs = pcs, km = km, unscaled_pcs = unscaledpc, subdf = subdf))

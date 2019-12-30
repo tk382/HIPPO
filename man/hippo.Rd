@@ -4,12 +4,14 @@
 \alias{hippo}
 \title{HIPPO's hierarchical clustering}
 \usage{
-hippo(X, K = 10, z_threshold = 20)
+hippo(X, K = 10, z_threshold = 5)
 }
 \arguments{
 \item{X}{gene by cell matrix}
 
 \item{K}{number of clusters to ultimately get}
+
+\item{z_threshold}{threshold for selecting the features}
 }
 \value{
 a list of clustering result for each level of k=1, 2, ... K.

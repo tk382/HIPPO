@@ -18,9 +18,10 @@ Imports:
     stats,
     reshape2,
     gridExtra,
-    SingleCellExperiment,
     Rtsne,
     umap,
     dplyr,
-    rlang
+    rlang,
+    magrittr,
+    irlba
 RoxygenNote: 6.1.1

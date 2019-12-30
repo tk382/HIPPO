@@ -10,8 +10,6 @@ nb_prob_zero(lambda, theta)
 \item{lambda}{gene mean}
 
 \item{theta}{dispersion parameter, 0 if poisson}
-
-\item{theta}{expected proportion of zero under poisson}
 }
 \value{
 Expected zero proportion under Negative Binomial
