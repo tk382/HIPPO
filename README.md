@@ -5,13 +5,13 @@
 
 Single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity
 
-## GETTING STARTED
+## Getting Started
 
 ```
-install_github("tk382/HIPPO")
+devtools::install_github("tk382/HIPPO")
 ```
 
-## Example analysis
+## Example Analysis
 
 ```
 browseVignettes("HIPPO")
