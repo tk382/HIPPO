@@ -14,7 +14,7 @@ devtools::install_github("tk382/HIPPO")
 
 To install the vignette as well,
 ```
-devtools::install_github("tk382/HIPPO", build_opts = c("--no-resave-data", "--no-manual"))
+devtools::install_github("tk382/HIPPO", build_vignettes = TRUE)
 ```
 
 ## Example Analysis
