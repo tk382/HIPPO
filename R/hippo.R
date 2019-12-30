@@ -181,19 +181,25 @@ visualize_hippo = function(hippo_object){
     ggplot2::geom_line(aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
     ggplot2::xlim(c(0,10))+
     ggplot2::theme(legend.position = "none") +
-    ggplot2::theme_bw()
+    ggplot2::theme_bw() +
+    ggplot2::ylab("zero proportion") +
+    ggplot2::xlab("gene mean")
 
   umdf$label = as.factor(umdf$label)
   tsnedf$label = as.factor(tsnedf$label)
   umap_plot = ggplot2::ggplot(umdf, ggplot2::aes(x = .data$umap1, y= .data$umap2, col = .data$label)) +
     ggplot2::facet_wrap(~.data$K) +
     ggplot2::geom_point(size = 0.4, alpha = 0.5) +
-    ggplot2::theme_bw()
+    ggplot2::theme_bw() +
+    ggplot2::ylab("umap2") +
+    ggplot2::xlab("umap1")
 
   tsne_plot = ggplot2::ggplot(tsnedf, ggplot2::aes(x = .data$tsne1, y=.data$tsne2, col=.data$label)) +
     ggplot2::facet_wrap(~.data$K) +
     ggplot2::geom_point(size=0.4, alpha = 0.5) +
-    ggplot2::theme_bw()
+    ggplot2::theme_bw() +
+    ggplot2::ylab("tsne2") +
+    ggplot2::xlab("tsne1")
 
   return(list(zero_plot = zero_plot,
               umap_plot = umap_plot,
@@ -375,7 +381,9 @@ diffexp = function(hippo_object, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
       theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
       ggtitle(paste("Round", k-1)) +
       xlab("") +
-      theme(legend.position='bottom')
+      theme(legend.position='none') +
+      ylab("log count")
+
     plist[[k-1]] = g
     result[[k-1]] = rowdata
   }
