@@ -5,7 +5,7 @@ Version: 0.1.0
 Author: Tae Kim
 Maintainer: Tae Kim <tk382@uchicago.edu>
 Description: Selects features and clusters the cells simultaneously for single-cell UMI data.
-License: GPA (>=2)
+License: GPL (>=2)
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 3.5.0)
@@ -17,5 +17,10 @@ Imports:
     matrixStats,
     stats,
     reshape2,
-    gridExtra
+    gridExtra,
+    SingleCellExperiment,
+    Rtsne,
+    umap,
+    dplyr,
+    rlang
 RoxygenNote: 6.1.1

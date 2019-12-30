@@ -11,7 +11,6 @@ pois_prob_zero = function(lambda){
 #'
 #' @param lambda gene mean
 #' @param theta dispersion parameter, 0 if poisson
-#' @param theta expected proportion of zero under poisson
 #' @return Expected zero proportion under Negative Binomial
 #' @export
 nb_prob_zero = function(lambda, theta){
@@ -120,10 +119,10 @@ preprocess_homogeneous = function(X, label, normalize = FALSE){
 
   gene_mean$id = det_rate$id = zero_proportion$id  = gene_var$id = colnames(X)
 
-  mgm = melt(gene_mean, id = "id")
-  mdr = melt(det_rate, id = "id")
-  mdor = melt(zero_proportion, id = "id")
-  mgv = melt(gene_var, id = "id")
+  mgm = reshape2::melt(gene_mean, id = "id")
+  mdr = reshape2::melt(det_rate, id = "id")
+  mdor = reshape2::melt(zero_proportion, id = "id")
+  mgv = reshape2::melt(gene_var, id = "id")
 
   df = data.frame(gene = colnames(X),
                   det_rate = mdr$value,
@@ -139,6 +138,9 @@ preprocess_homogeneous = function(X, label, normalize = FALSE){
   return(df)
 }
 
+#' visualize each round of hippo
+#'
+#' @param hippo_object hippo object from the count data
 #' @export
 visualize_hippo = function(hippo_object){
   plist = list()
@@ -172,63 +174,69 @@ visualize_hippo = function(hippo_object){
   }
   df = do.call(rbind, dflist)
   df = df[sample(nrow(df)), ]
-  zero_plot = ggplot(df, aes(x = gene_mean, y = zero_proportion, col = celltype)) +
-    geom_point(size = 0.8, alpha = 0.4) +
-    facet_wrap(~K) +
-    geom_line(aes(x = gene_mean, y = exp(-gene_mean)), col = 'black') +
-    xlim(c(0,10))+
-    theme(legend.position = "none") +
-    theme_bw()
 
-  umap_plot = ggplot(umdf, aes(x = umap1, y= umap2, col = factor(label))) +
-    facet_wrap(~K) +
-    geom_point(size = 0.8, alpha = 0.4)
+  zero_plot = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
+    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+    ggplot2::facet_wrap(~.data$K) +
+    ggplot2::geom_line(aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
+    ggplot2::xlim(c(0,10))+
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::theme_bw()
 
-  tsne_plot = ggplot(tsnedf, aes(x = tsne1, y=tsne2, col=factor(label))) +
-    facet_wrap(~K) +
-    geom_point(size=0.8, alpha = 0.4)
+  umdf$label = as.factor(umdf$label)
+  tsnedf$label = as.factor(tsnedf$label)
+  umap_plot = ggplot2::ggplot(umdf, ggplot2::aes(x = .data$umap1, y= .data$umap2, col = .data$label)) +
+    ggplot2::facet_wrap(~.data$K) +
+    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+    ggplot2::theme_bw()
+
+  tsne_plot = ggplot2::ggplot(tsnedf, ggplot2::aes(x = .data$tsne1, y=.data$tsne2, col=.data$label)) +
+    ggplot2::facet_wrap(~.data$K) +
+    ggplot2::geom_point(size=0.4, alpha = 0.5) +
+    ggplot2::theme_bw()
+
   return(list(zero_plot = zero_plot,
               umap_plot = umap_plot,
               tsne_plot = tsne_plot))
 }
 
-#' Likelihood ratio test for dispersion parameter = 0
-#'
-#' @param y a vector of each gene across cells
-#' @return p-value for the significance for non-zero dispersion parameter
-#' @export
-pois_vs_nb = function(y){
-  require(MASS)
-  pois = sum(dpois(y, mean(y), log = TRUE))
-  if(mean(y) > var(y)){
-    return(1)
-  }else{
-    nb = fitdistrplus::fitdist(y, "nbinom",
-                               start = list(size = 0.1, prob = 0.1),
-                               lower = c(0, 0), upper = c(10^10, 1))
-    chi = 2 * (logLik(nb) - pois)
-    p = pchisq(chi, df = 1, lower.tail = FALSE)
-  }
-  return(p)
-}
+#' #' Likelihood ratio test for dispersion parameter = 0
+#' #'
+#' #' @param y a vector of each gene across cells
+#' #' @return p-value for the significance for non-zero dispersion parameter
+#' #' @export
+#' pois_vs_nb = function(y){
+#'   require(MASS)
+#'   pois = sum(dpois(y, mean(y), log = TRUE))
+#'   if(mean(y) > var(y)){
+#'     return(1)
+#'   }else{
+#'     nb = fitdistrplus::fitdist(y, "nbinom",
+#'                                start = list(size = 0.1, prob = 0.1),
+#'                                lower = c(0, 0), upper = c(10^10, 1))
+#'     chi = 2 * (logLik(nb) - pois)
+#'     p = pchisq(chi, df = 1, lower.tail = FALSE)
+#'   }
+#'   return(p)
+#' }
 
-#' Change ENSG id's to HGNC symbols
-#'
-#' @param ensg a vector of ENSG names
-#' @return a dataframe of both ENSG id's and HGNC symbol
-#' @export
-ensg_to_hgnc = function(ensg){
-  maps = read.table("~/Work/SC/data/Annotations/hgnc_ensembl.txt", header=TRUE, stringsAsFactors = FALSE)
-  maps2 = data.frame(ensg = ensg,
-                     hgnc = maps$hgnc[match(ensg, maps$ensembl)])
-  maps2$ensg = as.character(maps2$ensg)
-  maps2$hgnc = as.character(maps2$hgnc)
-  ind_na = which(is.na(maps2$hgnc))
-  ind_blank = which(maps2$hgnc=="")
-  hgnc = maps2$hgnc
-  hgnc[c(ind_na, ind_blank)] = maps2$ensg[c(ind_na, ind_blank)]
-  return(hgnc)
-}
+#' #' Change ENSG id's to HGNC symbols
+#' #'
+#' #' @param ensg a vector of ENSG names
+#' #' @return a dataframe of both ENSG id's and HGNC symbol
+#' #' @export
+#' ensg_to_hgnc = function(ensg){
+#'   maps = read.table("~/Work/SC/data/Annotations/hgnc_ensembl.txt", header=TRUE, stringsAsFactors = FALSE)
+#'   maps2 = data.frame(ensg = ensg,
+#'                      hgnc = maps$hgnc[match(ensg, maps$ensembl)])
+#'   maps2$ensg = as.character(maps2$ensg)
+#'   maps2$hgnc = as.character(maps2$hgnc)
+#'   ind_na = which(is.na(maps2$hgnc))
+#'   ind_blank = which(maps2$hgnc=="")
+#'   hgnc = maps2$hgnc
+#'   hgnc[c(ind_na, ind_blank)] = maps2$ensg[c(ind_na, ind_blank)]
+#'   return(hgnc)
+#' }
 
 
 #' Conduct feature selection
@@ -246,11 +254,11 @@ compute_test_statistic = function(df){
     df = df[-grep("^MT-", df$gene), ]
   }
   require(dplyr)
-  df = df %>% mutate(expected_pi= 2*samplesize/(2*samplesize-1) * exp(-gene_mean)) %>%
-      mutate(se = sqrt(expected_pi * (1-expected_pi) / (samplesize-1.25))) %>%
-      mutate(minus_logp = -pnorm(zero_proportion, expected_pi, se, log.p = TRUE, lower.tail=FALSE)) %>%
-      mutate(minus_logp = pmin(minus_logp, 500)) %>%
-      mutate(zvalue = -qnorm(exp(-minus_logp)))
+  df = df %>% mutate(expected_pi= 2*.data$samplesize/(2*.data$samplesize-1) * exp(-.data$gene_mean)) %>%
+      mutate(se = sqrt(data$expected_pi * (1-data$expected_pi) / (data$samplesize-1.25))) %>%
+      mutate(minus_logp = -pnorm(data$zero_proportion, data$expected_pi, data$se, log.p = TRUE, lower.tail=FALSE)) %>%
+      mutate(minus_logp = pmin(data$minus_logp, 500)) %>%
+      mutate(zvalue = -qnorm(exp(-data$minus_logp)))
   df$gene = as.character(df$gene)
   return(df)
 }
@@ -272,7 +280,7 @@ one_level_clustering = function(subX, z_threshold){
   }
   pcs = irlba::irlba(log(subX[features, ]+1), 10)$v
   unscaledpc = prcomp(log(t(subX[features,])+1), scale.=FALSE, center=FALSE)$x[,1:10]
-  km = kmeans(pcs, 2, nstart = 500)
+  km = kmeans(pcs, 2, nstart = 500, algorithm="MacQueen")
   return(list(features = features, pcs = pcs, km = km, unscaled_pcs = unscaledpc, subdf = subdf))
 }
 
@@ -280,9 +288,10 @@ one_level_clustering = function(subX, z_threshold){
 #'
 #' @param X gene by cell matrix
 #' @param K number of clusters to ultimately get
+#' @param z_threshold threshold for selecting the features
 #' @return a list of clustering result for each level of k=1, 2, ... K.
 #' @export
-hippo = function(X, K=10, z_threshold = 20){
+hippo = function(X, K=10, z_threshold = 5){
   labelmatrix = matrix(NA, ncol(X), K)
   labelmatrix[,1] = 1
   eachlevel = list()
@@ -363,7 +372,7 @@ diffexp = function(hippo_object, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
     newcount = reshape2::melt(newcount, id="celltype")
     newcount$celltype = as.factor(newcount$celltype)
     colnames(newcount) = c("celltype", "gene", "logcount")
-    g = ggplot(newcount, aes(x = gene, y = logcount, col = celltype)) +
+    g = ggplot(newcount, ggplot2::aes(x = .data$gene, y = .data$logcount, col = .data$celltype)) +
       geom_boxplot(outlier.size = 0.2) +
       theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
       ggtitle(paste("Round", k-1)) +
