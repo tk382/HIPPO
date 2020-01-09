@@ -53,15 +53,12 @@ preprocess_heterogeneous = function(X){
   det_rate = colMeans(X)
   gene_mean = colMeans(Y)
   gene_var = matrixStats::colVars(Y)
-
   zero_proportion = 1-det_rate
   rm(Y); gc()
-
   gene_mean = as.data.frame(gene_mean)
   det_rate = as.data.frame(det_rate)
   zero_proportion = as.data.frame(zero_proportion)
   gene_var = as.data.frame(gene_var)
-
   df = data.frame(gene = colnames(X),
                   det_rate = det_rate,
                   gene_mean = gene_mean,
@@ -99,7 +96,6 @@ preprocess_homogeneous = function(X, label, normalize = FALSE){
   positive_mean = matrix(NA, ncol(X), length(labelnames))
   gene_var = matrix(NA, ncol(X), length(labelnames))
   samplesize = table(label)
-
   for (i in 1:length(labelnames)){
     ind = which(label==labelnames[i])
     det_rate[,i] = colMeans(X[ind, ])
@@ -111,19 +107,15 @@ preprocess_homogeneous = function(X, label, normalize = FALSE){
     colnames(gene_var) = labelnames
 
   zero_proportion = 1-det_rate
-
   gene_mean = as.data.frame(gene_mean)
   det_rate = as.data.frame(det_rate)
   zero_proportion = as.data.frame(zero_proportion)
   gene_var = as.data.frame(gene_var)
-
   gene_mean$id = det_rate$id = zero_proportion$id  = gene_var$id = colnames(X)
-
   mgm = reshape2::melt(gene_mean, id = "id")
   mdr = reshape2::melt(det_rate, id = "id")
   mdor = reshape2::melt(zero_proportion, id = "id")
   mgv = reshape2::melt(gene_var, id = "id")
-
   df = data.frame(gene = colnames(X),
                   det_rate = mdr$value,
                   gene_mean = mgm$value,
@@ -141,6 +133,7 @@ preprocess_homogeneous = function(X, label, normalize = FALSE){
 #' visualize each round of hippo
 #'
 #' @param hippo_object hippo object from the count data
+#' @return tsne, umap, and zero proportion plots for each round
 #' @export
 visualize_hippo = function(hippo_object){
   plist = list()
@@ -169,8 +162,6 @@ visualize_hippo = function(hippo_object){
                                       tsne2 = tsne$Y[,2],
                                       K=i,
                                       label = hippo_object$labelmatrix[,i]))
-
-
   }
   df = do.call(rbind, dflist)
   df = df[sample(nrow(df)), ]
@@ -184,7 +175,6 @@ visualize_hippo = function(hippo_object){
     ggplot2::theme_bw() +
     ggplot2::ylab("zero proportion") +
     ggplot2::xlab("gene mean")
-
   umdf$label = as.factor(umdf$label)
   tsnedf$label = as.factor(tsnedf$label)
   umap_plot = ggplot2::ggplot(umdf, ggplot2::aes(x = .data$umap1, y= .data$umap2, col = .data$label)) +
@@ -193,14 +183,12 @@ visualize_hippo = function(hippo_object){
     ggplot2::theme_bw() +
     ggplot2::ylab("umap2") +
     ggplot2::xlab("umap1")
-
   tsne_plot = ggplot2::ggplot(tsnedf, ggplot2::aes(x = .data$tsne1, y=.data$tsne2, col=.data$label)) +
     ggplot2::facet_wrap(~.data$K) +
     ggplot2::geom_point(size=0.4, alpha = 0.5) +
     ggplot2::theme_bw() +
     ggplot2::ylab("tsne2") +
     ggplot2::xlab("tsne1")
-
   return(list(zero_plot = zero_plot,
               umap_plot = umap_plot,
               tsne_plot = tsne_plot))
