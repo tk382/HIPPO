@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE,
 library(HIPPO)
 library(ggplot2)
 library(Matrix)
+library(SingleCellExperiment)
 ```
 
 ## Read the data
@@ -23,6 +24,7 @@ library(Matrix)
 The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). We use Zhengmix4eq data set. From the SingleCellExperiment object, we extracted the count matrix only (gene x cell) as .rds file, and we also created the reference matrix where the gene names are matched between HGNC symbol and ENSG IDs. 
 
 ```{r}
+sce = readRDS("../sce_full_Zhengmix4eq.rds")
 X = readRDS("../zhengmix4eq_counts.rds")
 ref = read.table("../ensg_hgnc_reference.txt", header=TRUE)
 ```
@@ -33,26 +35,37 @@ Below, hippo_object will return each round of feature selection and clustering r
 
 ```{r}
 set.seed(20191031)
-hippo_object = hippo(X, K = 4, z_threshold = 5)
+sce = hippo(sce, K = 4, z_threshold = 3, outlier_proportion = 0.01)
 ```
 
+## Dimension Reduction for Each Round of HIPPO
+
+```{r}
+sce = dimension_reduction(sce, method="umap")
+um = hippo_umap_plot(sce)
+um
+```
+
+```{r}
+sce = dimension_reduction(sce, method="tsne")
+ts = hippo_tsne_plot(sce)
+ts
+```
 ## Visualize the selected features at each round
 
 This shows the UMAP and t-SNE plot of each round of clustering. 
 
 ```{r}
-hippo_plots = visualize_hippo(hippo_object)
-```
-
-```{r, fig.width=6, fig.height=4}
-hippo_plots$zero_plot
-hippo_plots$umap_plot
-hippo_plots$tsne_plot
+zp = zero_proportion_plot(sce)
+zp
 ```
 
 ## Differential Expression Example
 
 ```{r, fig.width=6, fig.height=4}
+ref = data.frame(hgnc = rowData(sce)$symbol,
+                 ensg = rowData(sce)$id)
+head(ref)
 out = diffexp(hippo_object, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 ```
 
