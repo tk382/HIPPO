@@ -39,32 +39,41 @@ zinb_prob_zero = function(lambda, theta, pi){
 #' @param X gene by cell matrix
 #' @return data frame with one row for each gene.
 #' @export
-preprocess_heterogeneous = function(X){
-  X = t(X)
-  Y = X
-  X = X>0 * 1
-  numcounts = colSums(X)
-  ind = which(numcounts == 0)
-  if(length(ind) > 0){
-    X = X[, -ind]
-    Y = Y[, -ind]
+preprocess_heterogeneous = function(sce){
+  if(class(sce) %in% c("matrix")){
+    X = sce
+    sce = SingleCellExperiment(assays = list(counts = sce))
+  }else if(class(sce)=="SingleCellExperiment"){
+    X = as.matrix(sce@assays$data$counts)
+  }else{
+    stop("input must be either a matrix or a SingleCellExperiment object")
   }
-  rm(numcounts)
-  det_rate = colMeans(X)
-  gene_mean = colMeans(Y)
-  gene_var = matrixStats::colVars(Y)
-  zero_proportion = 1-det_rate
-  rm(Y); gc()
-  gene_mean = as.data.frame(gene_mean)
-  det_rate = as.data.frame(det_rate)
-  zero_proportion = as.data.frame(zero_proportion)
-  gene_var = as.data.frame(gene_var)
-  df = data.frame(gene = colnames(X),
-                  det_rate = det_rate,
-                  gene_mean = gene_mean,
-                  gene_var = gene_var,
-                  zero_proportion = zero_proportion)
-  df$samplesize = nrow(X)
+  # X = t(X)
+  # Y = X
+  # X = X>0 * 1
+  # numcounts = colSums(X)
+  # ind = which(numcounts > 0)
+  # X = X[,ind]; Y = Y[,ind]
+  # rm(numcounts)
+  # det_rate = colMeans(X); gene_mean = colMeans(Y)
+  # gene_var = matrixStats::colVars(Y)
+  # zero_proportion = 1-det_rate
+  # rm(Y); gc()
+  # gene_mean = as.data.frame(gene_mean)
+  # det_rate = as.data.frame(det_rate)
+  # zero_proportion = as.data.frame(zero_proportion)
+  # gene_var = as.data.frame(gene_var)
+  gene_mean = rowMeans(X)
+  zero_proportion = rowMeans(X==0)
+  where = which(gene_mean > 0)
+  gene_var = NA
+  gene_var[where] = matrixStats::rowVars(X[where,])
+
+  df = data.frame(gene = rownames(X),
+                  gene_mean = rowMeans(X),
+                  zero_proportion = rowMeans(X==0),
+                  gene_var = gene_var)
+  df$samplesize = ncol(X)
   return(df)
 }
 
@@ -75,49 +84,40 @@ preprocess_heterogeneous = function(X){
 #' @param normalize normalize each cell to have the same sequencing depth. Default as FALSE
 #' @return data frame with one row for each gene.
 #' @export
-preprocess_homogeneous = function(X, label, normalize = FALSE){
-  X = t(X)
-  sf = median(rowSums(X))
+preprocess_homogeneous = function(sce, label, normalize = FALSE){
+  if(class(sce)=="SingleCellExperiment"){
+    X = sce@assays$data$counts
+  }else{
+    stop("input must be a SingleCellExperiment object")
+  }
+  sf = median(colSums(X))
   if(normalize){
-    X = X/rowSums(X) * sf
+    X = apply(X, 2, function(x) x/sum(x)*sf)
   }
-  Y = X
-  X = X>0 * 1
-  numcounts = colSums(X)
-  ind = which(numcounts == 0)
-  if(length(ind) > 0){
-    X = X[, -ind]
-    Y = Y[, -ind]
-  }
-  rm(numcounts)
   labelnames = as.character(unique(label))
-  det_rate = matrix(NA, ncol(X), length(labelnames))
-  gene_mean = matrix(NA, ncol(X), length(labelnames))
-  positive_mean = matrix(NA, ncol(X), length(labelnames))
-  gene_var = matrix(NA, ncol(X), length(labelnames))
+  zero_proportion = matrix(NA, nrow(X), length(labelnames))
+  gene_mean = matrix(NA, nrow(X), length(labelnames))
+  positive_mean = matrix(NA, nrow(X), length(labelnames))
+  gene_var = matrix(NA, nrow(X), length(labelnames))
   samplesize = table(label)
   for (i in 1:length(labelnames)){
     ind = which(label==labelnames[i])
-    det_rate[,i] = colMeans(X[ind, ])
-    gene_mean[,i] = colMeans(Y[ind, ])
-    gene_var[,i] = matrixStats::colVars(Y[ind,])
+    zero_proportion[,i] = rowMeans(X[,ind]==0)
+    gene_mean[,i] = rowMeans(X[, ind])
+    where = gene_mean[,i] != 0
+    gene_var[where,i] = matrixStats::rowVars(X[where, ind])
   }
-  colnames(det_rate) =
+  colnames(zero_proportion) =
     colnames(gene_mean) =
     colnames(gene_var) = labelnames
-
-  zero_proportion = 1-det_rate
   gene_mean = as.data.frame(gene_mean)
-  det_rate = as.data.frame(det_rate)
   zero_proportion = as.data.frame(zero_proportion)
   gene_var = as.data.frame(gene_var)
-  gene_mean$id = det_rate$id = zero_proportion$id  = gene_var$id = colnames(X)
+  gene_mean$id = zero_proportion$id  = gene_var$id = rownames(X)
   mgm = reshape2::melt(gene_mean, id = "id")
-  mdr = reshape2::melt(det_rate, id = "id")
   mdor = reshape2::melt(zero_proportion, id = "id")
   mgv = reshape2::melt(gene_var, id = "id")
-  df = data.frame(gene = colnames(X),
-                  det_rate = mdr$value,
+  df = data.frame(gene = rownames(X),
                   gene_mean = mgm$value,
                   gene_var = mgv$value,
                   zero_proportion = mdor$value,
@@ -130,69 +130,6 @@ preprocess_homogeneous = function(X, label, normalize = FALSE){
   return(df)
 }
 
-#' visualize each round of hippo
-#'
-#' @param hippo_object hippo object from the count data
-#' @return tsne, umap, and zero proportion plots for each round
-#' @export
-visualize_hippo = function(hippo_object){
-  plist = list()
-  dflist = list()
-  K = ncol(hippo_object$labelmatrix)
-  df = preprocess_heterogeneous(hippo_object$X)
-  df$celltype = "combined"
-  df$selected_feature = FALSE
-  df$K = 1
-  dflist[[1]] = df
-  um = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]], ])+1))
-  um = as.data.frame(um$layout)
-  tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]], ])+1))
-  umdf = data.frame()
-  tsnedf = data.frame()
-  for (i in 2:K){
-    df = preprocess_homogeneous(hippo_object$X, label = hippo_object$labelmatrix[,i])
-    df$selected_feature = df$gene %in% hippo_object$features[[i-1]]
-    df$K = i
-    dflist[[i]] = df
-    umdf = rbind(umdf, data.frame(umap1 = um$V1,
-                                    umap2 = um$V2,
-                                    K = i,
-                                    label = hippo_object$labelmatrix[,i]))
-    tsnedf = rbind(tsnedf, data.frame(tsne1 = tsne$Y[,1],
-                                      tsne2 = tsne$Y[,2],
-                                      K=i,
-                                      label = hippo_object$labelmatrix[,i]))
-  }
-  df = do.call(rbind, dflist)
-  df = df[sample(nrow(df)), ]
-
-  zero_plot = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
-    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
-    ggplot2::facet_wrap(~.data$K) +
-    ggplot2::geom_line(aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
-    ggplot2::xlim(c(0,10))+
-    ggplot2::theme(legend.position = "none") +
-    ggplot2::theme_bw() +
-    ggplot2::ylab("zero proportion") +
-    ggplot2::xlab("gene mean")
-  umdf$label = as.factor(umdf$label)
-  tsnedf$label = as.factor(tsnedf$label)
-  umap_plot = ggplot2::ggplot(umdf, ggplot2::aes(x = .data$umap1, y= .data$umap2, col = .data$label)) +
-    ggplot2::facet_wrap(~.data$K) +
-    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
-    ggplot2::theme_bw() +
-    ggplot2::ylab("umap2") +
-    ggplot2::xlab("umap1")
-  tsne_plot = ggplot2::ggplot(tsnedf, ggplot2::aes(x = .data$tsne1, y=.data$tsne2, col=.data$label)) +
-    ggplot2::facet_wrap(~.data$K) +
-    ggplot2::geom_point(size=0.4, alpha = 0.5) +
-    ggplot2::theme_bw() +
-    ggplot2::ylab("tsne2") +
-    ggplot2::xlab("tsne1")
-  return(list(zero_plot = zero_plot,
-              umap_plot = umap_plot,
-              tsne_plot = tsne_plot))
-}
 
 #' #' Likelihood ratio test for dispersion parameter = 0
 #' #'
@@ -247,17 +184,14 @@ compute_test_statistic = function(df){
   if(length(ind) > 0){
     df = df[-grep("^MT-", df$gene), ]
   }
-  df = df %>% mutate(expected_pi= 2*.data$samplesize/(2*.data$samplesize-1) * exp(-.data$gene_mean)) %>%
-      mutate(se = sqrt(.data$expected_pi * (1-.data$expected_pi) / (.data$samplesize-1.25))) %>%
-      mutate(minus_logp = -pnorm(.data$zero_proportion, .data$expected_pi, .data$se, log.p = TRUE, lower.tail=FALSE)) %>%
-      mutate(minus_logp = pmin(.data$minus_logp, 500)) %>%
-      mutate(zvalue = -qnorm(exp(-.data$minus_logp)))
+  df = df %>% dplyr::mutate(expected_pi= pmin(2*.data$samplesize/(2*.data$samplesize-1) * exp(-.data$gene_mean), 1 - 1e-10)) %>%
+    dplyr::mutate(se = sqrt(.data$expected_pi * (1-.data$expected_pi) / (.data$samplesize-1.25))) %>%
+    dplyr::mutate(minus_logp = -pnorm(.data$zero_proportion, .data$expected_pi, .data$se, log.p = TRUE, lower.tail=FALSE)) %>%
+    dplyr::mutate(minus_logp = pmin(.data$minus_logp, 500)) %>%
+    dplyr::mutate(zvalue = -qnorm(exp(-.data$minus_logp)))
   df$gene = as.character(df$gene)
   return(df)
 }
-
-
-
 
 #' Clustering of one-step
 #' @param subX gene by cell matrix that needs clustering
@@ -270,9 +204,11 @@ one_level_clustering = function(subX, z_threshold){
   if(length(features)<10){
     return(list(features = NA, pcs = NA, km = NA))
   }
-  pcs = irlba(log(subX[features, ]+1), 10)$v
-  unscaledpc = prcomp(log(t(subX[features,])+1), scale.=FALSE, center=FALSE)$x[,1:10]
-  km = kmeans(pcs, 2, nstart = 500, algorithm="MacQueen")
+  pcs = irlba::irlba(log(subX[features, ]+1), 10)$v
+  unscaledpc = prcomp_irlba(log(t(subX[features,])+1), n = 10, scale.=FALSE, center=FALSE)$x[,1:10]
+  # unscaledpc2 = prcomp(log(t(subX[features,])+1), scale.=FALSE, center=FALSE)$x[,1:10]
+  # unscaledpc = prcomp(log(t(subX[features,])+1), scale.=FALSE, center=FALSE)$x[,1:10]
+  km = kmeans(pcs, 2, nstart = 10, iter.max = 50)
   return(list(features = features, pcs = pcs, km = km, unscaled_pcs = unscaledpc, subdf = subdf))
 }
 
@@ -283,20 +219,30 @@ one_level_clustering = function(subX, z_threshold){
 #' @param z_threshold threshold for selecting the features
 #' @return a list of clustering result for each level of k=1, 2, ... K.
 #' @export
-hippo = function(X, K=10, z_threshold = 5){
-  labelmatrix = matrix(NA, ncol(X), K)
-  labelmatrix[,1] = 1
-  eachlevel = list()
-  subX = X
-  subXind = 1:ncol(X)
-  withinss = rep(0, K)
+hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
+  if(class(sce)=="SingleCellExperiment"){
+    X = sce@assays$data$counts
+    ref = rowData(sce)
+  }else if (class(sce)=="matrix"){
+    sce = SingleCellExperiment(assays = list(counts = sce))
+    X = sce@assays$data$counts
+  }else{
+    stop("input must be either matrix or SingleCellExperiment object")
+  }
+  if(outlier_proportion >= 1 | outlier_proportion <= 0){
+    stop("Outlier_proportion must be a number between 0 and 1. Default is 5%")
+  }
+  outlier_number = nrow(X) * outlier_proportion
+  labelmatrix = matrix(NA, ncol(X), K); labelmatrix[,1] = 1
+  eachlevel = list();   subX = X
+  subXind = 1:ncol(X); withinss = rep(0, K)
   oldk = 1
-  features = list()
-  featuredata = list()
+  features = list();   featuredata = list()
   for (k in 2:K){
+    print(paste0("K = ", k, ".."))
     thisk = one_level_clustering(subX, z_threshold)
-    if(is.na(thisk$features[1])){
-      print("ran out of important features")
+    if(length(thisk$features) < outlier_number){
+      print("not enough important features left; terminating the procedure")
       labelmatrix = labelmatrix[,1:(k-1)]
       break
     }
@@ -310,9 +256,128 @@ hippo = function(X, K=10, z_threshold = 5){
     features[[k-1]] = thisk$features
     featuredata[[k-1]] = thisk$subdf
   }
-  return(list(X = X, features = features, labelmatrix = labelmatrix))
+  sce@int_metadata$hippo = list(X = X, features = features, labelmatrix = labelmatrix)
+  return(sce)
 }
 
+#' visualize each round of hippo through zero proportion plot
+#' @return zero proportion plot
+#' @export
+zero_proportion_plot = function(sce){
+  hippo_object = sce@int_metadata$hippo
+  plist = list()
+  dflist = list()
+  K = ncol(hippo_object$labelmatrix)
+  df = preprocess_heterogeneous(hippo_object$X)
+  df$celltype = "combined"
+  df$selected_feature = FALSE
+  df$K = 1
+  dflist[[1]] = df
+  for (i in 2:K){
+    df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,i])
+    df$selected_feature = df$gene %in% hippo_object$features[[i-1]]
+    df$K = i
+    dflist[[i]] = df
+  }
+  df = do.call(rbind, dflist)
+  df = df[sample(nrow(df)), ]
+  zero_plot = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
+    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+    ggplot2::facet_wrap(~.data$K) +
+    ggplot2::geom_line(aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
+    ggplot2::xlim(c(0,10))+
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::theme_bw() +
+    ggplot2::ylab("zero proportion") +
+    ggplot2::xlab("gene mean") +
+    ggplot2::theme(legend.title = element_blank())
+}
+
+#' compute t-SNE or umap of each round of HIPPO
+#' @return a data frame of dimension reduction result for each k in 1, ..., K
+#' @export
+dimension_reduction = function(sce, method = c("umap", "tsne")){
+  hippo_object = sce@int_metadata$hippo
+  dflist = list()
+  K = ncol(hippo_object$labelmatrix)
+  sce@int_metadata$hippo_object$umap = NA
+  sce@int_metadata$hippo_object$tsne = NA
+  if (method=="umap"){
+    um = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]], ])+1))
+    um = as.data.frame(um$layout)
+    umdf = data.frame()
+    for (i in 2:K){
+      df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,i])
+      df$selected_feature = df$gene %in% hippo_object$features[[i-1]]
+      df$K = i
+      dflist[[i]] = df
+      umdf = rbind(umdf, data.frame(umap1 = um$V1,
+                                    umap2 = um$V2,
+                                    K = i,
+                                    label = hippo_object$labelmatrix[,i]))
+    }
+    umdf$label = as.factor(umdf$label)
+    sce@int_metadata$hippo$umap = umdf
+    return(sce)
+  }else if(method == "tsne"){
+    tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]], ])+1))
+    tsnedf = data.frame()
+    for (i in 2:K){
+      df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,i])
+      df$selected_feature = df$gene %in% hippo_object$features[[i-1]]
+      df$K = i
+      dflist[[i]] = df
+      tsnedf = rbind(tsnedf, data.frame(tsne1 = tsne$Y[,1],
+                                        tsne2 = tsne$Y[,2],
+                                        K=i,
+                                        label = hippo_object$labelmatrix[,i]))
+    }
+    tsnedf$label = as.factor(tsnedf$label)
+    sce@int_metadata$hippo$tsne = tsnedf
+    return(sce)
+  }
+}
+
+
+#' visualize each round of hippo through UMAP
+#'
+#' @param hippo_object hippo object from the count data
+#' @return umap plot for each round
+#' @export
+hippo_umap_plot = function(sce){
+  umdf = sce@int_metadata$hippo$umap
+  if(!is.na(umdf[1])){
+    umap_plot = ggplot2::ggplot(umdf, ggplot2::aes(x = .data$umap1, y= .data$umap2, col = .data$label)) +
+      ggplot2::facet_wrap(~.data$K) +
+      ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+      ggplot2::theme_bw() +
+      ggplot2::ylab("umap2") +
+      ggplot2::xlab("umap1")+
+      ggplot2::theme(legend.title = element_blank())
+  }else{
+    stop("use dimension_reduction to compute umap first")
+  }
+}
+
+#' visualize each round of hippo through t-SNE
+#' @param sce hippo object from the count data
+#' @return tsne plot for each round
+#' @export
+hippo_tsne_plot = function(sce){
+  tsnedf = sce@int_metadata$hippo$tsne
+  if(!is.na(tsnedf[1])){
+    tsne_plot = ggplot2::ggplot(tsnedf, ggplot2::aes(x = .data$tsne1, y=.data$tsne2, col=.data$label)) +
+      ggplot2::facet_wrap(~.data$K) +
+      ggplot2::geom_point(size=0.4, alpha = 0.5) +
+      ggplot2::theme_bw() +
+      ggplot2::ylab("tsne2") +
+      ggplot2::xlab("tsne1")+
+      ggplot2::theme(legend.title = element_blank())
+  }else{
+    stop("use dimension_reduction to compute tsne first")
+  }
+  return(tsne_plot)
+}
 
 #' HIPPO's differential expression
 #'
@@ -376,7 +441,6 @@ diffexp = function(hippo_object, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
     result[[k-1]] = rowdata
   }
   bpl = gridExtra::grid.arrange(grobs = plist, ncol = 2)
-
   return(list(result_table = result,
               result_boxplot = bpl))
 }
