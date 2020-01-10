@@ -80,7 +80,6 @@ out = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 
 ## Session Info
 
-
 ```{r}
 sessionInfo()
 ```
