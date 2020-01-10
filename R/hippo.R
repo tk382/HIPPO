@@ -34,7 +34,7 @@ zinb_prob_zero = function(lambda, theta, pi){
   }
 }
 
-#' Preprocess UMI data so that each row contains information about each gene
+#' Preprocess UMI data without cell label so that each row contains information about each gene
 #'
 #' @param X gene by cell matrix
 #' @return data frame with one row for each gene.
@@ -48,21 +48,6 @@ preprocess_heterogeneous = function(sce){
   }else{
     stop("input must be either a matrix or a SingleCellExperiment object")
   }
-  # X = t(X)
-  # Y = X
-  # X = X>0 * 1
-  # numcounts = colSums(X)
-  # ind = which(numcounts > 0)
-  # X = X[,ind]; Y = Y[,ind]
-  # rm(numcounts)
-  # det_rate = colMeans(X); gene_mean = colMeans(Y)
-  # gene_var = matrixStats::colVars(Y)
-  # zero_proportion = 1-det_rate
-  # rm(Y); gc()
-  # gene_mean = as.data.frame(gene_mean)
-  # det_rate = as.data.frame(det_rate)
-  # zero_proportion = as.data.frame(zero_proportion)
-  # gene_var = as.data.frame(gene_var)
   gene_mean = rowMeans(X)
   zero_proportion = rowMeans(X==0)
   where = which(gene_mean > 0)
@@ -79,7 +64,7 @@ preprocess_heterogeneous = function(sce){
 
 #' Preprocess UMI data with inferred or known labels
 #'
-#' @param X gene by cell matrix
+#' @param sce SingleCellExperiment object
 #' @param label inferred or known label in factor
 #' @param normalize normalize each cell to have the same sequencing depth. Default as FALSE
 #' @return data frame with one row for each gene.
@@ -130,47 +115,7 @@ preprocess_homogeneous = function(sce, label, normalize = FALSE){
   return(df)
 }
 
-
-#' #' Likelihood ratio test for dispersion parameter = 0
-#' #'
-#' #' @param y a vector of each gene across cells
-#' #' @return p-value for the significance for non-zero dispersion parameter
-#' #' @export
-#' pois_vs_nb = function(y){
-#'   require(MASS)
-#'   pois = sum(dpois(y, mean(y), log = TRUE))
-#'   if(mean(y) > var(y)){
-#'     return(1)
-#'   }else{
-#'     nb = fitdistrplus::fitdist(y, "nbinom",
-#'                                start = list(size = 0.1, prob = 0.1),
-#'                                lower = c(0, 0), upper = c(10^10, 1))
-#'     chi = 2 * (logLik(nb) - pois)
-#'     p = pchisq(chi, df = 1, lower.tail = FALSE)
-#'   }
-#'   return(p)
-#' }
-
-#' #' Change ENSG id's to HGNC symbols
-#' #'
-#' #' @param ensg a vector of ENSG names
-#' #' @return a dataframe of both ENSG id's and HGNC symbol
-#' #' @export
-#' ensg_to_hgnc = function(ensg){
-#'   maps = read.table("~/Work/SC/data/Annotations/hgnc_ensembl.txt", header=TRUE, stringsAsFactors = FALSE)
-#'   maps2 = data.frame(ensg = ensg,
-#'                      hgnc = maps$hgnc[match(ensg, maps$ensembl)])
-#'   maps2$ensg = as.character(maps2$ensg)
-#'   maps2$hgnc = as.character(maps2$hgnc)
-#'   ind_na = which(is.na(maps2$hgnc))
-#'   ind_blank = which(maps2$hgnc=="")
-#'   hgnc = maps2$hgnc
-#'   hgnc[c(ind_na, ind_blank)] = maps2$ensg[c(ind_na, ind_blank)]
-#'   return(hgnc)
-#' }
-
-
-#' Conduct feature selection
+#' Conduct feature selection by computing test statistics for each gene
 #'
 #' @param df pre-processed data frame
 #' @return data frame with added columns with test results
@@ -214,7 +159,7 @@ one_level_clustering = function(subX, z_threshold){
 
 #' HIPPO's hierarchical clustering
 #'
-#' @param X gene by cell matrix
+#' @param sce SingleCellExperiment object
 #' @param K number of clusters to ultimately get
 #' @param z_threshold threshold for selecting the features
 #' @return a list of clustering result for each level of k=1, 2, ... K.
@@ -261,6 +206,7 @@ hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
 }
 
 #' visualize each round of hippo through zero proportion plot
+#' @param sce SingleCellExperiment object with hippo element in it
 #' @return zero proportion plot
 #' @export
 zero_proportion_plot = function(sce){
@@ -294,6 +240,7 @@ zero_proportion_plot = function(sce){
 }
 
 #' compute t-SNE or umap of each round of HIPPO
+#' @param SingleCellExperiment object with hippo object in it.
 #' @return a data frame of dimension reduction result for each k in 1, ..., K
 #' @export
 dimension_reduction = function(sce, method = c("umap", "tsne")){
@@ -341,7 +288,7 @@ dimension_reduction = function(sce, method = c("umap", "tsne")){
 
 #' visualize each round of hippo through UMAP
 #'
-#' @param hippo_object hippo object from the count data
+#' @param sce SingleCellExperiment object with hippo and UMAP result in it
 #' @return umap plot for each round
 #' @export
 hippo_umap_plot = function(sce){
@@ -360,7 +307,7 @@ hippo_umap_plot = function(sce){
 }
 
 #' visualize each round of hippo through t-SNE
-#' @param sce hippo object from the count data
+#' @param sce SincleCellExperiment object with hippo and t-SNE result in it
 #' @return tsne plot for each round
 #' @export
 hippo_tsne_plot = function(sce){
