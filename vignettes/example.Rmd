@@ -13,10 +13,13 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE,
                       dpi = 150,
                       comment = NA)
-library(HIPPO)
+source("../R/hippo.R")
 library(ggplot2)
 library(Matrix)
 library(SingleCellExperiment)
+library(magrittr)
+library(dplyr)
+library(irlba)
 ```
 
 ## Read the data
@@ -66,7 +69,7 @@ zp
 ref = data.frame(hgnc = rowData(sce)$symbol,
                  ensg = rowData(sce)$id)
 head(ref)
-out = diffexp(hippo_object, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
+out = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 ```
 
 ```{r}

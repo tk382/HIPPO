@@ -381,16 +381,17 @@ hippo_tsne_plot = function(sce){
 
 #' HIPPO's differential expression
 #'
-#' @param hippo_object object of hippo
+#' @param sce SCE object with hippo
 #' @param top.n number of markers to return
 #' @param switch_to_hgnc if the current gene names are ensemble ids, and would like to switch to hgnc
 #' @param ref a data frame with columns "hgnc" and "ensg" to match each other, only required when switch_to_hgnc is set to TRUE
 #' @return list of differential expression result
 #' @export
-diffexp = function(hippo_object, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
+diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
   if(switch_to_hgnc & is.na(ref)){
     stop("A reference must be provided in order to match ENSG ids to HGNC symbols")
   }
+  hippo_object = sce@int_metadata$hippo
   K = ncol(hippo_object$labelmatrix)
   featureind = list()
   cellind = list()
