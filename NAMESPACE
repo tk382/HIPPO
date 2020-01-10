@@ -2,12 +2,15 @@
 
 export(compute_test_statistic)
 export(diffexp)
+export(dimension_reduction)
 export(hippo)
+export(hippo_tsne_plot)
+export(hippo_umap_plot)
 export(nb_prob_zero)
 export(pois_prob_zero)
 export(preprocess_heterogeneous)
 export(preprocess_homogeneous)
-export(visualize_hippo)
+export(zero_proportion_plot)
 importFrom(ggplot2, aes, ylab, xlab, scale_fill_discrete, ggtitle,
            theme, geom_boxplot, ggplot, element_text, geom_tile)
 importFrom(graphics, plot)

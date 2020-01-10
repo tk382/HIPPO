@@ -4,14 +4,14 @@
 \alias{preprocess_homogeneous}
 \title{Preprocess UMI data with inferred or known labels}
 \usage{
-preprocess_homogeneous(X, label, normalize = FALSE)
+preprocess_homogeneous(sce, label, normalize = FALSE)
 }
 \arguments{
-\item{X}{gene by cell matrix}
-
 \item{label}{inferred or known label in factor}
 
 \item{normalize}{normalize each cell to have the same sequencing depth. Default as FALSE}
+
+\item{X}{gene by cell matrix}
 }
 \value{
 data frame with one row for each gene.
