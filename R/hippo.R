@@ -290,7 +290,7 @@ zero_proportion_plot = function(sce){
     ggplot2::theme_bw() +
     ggplot2::ylab("zero proportion") +
     ggplot2::xlab("gene mean") +
-    ggplot2::theme(legend.title = element_blank())
+    ggplot2::theme(legend.title = ggplot2::element_blank())
 }
 
 #' compute t-SNE or umap of each round of HIPPO
@@ -353,7 +353,7 @@ hippo_umap_plot = function(sce){
       ggplot2::theme_bw() +
       ggplot2::ylab("umap2") +
       ggplot2::xlab("umap1")+
-      ggplot2::theme(legend.title = element_blank())
+      ggplot2::theme(legend.title = ggplot2::element_blank())
   }else{
     stop("use dimension_reduction to compute umap first")
   }
@@ -372,7 +372,7 @@ hippo_tsne_plot = function(sce){
       ggplot2::theme_bw() +
       ggplot2::ylab("tsne2") +
       ggplot2::xlab("tsne1")+
-      ggplot2::theme(legend.title = element_blank())
+      ggplot2::theme(legend.title = ggplot2::element_blank())
   }else{
     stop("use dimension_reduction to compute tsne first")
   }
