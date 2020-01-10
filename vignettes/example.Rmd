@@ -15,11 +15,6 @@ knitr::opts_chunk$set(echo = TRUE,
                       comment = NA)
 library(HIPPO)
 library(SingleCellExperiment)
-# library(ggplot2)
-# library(Matrix)
-# library(magrittr)
-# library(dplyr)
-# library(irlba)
 ```
 
 ## Read the data
