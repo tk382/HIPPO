@@ -7,7 +7,7 @@
 hippo_tsne_plot(sce)
 }
 \arguments{
-\item{sce}{hippo object from the count data}
+\item{sce}{SincleCellExperiment object with hippo and t-SNE result in it}
 }
 \value{
 tsne plot for each round

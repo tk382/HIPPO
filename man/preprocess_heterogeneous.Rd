@@ -2,7 +2,7 @@
 % Please edit documentation in R/hippo.R
 \name{preprocess_heterogeneous}
 \alias{preprocess_heterogeneous}
-\title{Preprocess UMI data so that each row contains information about each gene}
+\title{Preprocess UMI data without cell label so that each row contains information about each gene}
 \usage{
 preprocess_heterogeneous(sce)
 }
@@ -13,5 +13,5 @@ preprocess_heterogeneous(sce)
 data frame with one row for each gene.
 }
 \description{
-Preprocess UMI data so that each row contains information about each gene
+Preprocess UMI data without cell label so that each row contains information about each gene
 }

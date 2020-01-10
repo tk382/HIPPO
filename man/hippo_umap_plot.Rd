@@ -7,7 +7,7 @@
 hippo_umap_plot(sce)
 }
 \arguments{
-\item{hippo_object}{hippo object from the count data}
+\item{sce}{SingleCellExperiment object with hippo and UMAP result in it}
 }
 \value{
 umap plot for each round

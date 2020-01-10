@@ -6,6 +6,9 @@
 \usage{
 zero_proportion_plot(sce)
 }
+\arguments{
+\item{sce}{SingleCellExperiment object with hippo element in it}
+}
 \value{
 zero proportion plot
 }

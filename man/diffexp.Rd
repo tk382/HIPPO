@@ -4,10 +4,10 @@
 \alias{diffexp}
 \title{HIPPO's differential expression}
 \usage{
-diffexp(hippo_object, top.n = 5, switch_to_hgnc = FALSE, ref = NA)
+diffexp(sce, top.n = 5, switch_to_hgnc = FALSE, ref = NA)
 }
 \arguments{
-\item{hippo_object}{object of hippo}
+\item{sce}{SCE object with hippo}
 
 \item{top.n}{number of markers to return}
 

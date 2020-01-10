@@ -6,6 +6,9 @@
 \usage{
 dimension_reduction(sce, method = c("umap", "tsne"))
 }
+\arguments{
+\item{SingleCellExperiment}{object with hippo object in it.}
+}
 \value{
 a data frame of dimension reduction result for each k in 1, ..., K
 }
