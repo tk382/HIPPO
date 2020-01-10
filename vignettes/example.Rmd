@@ -13,13 +13,13 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE,
                       dpi = 150,
                       comment = NA)
-source("../R/hippo.R")
-library(ggplot2)
-library(Matrix)
+library(HIPPO)
 library(SingleCellExperiment)
-library(magrittr)
-library(dplyr)
-library(irlba)
+# library(ggplot2)
+# library(Matrix)
+# library(magrittr)
+# library(dplyr)
+# library(irlba)
 ```
 
 ## Read the data
