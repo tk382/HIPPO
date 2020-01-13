@@ -86,11 +86,11 @@ preprocess_heterogeneous = function(sce){
 #' @examples
 #' library(SingleCellExperiment)
 #' library(HIPPO)
-#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' X = matrix(rpois(1000, 20), nrow = 100) # create random count matrix from poisson(10)
 #' rownames(X) = paste0('gene',1:100)
-#' colnames(X) = paste0('cell',1:10)
+#' colnames(X) = paste0('cell',1:20)
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-#' label = sample(1:5, size=10, replace = TRUE) # create fake cell type label
+#' label = sample(1:2, size=20, replace = TRUE) # create fake cell type label
 #' label = as.factor(label)
 #' df = preprocess_homogeneous(sce, label = label) #get gene information
 #' @export

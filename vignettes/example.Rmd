@@ -45,13 +45,13 @@ sce = hippo(sce, K = 4, z_threshold = 3, outlier_proportion = 0.01)
 
 Users can compute umap and t-SNE at each round of HIPPO, and see how the clustering result changes for each round of hierarchical clustering. We offer two dimension reduction methods: t-SNE and UMAP.
 
-```{r}
+```{r, fig.width = 6, fig.width = 3}
 sce = dimension_reduction(sce, method="umap")
 um = hippo_umap_plot(sce)
 um
 ```
 
-```{r}
+```{r, fig.width = 6, fig.width = 3}
 sce = dimension_reduction(sce, method="tsne")
 ts = hippo_tsne_plot(sce)
 ts
@@ -61,7 +61,7 @@ ts
 
 This shows the UMAP and t-SNE plot of each round of clustering. 
 
-```{r}
+```{r, fig.width = 6, fig.width = 3}
 zp = zero_proportion_plot(sce)
 zp
 ```
@@ -70,7 +70,7 @@ zp
 
 Sometimes, the expression level data have ENSG ID as the gene names, and they are hard to interpret. We have a function to switch the ENSG IDs to HGNC symbols, but in that case, users need to supply with the reference data frame like below.
 
-```{r, fig.width=6, fig.height=4}
+```{r, fig.width=6, fig.height=3}
 ref = data.frame(hgnc = rowData(sce)$symbol,
                  ensg = rowData(sce)$id)
 head(ref)
