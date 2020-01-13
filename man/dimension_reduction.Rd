@@ -7,11 +7,21 @@
 dimension_reduction(sce, method = c("umap", "tsne"))
 }
 \arguments{
-\item{SingleCellExperiment}{object with hippo object in it.}
+\item{sce}{SingleCellExperiment object with hippo object in it.}
+
+\item{method}{method for dimension reduction: either "umap" or 'tsne}
 }
 \value{
 a data frame of dimension reduction result for each k in 1, ..., K
 }
 \description{
 compute t-SNE or umap of each round of HIPPO
+}
+\examples{
+library(SingleCellExperiment)
+library(HIPPO)
+X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+sce = hippo(sce)
+sce = dimension_reduction(sce)
 }

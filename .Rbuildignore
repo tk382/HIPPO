@@ -1,2 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^.*\.rds$
+^.*\.txt$
+make\_sce\_zhengmix4eq\.R$

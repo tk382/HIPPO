@@ -7,12 +7,12 @@
 one_level_clustering(subX, z_threshold)
 }
 \arguments{
-\item{subX}{gene by cell matrix that needs clustering}
+\item{subX}{a matrix that is gene by cell that needs clustering}
 
 \item{z_threshold}{z-value threshold for feature selection}
 }
 \value{
-a list of clustering result. km object contains the k-means result
+a list of clustering result with relevant features, PCA reslut, and kmeans result
 }
 \description{
 Clustering of one-step

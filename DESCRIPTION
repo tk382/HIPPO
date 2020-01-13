@@ -24,5 +24,6 @@ Imports:
     rlang,
     magrittr,
     irlba,
-    Matrix
-RoxygenNote: 6.1.1
+    Matrix,
+    SingleCellExperiment
+RoxygenNote: 7.0.2

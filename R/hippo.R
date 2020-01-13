@@ -1,7 +1,9 @@
 #' Expected zero proportion under Poisson
 #'
-#' @param lambda gene mean
-#' @return expected proportion of zero under poisson
+#' @param lambda numeric vector of means of Poisson
+#' @return numeric vector of expected proportion of zeros for each lambda
+#' @examples
+#' pois_prob_zero(3)
 #' @export
 pois_prob_zero = function(lambda){
   exp(-lambda)
@@ -9,9 +11,11 @@ pois_prob_zero = function(lambda){
 
 #' Expected zero proportion under Negative Binomial
 #'
-#' @param lambda gene mean
-#' @param theta dispersion parameter, 0 if poisson
-#' @return Expected zero proportion under Negative Binomial
+#' @param lambda numeric vector of means of negative binomial
+#' @param theta numeric vector of the dispersion parameter for negative binomial, 0 if poisson
+#' @return numeric vector of expected zero proportion under Negative Binomial
+#' @examples
+#' nb_prob_zero(3, 1.1)
 #' @export
 nb_prob_zero = function(lambda, theta){
   if(theta==0){
@@ -26,6 +30,9 @@ nb_prob_zero = function(lambda, theta){
 #' @param theta dispersion parameter, 0 if zero-inflated poisson
 #' @param pi zero inflation, 0 if negative binomial
 #' @return Expected zero proportion under Zero-Inflated Negative Binomial
+#' @examples
+#' zinb_prob_zero(3, 1.1, 0.1)
+#' @export
 zinb_prob_zero = function(lambda, theta, pi){
   if(theta==0){
     return((1-pi) * exp(-lambda) + pi)
@@ -36,15 +43,23 @@ zinb_prob_zero = function(lambda, theta, pi){
 
 #' Preprocess UMI data without cell label so that each row contains information about each gene
 #'
-#' @param X gene by cell matrix
+#' @param sce SingleCellExperiment object with counts data
 #' @return data frame with one row for each gene.
+#' @examples
+#' library(SingleCellExperiment)
+#' library(HIPPO)
+#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' rownames(X) = paste0('gene',1:100)
+#' colnames(X) = paste0('cell',1:10)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' df = preprocess_heterogeneous(sce) #get gene information
 #' @export
 preprocess_heterogeneous = function(sce){
   if(class(sce) %in% c("matrix")){
     X = sce
     sce = SingleCellExperiment(assays = list(counts = sce))
   }else if(class(sce)=="SingleCellExperiment"){
-    X = as.matrix(sce@assays$data$counts)
+    X = as.matrix(sce@assays@data$counts)
   }else{
     stop("input must be either a matrix or a SingleCellExperiment object")
   }
@@ -64,14 +79,24 @@ preprocess_heterogeneous = function(sce){
 
 #' Preprocess UMI data with inferred or known labels
 #'
-#' @param sce SingleCellExperiment object
-#' @param label inferred or known label in factor
-#' @param normalize normalize each cell to have the same sequencing depth. Default as FALSE
+#' @param sce SingleCellExperiment object with counts data
+#' @param label a numeric or character vector of inferred or known label
+#' @param normalize boolean whether to normalize each cell to have the same sequencing depth. Default as FALSE
 #' @return data frame with one row for each gene.
+#' @examples
+#' library(SingleCellExperiment)
+#' library(HIPPO)
+#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' rownames(X) = paste0('gene',1:100)
+#' colnames(X) = paste0('cell',1:10)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' label = sample(1:5, size=10, replace = TRUE) # create fake cell type label
+#' label = as.factor(label)
+#' df = preprocess_homogeneous(sce, label = label) #get gene information
 #' @export
 preprocess_homogeneous = function(sce, label, normalize = FALSE){
   if(class(sce)=="SingleCellExperiment"){
-    X = sce@assays$data$counts
+    X = sce@assays@data$counts
   }else{
     stop("input must be a SingleCellExperiment object")
   }
@@ -119,6 +144,15 @@ preprocess_homogeneous = function(sce, label, normalize = FALSE){
 #'
 #' @param df pre-processed data frame
 #' @return data frame with added columns with test results
+#' @examples
+#' library(SingleCellExperiment)
+#' library(HIPPO)
+#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' rownames(X) = paste0('gene',1:100)
+#' colnames(X) = paste0('cell',1:10)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' df = preprocess_heterogeneous(sce) #get gene information
+#' df = compute_test_statistic(df)
 #' @export
 compute_test_statistic = function(df){
   ind = which(df$gene_mean==0)
@@ -139,9 +173,9 @@ compute_test_statistic = function(df){
 }
 
 #' Clustering of one-step
-#' @param subX gene by cell matrix that needs clustering
+#' @param subX a matrix that is gene by cell that needs clustering
 #' @param z_threshold z-value threshold for feature selection
-#' @return a list of clustering result. km object contains the k-means result
+#' @return a list of clustering result with relevant features, PCA reslut, and kmeans result
 one_level_clustering = function(subX, z_threshold){
   subdf = preprocess_heterogeneous(subX)
   subdf = compute_test_statistic(subdf)
@@ -150,9 +184,7 @@ one_level_clustering = function(subX, z_threshold){
     return(list(features = NA, pcs = NA, km = NA))
   }
   pcs = irlba::irlba(log(subX[features, ]+1), 10)$v
-  unscaledpc = prcomp_irlba(log(t(subX[features,])+1), n = 10, scale.=FALSE, center=FALSE)$x[,1:10]
-  # unscaledpc2 = prcomp(log(t(subX[features,])+1), scale.=FALSE, center=FALSE)$x[,1:10]
-  # unscaledpc = prcomp(log(t(subX[features,])+1), scale.=FALSE, center=FALSE)$x[,1:10]
+  unscaledpc = irlba::prcomp_irlba(log(t(subX[features,])+1), n = 10, scale.=FALSE, center=FALSE)$x[,1:10]
   km = kmeans(pcs, 2, nstart = 10, iter.max = 50)
   return(list(features = features, pcs = pcs, km = km, unscaled_pcs = unscaledpc, subdf = subdf))
 }
@@ -161,16 +193,25 @@ one_level_clustering = function(subX, z_threshold){
 #'
 #' @param sce SingleCellExperiment object
 #' @param K number of clusters to ultimately get
-#' @param z_threshold threshold for selecting the features
+#' @param z_threshold numeric > 0 as a z-value threshold for selecting the features
+#' @param outlier_proportion numeric between 0 and 1, a cut-off so that when the proportion of important features reach this number, the clustering terminates
 #' @return a list of clustering result for each level of k=1, 2, ... K.
+#' @examples
+#' library(SingleCellExperiment)
+#' library(HIPPO)
+#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' rownames(X) = paste0('gene',1:100)
+#' colnames(X) = paste0('cell',1:10)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' sce = hippo(sce, K=10, z_threshold = 3, outlier_proportion = 0.01)
 #' @export
 hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
   if(class(sce)=="SingleCellExperiment"){
-    X = sce@assays$data$counts
-    ref = rowData(sce)
+    X = sce@assays@data$counts
+    ref = SingleCellExperiment::rowData(sce)
   }else if (class(sce)=="matrix"){
-    sce = SingleCellExperiment(assays = list(counts = sce))
-    X = sce@assays$data$counts
+    sce = SingleCellExperiment::SingleCellExperiment(assays = list(counts = sce))
+    X = sce@assays@data$counts
   }else{
     stop("input must be either matrix or SingleCellExperiment object")
   }
@@ -207,7 +248,16 @@ hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
 
 #' visualize each round of hippo through zero proportion plot
 #' @param sce SingleCellExperiment object with hippo element in it
-#' @return zero proportion plot
+#' @return a ggplot object that shows the zero proportions for each round
+#' @examples
+#' library(SingleCellExperiment)
+#' library(HIPPO)
+#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' rownames(X) = paste0('gene',1:100)
+#' colnames(X) = paste0('cell',1:10)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' sce = hippo(sce)
+#' zero_proportion_plot(sce)
 #' @export
 zero_proportion_plot = function(sce){
   hippo_object = sce@int_metadata$hippo
@@ -240,8 +290,18 @@ zero_proportion_plot = function(sce){
 }
 
 #' compute t-SNE or umap of each round of HIPPO
-#' @param SingleCellExperiment object with hippo object in it.
+#' @param sce SingleCellExperiment object with hippo object in it.
+#' @param method a string that determines the method for dimension reduction: either "umap" or 'tsne
 #' @return a data frame of dimension reduction result for each k in 1, ..., K
+#' @examples
+#' library(SingleCellExperiment)
+#' library(HIPPO)
+#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' rownames(X) = paste0('gene',1:100)
+#' colnames(X) = paste0('cell',1:10)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' sce = hippo(sce)
+#' sce = dimension_reduction(sce)
 #' @export
 dimension_reduction = function(sce, method = c("umap", "tsne")){
   hippo_object = sce@int_metadata$hippo
@@ -289,7 +349,16 @@ dimension_reduction = function(sce, method = c("umap", "tsne")){
 #' visualize each round of hippo through UMAP
 #'
 #' @param sce SingleCellExperiment object with hippo and UMAP result in it
-#' @return umap plot for each round
+#' @return ggplot object for umap in each round
+#' @examples
+#' library(SingleCellExperiment)
+#' library(HIPPO)
+#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' rownames(X) = paste0('gene',1:100)
+#' colnames(X) = paste0('cell',1:10)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' sce = hippo(sce)
+#' hippo_umap_plot(sce)
 #' @export
 hippo_umap_plot = function(sce){
   umdf = sce@int_metadata$hippo$umap
@@ -308,7 +377,16 @@ hippo_umap_plot = function(sce){
 
 #' visualize each round of hippo through t-SNE
 #' @param sce SincleCellExperiment object with hippo and t-SNE result in it
-#' @return tsne plot for each round
+#' @return ggplot object for t-SNE in each round
+#' @examples
+#' library(SingleCellExperiment)
+#' library(HIPPO)
+#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' rownames(X) = paste0('gene',1:100)
+#' colnames(X) = paste0('cell',1:10)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' sce = hippo(sce)
+#' hippo_tsne_plot(sce)
 #' @export
 hippo_tsne_plot = function(sce){
   tsnedf = sce@int_metadata$hippo$tsne
@@ -328,11 +406,20 @@ hippo_tsne_plot = function(sce){
 
 #' HIPPO's differential expression
 #'
-#' @param sce SCE object with hippo
+#' @param sce SingleCellExperiment object with hippo
 #' @param top.n number of markers to return
 #' @param switch_to_hgnc if the current gene names are ensemble ids, and would like to switch to hgnc
 #' @param ref a data frame with columns "hgnc" and "ensg" to match each other, only required when switch_to_hgnc is set to TRUE
 #' @return list of differential expression result
+#' @examples
+#' library(SingleCellExperiment)
+#' library(HIPPO)
+#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' rownames(X) = paste0('gene',1:100)
+#' colnames(X) = paste0('cell',1:10)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' sce = hippo(sce)
+#' sce = diffexp(sce)
 #' @export
 diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
   if(switch_to_hgnc & is.na(ref)){
@@ -372,6 +459,7 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
     colnames(newcount) = rowdata$genes[1:top.n]
     if(switch_to_hgnc){
       colnames(newcount) = features_hgnc
+      rowdata$hgnc = ref$hgnc[match(rowdata$genes, ref$ensg)]
     }
     newcount$celltype = c(rep(types[1], length(cellgroup1)), rep(types[2], length(cellgroup2)))
     newcount = reshape2::melt(newcount, id="celltype")
@@ -389,6 +477,7 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
     result[[k-1]] = rowdata
   }
   bpl = gridExtra::grid.arrange(grobs = plist, ncol = 2)
-  return(list(result_table = result,
-              result_boxplot = bpl))
+  sce@int_metadata$hippo$diffexp$result_table = result
+  sce@int_metadata$hippo$diffexp$plot = bpl
+  return(sce)
 }

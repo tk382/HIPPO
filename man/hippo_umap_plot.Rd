@@ -15,3 +15,11 @@ umap plot for each round
 \description{
 visualize each round of hippo through UMAP
 }
+\examples{
+library(SingleCellExperiment)
+library(HIPPO)
+X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+sce = hippo(sce)
+hippo_umap_plot(sce)
+}

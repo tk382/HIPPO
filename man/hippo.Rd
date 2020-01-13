@@ -11,11 +11,20 @@ hippo(sce, K = 10, z_threshold = 3, outlier_proportion = 0.01)
 
 \item{K}{number of clusters to ultimately get}
 
-\item{z_threshold}{threshold for selecting the features}
+\item{z_threshold}{numeric > 0 as a z-value threshold for selecting the features}
+
+\item{outlier_proportion}{numeric between 0 and 1, a cut-off so that when the proportion of important features reach this number, the clustering terminates}
 }
 \value{
 a list of clustering result for each level of k=1, 2, ... K.
 }
 \description{
 HIPPO's hierarchical clustering
+}
+\examples{
+library(SingleCellExperiment)
+library(HIPPO)
+X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+sce = hippo(sce, K=10, z_threshold = 3, outlier_proportion = 0.01)
 }

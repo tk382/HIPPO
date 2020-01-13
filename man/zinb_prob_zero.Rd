@@ -19,3 +19,6 @@ Expected zero proportion under Zero-Inflated Negative Binomial
 \description{
 Expected zero proportion under Negative Binomial
 }
+\examples{
+zinb_prob_zero(3, 1.1, 0.1)
+}

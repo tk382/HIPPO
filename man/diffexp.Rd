@@ -21,3 +21,11 @@ list of differential expression result
 \description{
 HIPPO's differential expression
 }
+\examples{
+library(SingleCellExperiment)
+library(HIPPO)
+X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+sce = hippo(sce)
+sce = diffexp(sce)
+}

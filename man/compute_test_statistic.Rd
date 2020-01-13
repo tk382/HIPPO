@@ -15,3 +15,13 @@ data frame with added columns with test results
 \description{
 Conduct feature selection by computing test statistics for each gene
 }
+\examples{
+library(SingleCellExperiment)
+library(HIPPO)
+X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+label = sample(1:5, size=10, replace = TRUE) # create fake cell type label
+label = as.factor(label)
+df = preprocess_homogeneous(sce, label = label) #get gene information
+df = compute_test_statistic(df)
+}

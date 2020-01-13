@@ -7,11 +7,18 @@
 preprocess_heterogeneous(sce)
 }
 \arguments{
-\item{X}{gene by cell matrix}
+\item{sce}{SingleCellExperiment object with counts data}
 }
 \value{
 data frame with one row for each gene.
 }
 \description{
 Preprocess UMI data without cell label so that each row contains information about each gene
+}
+\examples{
+library(SingleCellExperiment)
+library(HIPPO)
+X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+df = preprocess_heterogeneous(sce) #get gene information
 }

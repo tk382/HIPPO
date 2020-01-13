@@ -7,11 +7,14 @@
 pois_prob_zero(lambda)
 }
 \arguments{
-\item{lambda}{gene mean}
+\item{lambda}{numeric vector of means of Poisson}
 }
 \value{
-expected proportion of zero under poisson
+numeric vector of expected proportion of zeros for each lambda
 }
 \description{
 Expected zero proportion under Poisson
+}
+\examples{
+pois_prob_zero(3)
 }

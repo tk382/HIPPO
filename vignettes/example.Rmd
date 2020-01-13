@@ -22,7 +22,7 @@ library(SingleCellExperiment)
 The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set. From the SingleCellExperiment object, we extracted the count matrix only (gene x cell) as .rds file, and we also created the reference matrix where the gene names are matched between HGNC symbol and ENSG IDs. 
 
 ```{r}
-sce = readRDS("../sce_full_Zhengmix4eq.rds")
+sce = readRDS("../sce_Zhengmix4eq.rds")
 ```
 
 Alternatively, you can start from a matrix object.
@@ -74,7 +74,10 @@ Sometimes, the expression level data have ENSG ID as the gene names, and they ar
 ref = data.frame(hgnc = rowData(sce)$symbol,
                  ensg = rowData(sce)$id)
 head(ref)
-out = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
+sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
+head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes
+head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells
+head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells
 ```
 
 
