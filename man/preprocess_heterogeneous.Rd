@@ -22,5 +22,5 @@ X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisso
 rownames(X) = paste0('gene',1:100)
 colnames(X) = paste0('cell',1:10)
 sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-df = preprocess_heterogeneous(sce) #get gene information
+df = preprocess_heterogeneous(X) #get gene information
 }
