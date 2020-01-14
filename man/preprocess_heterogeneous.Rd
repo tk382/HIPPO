@@ -19,6 +19,8 @@ Preprocess UMI data without cell label so that each row contains information abo
 library(SingleCellExperiment)
 library(HIPPO)
 X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+rownames(X) = paste0('gene',1:100)
+colnames(X) = paste0('cell',1:10)
 sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
 df = preprocess_heterogeneous(sce) #get gene information
 }

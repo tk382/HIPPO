@@ -10,7 +10,7 @@ hippo_tsne_plot(sce)
 \item{sce}{SincleCellExperiment object with hippo and t-SNE result in it}
 }
 \value{
-tsne plot for each round
+ggplot object for t-SNE in each round
 }
 \description{
 visualize each round of hippo through t-SNE
@@ -18,8 +18,12 @@ visualize each round of hippo through t-SNE
 \examples{
 library(SingleCellExperiment)
 library(HIPPO)
-X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+X[X\%in\%c(1,2)] = 0
+rownames(X) = paste0('gene',1:1000)
+colnames(X) = paste0('cell',1:50)
 sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-sce = hippo(sce)
+sce = hippo(sce, K = 3)
+sce = dimension_reduction(sce, method = "tsne", perplexity = 2)
 hippo_tsne_plot(sce)
 }

@@ -7,7 +7,7 @@
 diffexp(sce, top.n = 5, switch_to_hgnc = FALSE, ref = NA)
 }
 \arguments{
-\item{sce}{SCE object with hippo}
+\item{sce}{SingleCellExperiment object with hippo}
 
 \item{top.n}{number of markers to return}
 
@@ -24,8 +24,11 @@ HIPPO's differential expression
 \examples{
 library(SingleCellExperiment)
 library(HIPPO)
-X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+X[X\%in\%c(1,2)] = 0
+rownames(X) = paste0('gene',1:1000)
+colnames(X) = paste0('cell',1:50)
 sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-sce = hippo(sce)
+sce = hippo(sce, K = 3)
 sce = diffexp(sce)
 }

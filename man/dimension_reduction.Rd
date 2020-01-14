@@ -4,12 +4,14 @@
 \alias{dimension_reduction}
 \title{compute t-SNE or umap of each round of HIPPO}
 \usage{
-dimension_reduction(sce, method = c("umap", "tsne"))
+dimension_reduction(sce, method = c("umap", "tsne"), perplexity = 30)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo object in it.}
 
-\item{method}{method for dimension reduction: either "umap" or 'tsne}
+\item{method}{a string that determines the method for dimension reduction: either "umap" or 'tsne}
+
+\item{perplexity}{numeric perplexity parameter for Rtsne function}
 }
 \value{
 a data frame of dimension reduction result for each k in 1, ..., K
@@ -20,8 +22,11 @@ compute t-SNE or umap of each round of HIPPO
 \examples{
 library(SingleCellExperiment)
 library(HIPPO)
-X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+X[X\%in\%c(1,2)] = 0
+rownames(X) = paste0('gene',1:1000)
+colnames(X) = paste0('cell',1:50)
 sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-sce = hippo(sce)
-sce = dimension_reduction(sce)
+sce = hippo(sce, K = 3)
+sce = dimension_reduction(sce, method = "tsne", perplexity = 2)
 }

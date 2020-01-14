@@ -86,7 +86,7 @@ preprocess_heterogeneous = function(sce){
 #' @examples
 #' library(SingleCellExperiment)
 #' library(HIPPO)
-#' X = matrix(rpois(1000, 20), nrow = 100) # create random count matrix from poisson(10)
+#' X = matrix(rpois(2000, 10), nrow = 100) # create random count matrix from poisson(10)
 #' rownames(X) = paste0('gene',1:100)
 #' colnames(X) = paste0('cell',1:20)
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
@@ -199,11 +199,12 @@ one_level_clustering = function(subX, z_threshold){
 #' @examples
 #' library(SingleCellExperiment)
 #' library(HIPPO)
-#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
-#' rownames(X) = paste0('gene',1:100)
-#' colnames(X) = paste0('cell',1:10)
+#' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+#' X[X%in%c(1,2)] = 0
+#' rownames(X) = paste0('gene',1:1000)
+#' colnames(X) = paste0('cell',1:50)
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-#' sce = hippo(sce, K=10, z_threshold = 3, outlier_proportion = 0.01)
+#' sce = hippo(sce, K = 3)
 #' @export
 hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
   if(class(sce)=="SingleCellExperiment"){
@@ -252,11 +253,12 @@ hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
 #' @examples
 #' library(SingleCellExperiment)
 #' library(HIPPO)
-#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
-#' rownames(X) = paste0('gene',1:100)
-#' colnames(X) = paste0('cell',1:10)
+#' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+#' X[X%in%c(1,2)] = 0
+#' rownames(X) = paste0('gene',1:1000)
+#' colnames(X) = paste0('cell',1:50)
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-#' sce = hippo(sce)
+#' sce = hippo(sce, K = 3)
 #' zero_proportion_plot(sce)
 #' @export
 zero_proportion_plot = function(sce){
@@ -292,18 +294,20 @@ zero_proportion_plot = function(sce){
 #' compute t-SNE or umap of each round of HIPPO
 #' @param sce SingleCellExperiment object with hippo object in it.
 #' @param method a string that determines the method for dimension reduction: either "umap" or 'tsne
+#' @param perplexity numeric perplexity parameter for Rtsne function
 #' @return a data frame of dimension reduction result for each k in 1, ..., K
 #' @examples
 #' library(SingleCellExperiment)
 #' library(HIPPO)
-#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
-#' rownames(X) = paste0('gene',1:100)
-#' colnames(X) = paste0('cell',1:10)
+#' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+#' X[X%in%c(1,2)] = 0
+#' rownames(X) = paste0('gene',1:1000)
+#' colnames(X) = paste0('cell',1:50)
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-#' sce = hippo(sce)
-#' sce = dimension_reduction(sce)
+#' sce = hippo(sce, K = 3)
+#' sce = dimension_reduction(sce, method = "tsne", perplexity = 2)
 #' @export
-dimension_reduction = function(sce, method = c("umap", "tsne")){
+dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30){
   hippo_object = sce@int_metadata$hippo
   dflist = list()
   K = ncol(hippo_object$labelmatrix)
@@ -327,7 +331,7 @@ dimension_reduction = function(sce, method = c("umap", "tsne")){
     sce@int_metadata$hippo$umap = umdf
     return(sce)
   }else if(method == "tsne"){
-    tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]], ])+1))
+    tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]], ])+1), perplexity = perplexity)
     tsnedf = data.frame()
     for (i in 2:K){
       df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,i])
@@ -353,11 +357,13 @@ dimension_reduction = function(sce, method = c("umap", "tsne")){
 #' @examples
 #' library(SingleCellExperiment)
 #' library(HIPPO)
-#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
-#' rownames(X) = paste0('gene',1:100)
-#' colnames(X) = paste0('cell',1:10)
+#' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+#' X[X%in%c(1,2)] = 0
+#' rownames(X) = paste0('gene',1:1000)
+#' colnames(X) = paste0('cell',1:50)
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-#' sce = hippo(sce)
+#' sce = hippo(sce, K = 3)
+#' sce = dimension_reduction(sce, method="umap")
 #' hippo_umap_plot(sce)
 #' @export
 hippo_umap_plot = function(sce){
@@ -381,11 +387,13 @@ hippo_umap_plot = function(sce){
 #' @examples
 #' library(SingleCellExperiment)
 #' library(HIPPO)
-#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
-#' rownames(X) = paste0('gene',1:100)
-#' colnames(X) = paste0('cell',1:10)
+#' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+#' X[X%in%c(1,2)] = 0
+#' rownames(X) = paste0('gene',1:1000)
+#' colnames(X) = paste0('cell',1:50)
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-#' sce = hippo(sce)
+#' sce = hippo(sce, K = 3)
+#' sce = dimension_reduction(sce, method = "tsne", perplexity = 2)
 #' hippo_tsne_plot(sce)
 #' @export
 hippo_tsne_plot = function(sce){
@@ -414,11 +422,12 @@ hippo_tsne_plot = function(sce){
 #' @examples
 #' library(SingleCellExperiment)
 #' library(HIPPO)
-#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
-#' rownames(X) = paste0('gene',1:100)
-#' colnames(X) = paste0('cell',1:10)
+#' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+#' X[X%in%c(1,2)] = 0
+#' rownames(X) = paste0('gene',1:1000)
+#' colnames(X) = paste0('cell',1:50)
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-#' sce = hippo(sce)
+#' sce = hippo(sce, K = 3)
 #' sce = diffexp(sce)
 #' @export
 diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){

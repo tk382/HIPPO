@@ -10,7 +10,7 @@ zero_proportion_plot(sce)
 \item{sce}{SingleCellExperiment object with hippo element in it}
 }
 \value{
-a ggplot of zero proportion
+a ggplot object that shows the zero proportions for each round
 }
 \description{
 visualize each round of hippo through zero proportion plot
@@ -18,8 +18,11 @@ visualize each round of hippo through zero proportion plot
 \examples{
 library(SingleCellExperiment)
 library(HIPPO)
-X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+X[X\%in\%c(1,2)] = 0
+rownames(X) = paste0('gene',1:1000)
+colnames(X) = paste0('cell',1:50)
 sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-sce = hippo(sce)
+sce = hippo(sce, K = 3)
 zero_proportion_plot(sce)
 }
