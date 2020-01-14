@@ -360,7 +360,7 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30)
 #' @export
 hippo_umap_plot = function(sce){
   umdf = sce@int_metadata$hippo$umap
-  if(!is.na(umdf[1])){
+  if(length(umdf)>0){
     umap_plot = ggplot2::ggplot(umdf, ggplot2::aes(x = .data$umap1, y= .data$umap2, col = .data$label)) +
       ggplot2::facet_wrap(~.data$K) +
       ggplot2::geom_point(size = 0.4, alpha = 0.5) +
@@ -390,7 +390,7 @@ hippo_umap_plot = function(sce){
 #' @export
 hippo_tsne_plot = function(sce){
   tsnedf = sce@int_metadata$hippo$tsne
-  if(!is.na(tsnedf[1])){
+  if(length(tsnedf)>0){
     tsne_plot = ggplot2::ggplot(tsnedf, ggplot2::aes(x = .data$tsne1, y=.data$tsne2, col=.data$label)) +
       ggplot2::facet_wrap(~.data$K) +
       ggplot2::geom_point(size=0.4, alpha = 0.5) +
