@@ -54,12 +54,7 @@ zinb_prob_zero = function(lambda, theta, pi){
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
 #' df = preprocess_heterogeneous(sce) #get gene information
 #' @export
-preprocess_heterogeneous = function(sce){
-  if(class(sce)=="SingleCellExperiment"){
-    X = sce@assays@data$counts
-  }else{
-    stop("input must be a SingleCellExperiment object")
-  }
+preprocess_heterogeneous = function(X){
   gene_mean = rowMeans(X)
   zero_proportion = rowMeans(X==0)
   where = which(gene_mean > 0)
