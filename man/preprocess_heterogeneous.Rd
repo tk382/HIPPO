@@ -4,10 +4,10 @@
 \alias{preprocess_heterogeneous}
 \title{Preprocess UMI data without cell label so that each row contains information about each gene}
 \usage{
-preprocess_heterogeneous(sce)
+preprocess_heterogeneous(X)
 }
 \arguments{
-\item{sce}{SingleCellExperiment object with counts data}
+\item{X}{a matrix object with counts data}
 }
 \value{
 data frame with one row for each gene.

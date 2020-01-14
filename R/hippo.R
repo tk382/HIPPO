@@ -43,7 +43,7 @@ zinb_prob_zero = function(lambda, theta, pi){
 
 #' Preprocess UMI data without cell label so that each row contains information about each gene
 #'
-#' @param sce SingleCellExperiment object with counts data
+#' @param X a matrix object with counts data
 #' @return data frame with one row for each gene.
 #' @examples
 #' library(SingleCellExperiment)
@@ -52,7 +52,7 @@ zinb_prob_zero = function(lambda, theta, pi){
 #' rownames(X) = paste0('gene',1:100)
 #' colnames(X) = paste0('cell',1:10)
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-#' df = preprocess_heterogeneous(sce) #get gene information
+#' df = preprocess_heterogeneous(X) #get gene information
 #' @export
 preprocess_heterogeneous = function(X){
   gene_mean = rowMeans(X)
@@ -143,7 +143,7 @@ preprocess_homogeneous = function(sce, label, normalize = FALSE){
 #' rownames(X) = paste0('gene',1:100)
 #' colnames(X) = paste0('cell',1:10)
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-#' df = preprocess_heterogeneous(sce) #get gene information
+#' df = preprocess_heterogeneous(X) #get gene information
 #' df = compute_test_statistic(df)
 #' @export
 compute_test_statistic = function(df){
