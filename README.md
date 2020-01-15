@@ -1,8 +1,8 @@
 [![Travis-CI Build Status](https://travis-ci.com/tk382/HIPPO.svg?branch=master)](https://travis-ci.org/tk382/HIPPO)
 [![CRAN status](https://www.r-pkg.org/badges/version/DynamicCorrelation)](https://cran.r-project.org/package=DynamicCorrelation)
 
-# HIPPO
-<img src="https://github.com/tk382/HIPPO/blob/master/hippo_image.png" width="48">
+# HIPPO <img src="https://github.com/tk382/HIPPO/blob/master/hippo_image.png" width="60">
+
 
 Single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity
 
