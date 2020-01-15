@@ -201,7 +201,6 @@ one_level_clustering = function(subX, z_threshold){
 hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
   if(class(sce)=="SingleCellExperiment"){
     X = sce@assays@data$counts
-    ref = SingleCellExperiment::rowData(sce)
   }else if (class(sce)=="matrix"){
     sce = SingleCellExperiment::SingleCellExperiment(assays = list(counts = sce))
     X = sce@assays@data$counts
