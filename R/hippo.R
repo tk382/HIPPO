@@ -270,7 +270,7 @@ zero_proportion_plot = function(sce){
   }
   df = do.call(rbind, dflist)
   df = df[sample(nrow(df)), ]
-  zero_plot = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
+  g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
     ggplot2::geom_point(size = 0.4, alpha = 0.5) +
     ggplot2::facet_wrap(~.data$K) +
     ggplot2::geom_line(aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
@@ -279,7 +279,10 @@ zero_proportion_plot = function(sce){
     ggplot2::theme_bw() +
     ggplot2::ylab("zero proportion") +
     ggplot2::xlab("gene mean") +
-    ggplot2::theme(legend.title = ggplot2::element_blank())
+    ggplot2::theme(legend.title = ggplot2::element_blank()) +
+    ggplot2::guides(colour = guide_legend(override.aes = list(size=2)))
+  gridExtra::grid.arrange(g, nrow=1, ncol=1)
+  return(g)
 }
 
 #' compute t-SNE or umap of each round of HIPPO
@@ -360,16 +363,19 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30)
 hippo_umap_plot = function(sce){
   umdf = sce@int_metadata$hippo$umap
   if(length(umdf)>0){
-    umap_plot = ggplot2::ggplot(umdf, ggplot2::aes(x = .data$umap1, y= .data$umap2, col = .data$label)) +
+    g = ggplot2::ggplot(umdf, ggplot2::aes(x = .data$umap1, y= .data$umap2, col = .data$label)) +
       ggplot2::facet_wrap(~.data$K) +
       ggplot2::geom_point(size = 0.4, alpha = 0.5) +
       ggplot2::theme_bw() +
       ggplot2::ylab("umap2") +
       ggplot2::xlab("umap1")+
-      ggplot2::theme(legend.title = ggplot2::element_blank())
+      ggplot2::theme(legend.title = ggplot2::element_blank())+
+      ggplot2::guides(colour = guide_legend(override.aes = list(size=10)))
+    gridExtra::grid.arrange(g, nrow=1, ncol=1)
   }else{
     stop("use dimension_reduction to compute umap first")
   }
+  return(g)
 }
 
 #' visualize each round of hippo through t-SNE
@@ -390,17 +396,19 @@ hippo_umap_plot = function(sce){
 hippo_tsne_plot = function(sce){
   tsnedf = sce@int_metadata$hippo$tsne
   if(length(tsnedf)>0){
-    tsne_plot = ggplot2::ggplot(tsnedf, ggplot2::aes(x = .data$tsne1, y=.data$tsne2, col=.data$label)) +
+    g = ggplot2::ggplot(tsnedf, ggplot2::aes(x = .data$tsne1, y=.data$tsne2, col=.data$label)) +
       ggplot2::facet_wrap(~.data$K) +
       ggplot2::geom_point(size=0.4, alpha = 0.5) +
       ggplot2::theme_bw() +
       ggplot2::ylab("tsne2") +
       ggplot2::xlab("tsne1")+
-      ggplot2::theme(legend.title = ggplot2::element_blank())
+      ggplot2::theme(legend.title = ggplot2::element_blank())+
+      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=10)))
+    gridExtra::grid.arrange(g, nrow=1, ncol=1)
   }else{
     stop("use dimension_reduction to compute tsne first")
   }
-  return(tsne_plot)
+  return(g)
 }
 
 #' HIPPO's differential expression

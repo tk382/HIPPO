@@ -14,7 +14,7 @@ export(zero_proportion_plot)
 export(zinb_prob_zero)
 importFrom(ggplot2, aes, ylab, xlab, scale_fill_discrete, ggtitle,
            theme, geom_boxplot, ggplot, element_text, geom_tile,
-           element_blank)
+           element_blank, guides, guide_legend)
 importFrom(graphics, plot)
 importFrom(matrixStats, colVars)
 importFrom(reshape2, melt)
