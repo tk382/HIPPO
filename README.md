@@ -59,7 +59,7 @@ HIPPO assumes that the count matrix is placed in sce@assays@data$counts. Some ob
 
 Next, you can run hippo function to do the pre-processing that simutlaneously conducts feature selection and hierarchcial clustering. There are three arguments that help you decide the stopping criterion of clustering procedure.
 
-1. K is the maximum number of clusters that you want. HIPPO will return the clustering results for all $k = 2, 3, \cdots, K$, so you can overestimate the number of potential clusters. The default is 10, but users are highly recommended to adjust this.
+1. K is the maximum number of clusters that you want. HIPPO will return the clustering results for all $$k = 2, 3, \cdots, K$$, so you can overestimate the number of potential clusters. The default is 10, but users are highly recommended to adjust this.
 
 2. z_threshold is the feature selection criterion. For each round of hierarchical clustering, hippo will find outlier genes where the z-value of significance is greater than the threshold. For example, if you would like to select genes with p-values less than 0.05, z_threshold would be 1.96. The default threshold is 2, but users can use their discretion to change this value.
 
