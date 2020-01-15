@@ -2,7 +2,7 @@
 [![CRAN status](https://www.r-pkg.org/badges/version/DynamicCorrelation)](https://cran.r-project.org/package=DynamicCorrelation)
 
 # HIPPO <img src="https://github.com/tk382/HIPPO/blob/master/hippo_image.png" width="60">
-[image source](https://www.needpix.com/photo/178308/hippo-head-cartoon-cute-grey-zoo-wildlife)
+
 
 Single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity
 
@@ -56,4 +56,4 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 * [Mengjie Chen](http://www.mengjiechen.com) provided guidance in methodology development.
 * [Yong Peng](https://github.com/bigdataage) contributed in packaging the code to meet the Bioconductor requirements.
-
+* The hippo icon comes from [here](https://www.needpix.com/photo/178308/hippo-head-cartoon-cute-grey-zoo-wildlife)
