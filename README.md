@@ -2,7 +2,7 @@
 [![CRAN status](https://www.r-pkg.org/badges/version/DynamicCorrelation)](https://cran.r-project.org/package=DynamicCorrelation)
 
 # HIPPO
-![](https://github.com/tk382/HIPPO/blob/master/hippo_image.png | width=30)
+<img src="https://github.com/tk382/HIPPO/blob/master/hippo_image.png" width="48">
 
 Single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity
 
