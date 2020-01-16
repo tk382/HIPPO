@@ -83,11 +83,12 @@ And we offer two separate visualization functions.
 ```
 hippo_umap_plot(sce)
 ```
-
+<img src="https://github.com/tk382/HIPPO/blob/master/readme/umap.png" width="600">
+ 
 ```
 hippo_tsne_plot(sce)
 ```
-
+<img src="https://github.com/tk382/HIPPO/blob/master/readme/tsne.png" width="600">
 
 ## Authors
 
