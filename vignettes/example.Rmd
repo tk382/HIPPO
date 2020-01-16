@@ -26,9 +26,9 @@ sce = readRDS("../sce_Zhengmix4eq.rds")
 
 Alternatively, you can start from a matrix object.
 
-```{r, eval=FALSE}
-X = readRDS("../zhengmix4eq_counts.rds")
-sce = SingleCellExperiment(assays = list(counts = X))
+```{r}
+# X = readRDS("../zhengmix4eq_counts.rds")
+# sce = SingleCellExperiment(assays = list(counts = X))
 ```
 
 ## Feature Selection and Hierarchical Clustering
