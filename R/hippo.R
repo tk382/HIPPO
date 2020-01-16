@@ -283,19 +283,20 @@ zero_proportion_plot = function(sce){
   plist = list()
   dflist = list()
   K = ncol(hippo_object$labelmatrix)
-  df = preprocess_heterogeneous(hippo_object$X)
-  df$celltype = "combined"
-  df$selected_feature = FALSE
-  df$K = 1
-  dflist[[1]] = df
+  # df = preprocess_heterogeneous(hippo_object$X)
+  # df$celltype = "combined"
+  # df$selected_feature = FALSE
+  # df$K = 1
+  # dflist[[1]] = df
   for (i in 2:K){
     df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,i])
     df$selected_feature = df$gene %in% hippo_object$features[[i-1]]
     df$K = i
-    dflist[[i]] = df
+    dflist[[i-1]] = df
   }
   df = do.call(rbind, dflist)
   df = df[sample(nrow(df)), ]
+  df$celltype = as.factor(as.numeric(df$celltype))
   g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
     ggplot2::geom_point(size = 0.4, alpha = 0.5) +
     ggplot2::facet_wrap(~.data$K) +
@@ -306,7 +307,7 @@ zero_proportion_plot = function(sce){
     ggplot2::ylab("zero proportion") +
     ggplot2::xlab("gene mean") +
     ggplot2::theme(legend.title = ggplot2::element_blank()) +
-    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=2)))
+    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1)))
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
   return(g)
 }

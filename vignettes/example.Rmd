@@ -65,7 +65,7 @@ hippo_tsne_plot(sce)
 This shows the UMAP and t-SNE plot of each round of clustering. 
 
 ```{r,fig.width = 6, fig.height = 3}
-g = zero_proportion_plot(sce)
+zero_proportion_plot(sce)
 ```
 
 ## Differential Expression Example
