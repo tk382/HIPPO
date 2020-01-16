@@ -53,6 +53,15 @@ X = readRDS("zhengmix4eq_counts.rds")
 sce = SingleCellExperiment(assays=list(counts = X))
 ```
 
+### Plot diagnostics
+
+This plot shows the zero inflation compared to the expected Poisson line. If most genes don't align with the black line, it shows that there is cell heterogeneity driving the zero inflation. 
+
+```
+hippo_diagnostic_plot(sce)
+```
+<img src="https://github.com/tk382/HIPPO/blob/master/readme/diagnostic_plot.png" width="250">
+
 ### Run hippo
 
 HIPPO assumes that the count matrix is placed in sce@assays@data$counts. Some objects that we found online have the count matrix in sce@assays$data$counts. In this case, HIPPO will throw an error because it cannot found a count matrix. In this case, you have to create another SingleCellExperiment object to assign the count matrix in the correct slot.
