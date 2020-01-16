@@ -99,6 +99,17 @@ hippo_tsne_plot(sce)
 ```
 <img src="https://github.com/tk382/HIPPO/blob/master/readme/tsne.png" width="800">
 
+### Diagnostic plots after HIPPO
+
+We also recommend users to check the diagnostic plots of zero inflation for each round of hippo as below.
+
+```
+zero_inflation_plot(sce)
+```
+<img src="https://github.com/tk382/HIPPO/blob/master/readme/zero_inflation.png" width="800">
+
+
+
 ## Authors
 
 * [Tae Kim](https://github.com/tk382)
