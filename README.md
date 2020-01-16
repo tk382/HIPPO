@@ -110,13 +110,19 @@ zero_inflation_plot(sce)
 
 ### Differential Expression with HIPPO
 
-We also offer a differential expression analysis tool. The labels of red and green groups are not quite straightfoward, as we look at different cell groups at each round of HIPPO.
+We also offer a differential expression analysis tool. 
 
-In the first round, the first group (group 1: Monocytes) are separated from the rest. Hence, the green group represent the first separated group while the red group represents all other cells.
+Our function has an argument called *switch_to_hgnc* and *ref*. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in *rowData(sce)*. Users can create a data frame with *ensg* and *hgnc* columns for the genes in the count matrix, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. 
 
-Then, in the second round, it only compares the next separated group (group 2: B cells) against all the remaining cells (neither B cells nor monocytes). The green group shows the expression level distribution of B cells. 
+*top.n* argument lets users choose how many top genes to show in the box plot. The default is 5.
 
-Lastly, the third group (group 3: Regulatory T cells) are separated from the remaining cells, which turns out to be homogeneous (naive T cells). So the green box represents the third group, and the red box represents the fourth, remaining group. 
+The labels of boxplots are not quite straightfoward, as we look at different cell groups at each round of HIPPO. This must be interepreted simultaneously with the hierarchical clustering plot such as t-SNE plot above. 
+
+First, in the first round, K moves from 1 to 2, and the red group is separated. This group is Monocytes in this particular data set. The box plot always shows the "separated" group in the green box, and hence the group 1. The red boxes represent the remaining cells, so groups 2, 3, and 4 combined.
+
+In the second round, K moves from 2 to 3, and as shown in the t-SNE plot, groups 3 and 4 are separated from the group 2 because they're assigned a new color. Group 2 in this data set is B cells. (Note that this is different from group 2 is separated. Group 2 remains green.) Therefore, in the second round of box plots, the green boxes represent groups 3 and 4, and the red box represents group 2. In this round, the first group of cells have been removed from the samples. 
+
+In the last round, K moves from 3 to 4, and group 4 has been assigned a new color of violet. Hence, the green boxes represent group 4, which is Regulatory T cells, while the red boxes represent the remaining cells of group 3: Naive T cells.
 
 ```
 ref = data.frame(hgnc = rowData(sce)$symbol, ensg = rowData(sce)$id)
@@ -124,6 +130,13 @@ sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 ```
 <img src="https://github.com/tk382/HIPPO/blob/master/readme/diffexp.png" width="600">
 
+Each round of differential expression test results are also saved in the list of data frames.
+
+```
+sce@int_metadata$hippo$diffexp$result_table[[1]]
+```
+
+Above code will show the list of genes in the order of significance that differentiates the first group from the rest. The second element of the list will show the list of genes in the order of significance that differentiates the third and fourth group from the second group.
 
 ## Authors
 
