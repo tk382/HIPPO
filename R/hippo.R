@@ -430,7 +430,7 @@ hippo_tsne_plot = function(sce){
 #' sce = diffexp(sce)
 #' @export
 diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
-  if(switch_to_hgnc & is.na(ref)){
+  if(switch_to_hgnc & length(ref)<2){
     stop("A reference must be provided in order to match ENSG ids to HGNC symbols")
   }
   hippo_object = sce@int_metadata$hippo
