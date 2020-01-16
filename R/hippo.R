@@ -299,7 +299,7 @@ zero_proportion_plot = function(sce){
   g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
     ggplot2::geom_point(size = 0.4, alpha = 0.5) +
     ggplot2::facet_wrap(~.data$K) +
-    ggplot2::geom_line(aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
+    ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
     ggplot2::xlim(c(0,10))+
     ggplot2::theme(legend.position = "none") +
     ggplot2::theme_bw() +
