@@ -1,7 +1,7 @@
 [![Travis-CI Build Status](https://travis-ci.com/tk382/HIPPO.svg?branch=master)](https://travis-ci.org/tk382/HIPPO)
 [![CRAN status](https://www.r-pkg.org/badges/version/DynamicCorrelation)](https://cran.r-project.org/package=DynamicCorrelation)
 
-# HIPPO <img src="https://github.com/tk382/HIPPO/blob/master/hippo_image.png" width="60">
+# HIPPO <img src="https://github.com/tk382/HIPPO/blob/master/hippo_image.png" width="40">
 
 
 Single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity
@@ -79,4 +79,4 @@ sce = hippo(sce, K=4, z_threshold = 2, outlier_proportion = 0.01)
 
 * [Mengjie Chen](http://www.mengjiechen.com) provided guidance in methodology development.
 * [Yong Peng](https://github.com/bigdataage) contributed in packaging the code to meet the Bioconductor requirements.
-* The hippo icon comes from [here](https://www.needpix.com/photo/178308/hippo-head-cartoon-cute-grey-zoo-wildlife)
+* The hippo icon is from [here](https://www.needpix.com/photo/178308/hippo-head-cartoon-cute-grey-zoo-wildlife)
