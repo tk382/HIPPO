@@ -136,6 +136,14 @@ preprocess_homogeneous = function(sce, label, normalize = FALSE){
 #'
 #' @param sce SingleCellExperiment object with count matrix
 #' @return a diagnostic plot that shows genes with zero inflation
+#' @example
+#' library(SingleCellExperiment)
+#' library(HIPPO)
+#' X = matrix(rpois(2000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' rownames(X) = paste0('gene',1:100)
+#' colnames(X) = paste0('cell',1:20)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' hippo_diagnostic_plot(sce)
 #' @export
 hippo_diagnostic_plot = function(sce){
   df = preprocess_heterogeneous(sce@assays@data$counts)
