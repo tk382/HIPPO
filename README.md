@@ -113,7 +113,7 @@ zero_inflation_plot(sce)
 ```
 sce = diffexp(sce)
 ```
-<img src="https://github.com/tk382/HIPPO/blob/master/readme/zero_inflation.png" width="600">
+<img src="https://github.com/tk382/HIPPO/blob/master/readme/diffexp.png" width="600">
 
 
 ## Authors
