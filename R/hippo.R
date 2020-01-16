@@ -134,6 +134,24 @@ preprocess_homogeneous = function(sce, label, normalize = FALSE){
 
 #' Conduct feature selection by computing test statistics for each gene
 #'
+#' @param sce SingleCellExperiment object with count matrix
+#' @return a diagnostic plot that shows genes with zero inflation
+#' @export
+hippo_diagnostic_plot = function(sce){
+  df = preprocess_heterogeneous(sce@assays@data$counts)
+  df = compute_test_statistic(df)
+  g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion)) +
+    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+    ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
+    ggplot2::xlim(c(0,10))+
+    ggplot2::theme_bw() +
+    ggplot2::ylab("zero proportion") +
+    ggplot2::xlab("gene mean")
+  gridExtra::grid.arrange(g, nrow=1, ncol=1)
+}
+
+#' Conduct feature selection by computing test statistics for each gene
+#'
 #' @param df pre-processed data frame
 #' @return data frame with added columns with test results
 #' @examples
@@ -370,7 +388,7 @@ hippo_umap_plot = function(sce){
       ggplot2::ylab("umap2") +
       ggplot2::xlab("umap1")+
       ggplot2::theme(legend.title = ggplot2::element_blank())+
-      ggplot2::guides(colour = guide_legend(override.aes = list(size=10)))
+      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1)))
     gridExtra::grid.arrange(g, nrow=1, ncol=1)
   }else{
     stop("use dimension_reduction to compute umap first")
@@ -403,7 +421,7 @@ hippo_tsne_plot = function(sce){
       ggplot2::ylab("tsne2") +
       ggplot2::xlab("tsne1")+
       ggplot2::theme(legend.title = ggplot2::element_blank())+
-      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=10)))
+      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1)))
     gridExtra::grid.arrange(g, nrow=1, ncol=1)
   }else{
     stop("use dimension_reduction to compute tsne first")

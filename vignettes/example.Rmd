@@ -31,6 +31,12 @@ Alternatively, you can start from a matrix object.
 # sce = SingleCellExperiment(assays = list(counts = X))
 ```
 
+## Diagnostic Plot
+
+```{r}
+hippo_diagnostic_plot(sce)
+```
+
 ## Feature Selection and Hierarchical Clustering
 
 Below, hippo function will return each round of feature selection and clustering result, and save it in sce@int_metadata$hippo. K = 4 and z-threshold = 3 is the stopping criterion for hierarchical clustering. The algorithm will automatically stop after 4 clustering or if there are no more features left with z-scores higher than 5. Also, the clustering will terminate when there are less than 1\% of the genes are selected as outliers in order to account for natural with-in cell-type heterogeneity.
