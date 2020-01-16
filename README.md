@@ -101,7 +101,7 @@ hippo_tsne_plot(sce)
 
 ### Diagnostic plots after HIPPO
 
-We also recommend users to check the diagnostic plots of zero inflation for each round of hippo as below.
+We also recommend users to check the diagnostic plots of zero inflation for each round of hippo as below. The zero proportion of each gene in each clustered group aligns better and better after each round of hierarchical clustering. 
 
 ```
 zero_inflation_plot(sce)
@@ -112,7 +112,11 @@ zero_inflation_plot(sce)
 
 We also offer a differential expression analysis tool. The labels of red and green groups are not quite straightfoward, as we look at different cell groups at each round of HIPPO.
 
-In the first round, the first group (Monocytes) are separated from 
+In the first round, the first group (group 1: Monocytes) are separated from the rest. Hence, the green group represent the first separated group while the red group represents all other cells.
+
+Then, in the second round, it only compares the next separated group (group 2: B cells) against all the remaining cells (neither B cells nor monocytes). The green group shows the expression level distribution of B cells. 
+
+Lastly, the third group (group 3: Regulatory T cells) are separated from the remaining cells, which turns out to be homogeneous (naive T cells). So the green box represents the third group, and the red box represents the fourth, remaining group. 
 
 ```
 ref = data.frame(hgnc = rowData(sce)$symbol, ensg = rowData(sce)$id)
