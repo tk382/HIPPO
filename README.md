@@ -110,8 +110,13 @@ zero_inflation_plot(sce)
 
 ### Differential Expression with HIPPO
 
+We also offer a differential expression analysis tool. The labels of red and green groups are not quite straightfoward, as we look at different cell groups at each round of HIPPO.
+
+In the first round, the first group (Monocytes) are separated from 
+
 ```
-sce = diffexp(sce)
+ref = data.frame(hgnc = rowData(sce)$symbol, ensg = rowData(sce)$id)
+sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 ```
 <img src="https://github.com/tk382/HIPPO/blob/master/readme/diffexp.png" width="600">
 
