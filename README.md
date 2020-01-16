@@ -60,7 +60,7 @@ This plot shows the zero inflation compared to the expected Poisson line. If mos
 ```
 hippo_diagnostic_plot(sce)
 ```
-<img src="https://github.com/tk382/HIPPO/blob/master/readme/diagnostic_plot.png" width="250">
+<img src="https://github.com/tk382/HIPPO/blob/master/readme/diagnostic_plot.png" width="350">
 
 ### Run hippo
 
