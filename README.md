@@ -112,9 +112,15 @@ zero_inflation_plot(sce)
 
 We also offer a differential expression analysis tool. 
 
-Our function has an argument called *switch_to_hgnc* and *ref*. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in *rowData(sce)*. Users can create a data frame with *ensg* and *hgnc* columns for the genes in the count matrix, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. 
+*diffexp* has arguments called *switch_to_hgnc* and *ref*. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in *rowData(sce)*. Users can create a data frame with *ensg* and *hgnc* columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
 
 *top.n* argument lets users choose how many top genes to show in the box plot. The default is 5.
+
+```
+ref = data.frame(hgnc = rowData(sce)$symbol, ensg = rowData(sce)$id)
+sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
+```
+<img src="https://github.com/tk382/HIPPO/blob/master/readme/diffexp.png" width="600">
 
 The labels of boxplots are not quite straightfoward, as we look at different cell groups at each round of HIPPO. This must be interepreted simultaneously with the hierarchical clustering plot such as t-SNE plot above. 
 
@@ -124,11 +130,7 @@ In the second round, K moves from 2 to 3, and as shown in the t-SNE plot, groups
 
 In the last round, K moves from 3 to 4, and group 4 has been assigned a new color of violet. Hence, the green boxes represent group 4, which is Regulatory T cells, while the red boxes represent the remaining cells of group 3: Naive T cells.
 
-```
-ref = data.frame(hgnc = rowData(sce)$symbol, ensg = rowData(sce)$id)
-sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
-```
-<img src="https://github.com/tk382/HIPPO/blob/master/readme/diffexp.png" width="600">
+
 
 Each round of differential expression test results are also saved in the list of data frames.
 
