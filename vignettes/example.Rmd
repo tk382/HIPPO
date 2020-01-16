@@ -37,14 +37,14 @@ Below, hippo function will return each round of feature selection and clustering
 
 ```{r}
 set.seed(20191031)
-sce = hippo(sce, K = 4, z_threshold = 3, outlier_proportion = 0.01)
+sce = hippo(sce, K = 4, z_threshold = 2, outlier_proportion = 0.01)
 ```
 
 ## Dimension Reduction for Each Round of HIPPO
 
 Users can compute umap and t-SNE at each round of HIPPO, and see how the clustering result changes for each round of hierarchical clustering. We offer two dimension reduction methods: t-SNE and UMAP.
 
-```{r,fig.width = 6, fig.height = 3}
+```{r,fig.width = 5, fig.height = 2}
 sce = dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce)
 ```
