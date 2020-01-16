@@ -108,6 +108,12 @@ zero_inflation_plot(sce)
 ```
 <img src="https://github.com/tk382/HIPPO/blob/master/readme/zero_inflation.png" width="800">
 
+### Differential Expression with HIPPO
+
+```
+sce = diffexp(sce)
+```
+<img src="https://github.com/tk382/HIPPO/blob/master/readme/zero_inflation.png" width="600">
 
 
 ## Authors
