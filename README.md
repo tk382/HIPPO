@@ -71,6 +71,24 @@ sce = hippo(sce, K=4, z_threshold = 2, outlier_proportion = 0.01)
 
 ### Dimension Reduction and Visualization
 
+We offer two dimension reduction methods: umap and tsne.
+
+```
+sce = dimension_reduction(sce, method = "umap")
+sce = dimension_reduction(sce, method = "tsne")
+```
+
+And we offer two separate visualization functions.
+
+```
+hippo_umap_plot(sce)
+```
+
+```
+hippo_tsne_plot(sce)
+```
+
+
 ## Authors
 
 * [Tae Kim](https://github.com/tk382)
