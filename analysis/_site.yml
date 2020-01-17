@@ -3,6 +3,8 @@ output_dir: ../docs
 navbar:
   title: "HIPPO"
   left:
+  - text: Home
+    href: index.html
   - text: About
     href: about.html
   - text: Example1
