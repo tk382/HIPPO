@@ -82,8 +82,3 @@ head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T ce
 ```
 
 
-## Session Info
-
-```{r}
-sessionInfo()
-```
