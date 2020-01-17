@@ -243,13 +243,13 @@ hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
   oldk = 1
   features = list();   featuredata = list()
   for (k in 2:K){
-    print(paste0("K = ", k, ".."))
     thisk = one_level_clustering(subX, z_threshold)
     if(length(thisk$features) < outlier_number){
       print("not enough important features left; terminating the procedure")
       labelmatrix = labelmatrix[,1:(k-1)]
       break
     }
+    print(paste0("K = ", k, ".."))
     labelmatrix[,k] = labelmatrix[,k-1]
     labelmatrix[subXind[thisk$km$cluster==2], k] = k
     withinss[oldk] = sum(apply(thisk$unscaled_pcs[thisk$km$cluster==1, ], 1, var)^2)
