@@ -3,14 +3,10 @@ output_dir: ../docs
 navbar:
   title: "HIPPO"
   left:
-  - text: Home
-    href: index.html
   - text: About
     href: about.html
   - text: Example1
     href: example.html
-  - text: License
-    href: license.html
 output:
   workflowr::wflow_html:
     toc: yes
