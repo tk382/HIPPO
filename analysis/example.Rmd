@@ -1,0 +1,89 @@
+---
+title: "Example1: Zhengmix4eq"
+output:
+  workflowr::wflow_html:
+    toc: false
+editor_options:
+  chunk_output_type: console
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA)
+library(HIPPO)
+library(SingleCellExperiment)
+```
+
+## Read the data
+
+The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set. From the SingleCellExperiment object, we extracted the count matrix only (gene x cell) as .rds file, and we also created the reference matrix where the gene names are matched between HGNC symbol and ENSG IDs. 
+
+```{r}
+sce = readRDS("../sce_Zhengmix4eq.rds")
+```
+
+Alternatively, you can start from a matrix object.
+
+```{r}
+# X = readRDS("../zhengmix4eq_counts.rds")
+# sce = SingleCellExperiment(assays = list(counts = X))
+```
+
+## Diagnostic Plot
+
+```{r}
+hippo_diagnostic_plot(sce)
+```
+
+## Feature Selection and Hierarchical Clustering
+
+Below, hippo function will return each round of feature selection and clustering result, and save it in sce@int_metadata$hippo. K = 4 and z-threshold = 3 is the stopping criterion for hierarchical clustering. The algorithm will automatically stop after 4 clustering or if there are no more features left with z-scores higher than 5. Also, the clustering will terminate when there are less than 1\% of the genes are selected as outliers in order to account for natural with-in cell-type heterogeneity.
+
+```{r}
+set.seed(20191031)
+sce = hippo(sce, K = 4, z_threshold = 2, outlier_proportion = 0.01)
+```
+
+## Dimension Reduction for Each Round of HIPPO
+
+Users can compute umap and t-SNE at each round of HIPPO, and see how the clustering result changes for each round of hierarchical clustering. We offer two dimension reduction methods: t-SNE and UMAP.
+
+```{r,fig.width = 5, fig.height = 2}
+sce = dimension_reduction(sce, method="umap")
+hippo_umap_plot(sce)
+```
+
+```{r,fig.width = 6, fig.height = 3}
+sce = dimension_reduction(sce, method="tsne")
+hippo_tsne_plot(sce)
+```
+
+## Visualize the selected features at each round
+
+This shows the UMAP and t-SNE plot of each round of clustering. 
+
+```{r,fig.width = 6, fig.height = 3}
+zero_proportion_plot(sce)
+```
+
+## Differential Expression Example
+
+Sometimes, the expression level data have ENSG ID as the gene names, and they are hard to interpret. We have a function to switch the ENSG IDs to HGNC symbols, but in that case, users need to supply with the reference data frame like below.
+
+```{r, fig.width=6, fig.height=4}
+ref = data.frame(hgnc = rowData(sce)$symbol,
+                 ensg = rowData(sce)$id)
+head(ref)
+sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
+head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes
+head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells
+head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells
+```
+
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
