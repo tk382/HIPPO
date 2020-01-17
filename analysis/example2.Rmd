@@ -1,5 +1,5 @@
 ---
-title: "Example1: PBMC68K"
+title: "Example2: PBMC68K"
 output:
   workflowr::wflow_html:
     toc: false
@@ -17,17 +17,34 @@ library(SingleCellExperiment)
 
 ## Read the data
 
-The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set. From the SingleCellExperiment object, we extracted the count matrix only (gene x cell) as .rds file, and we also created the reference matrix where the gene names are matched between HGNC symbol and ENSG IDs. 
+This data set is available in 10X [website](https://support.10xgenomics.com/single-cell-gene-expression/datasets/1.1.0/fresh_68k_pbmc_donor_a). The format is Matrix, so we need Matrix package for this particular example.
 
 ```{r}
-sce = readRDS("../sce_Zhengmix4eq.rds")
+library(Matrix)
+X = readMM("/Volumes/tae/Work/SC/data/10X_68K/filtered_matrix/hg19/matrix.mtx")
+rowdata =  read.table("/Volumes/tae/Work/SC/data/10X_68K/filtered_matrix/hg19/genes.tsv") # this shows both ENSG IDs and HGNC symbols
+coldata = data.table::setDF(data.table::fread("/Volumes/tae/Work/SC/data/10X_68K/filtered_matrix/hg19/barocdes_annotation.tsv")) # this shows barcode information
+rownames(X) = rowdata$V1
+colnames(X) = coldata$barcodes
 ```
 
-Alternatively, you can start from a matrix object.
+My local laptop cannot handle such a large matrix, so I will reduce the number of cells by random sampling.
 
 ```{r}
-# X = readRDS("../zhengmix4eq_counts.rds")
-# sce = SingleCellExperiment(assays = list(counts = X))
+set.seed(20200117)
+cells = sample(1:ncol(X), size = 3000)
+X = X[, cells]
+coldata = coldata[cells, ]
+```
+
+Then create the SingleCellExperiment object.
+
+```{r}
+sce = SingleCellExperiment(assays = list(counts = as.matrix(X)),
+                           rowData = rowdata,
+                           colData = coldata)
+
+rm(X, rowdata, coldata); gc()
 ```
 
 ## Diagnostic Plot
@@ -38,16 +55,12 @@ hippo_diagnostic_plot(sce)
 
 ## Feature Selection and Hierarchical Clustering
 
-Below, hippo function will return each round of feature selection and clustering result, and save it in sce@int_metadata$hippo. K = 4 and z-threshold = 3 is the stopping criterion for hierarchical clustering. The algorithm will automatically stop after 4 clustering or if there are no more features left with z-scores higher than 5. Also, the clustering will terminate when there are less than 1\% of the genes are selected as outliers in order to account for natural with-in cell-type heterogeneity.
-
 ```{r}
 set.seed(20191031)
-sce = hippo(sce, K = 4, z_threshold = 2, outlier_proportion = 0.01)
+sce = hippo(sce, K = 10, z_threshold = 2, outlier_proportion = 0.01)
 ```
 
 ## Dimension Reduction for Each Round of HIPPO
-
-Users can compute umap and t-SNE at each round of HIPPO, and see how the clustering result changes for each round of hierarchical clustering. We offer two dimension reduction methods: t-SNE and UMAP.
 
 ```{r,fig.width = 5, fig.height = 2}
 sce = dimension_reduction(sce, method="umap")
@@ -61,19 +74,15 @@ hippo_tsne_plot(sce)
 
 ## Visualize the selected features at each round
 
-This shows the UMAP and t-SNE plot of each round of clustering. 
-
 ```{r,fig.width = 6, fig.height = 3}
 zero_proportion_plot(sce)
 ```
 
 ## Differential Expression Example
 
-Sometimes, the expression level data have ENSG ID as the gene names, and they are hard to interpret. We have a function to switch the ENSG IDs to HGNC symbols, but in that case, users need to supply with the reference data frame like below.
-
 ```{r, fig.width=6, fig.height=4}
-ref = data.frame(hgnc = rowData(sce)$symbol,
-                 ensg = rowData(sce)$id)
+ref = data.frame(hgnc = rowData(sce)$V2,
+                 ensg = rowData(sce)$V1)
 head(ref)
 sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes
