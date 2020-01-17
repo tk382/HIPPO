@@ -42,7 +42,7 @@ Below, hippo function will return each round of feature selection and clustering
 
 ```{r}
 set.seed(20191031)
-sce = hippo(sce, K = 4, z_threshold = 2, outlier_proportion = 0.01)
+sce = hippo(sce, K = 4, z_threshold = 3, outlier_proportion = 0.01)
 ```
 
 ## Dimension Reduction for Each Round of HIPPO
