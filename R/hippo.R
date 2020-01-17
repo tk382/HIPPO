@@ -332,8 +332,8 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30)
   hippo_object = sce@int_metadata$hippo
   dflist = list()
   K = ncol(hippo_object$labelmatrix)
-  sce@int_metadata$hippo_object$umap = NA
-  sce@int_metadata$hippo_object$tsne = NA
+  sce@int_metadata$hippo$umap = NA
+  sce@int_metadata$hippo$tsne = NA
   if (method=="umap"){
     um = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]], ])+1))
     um = as.data.frame(um$layout)
