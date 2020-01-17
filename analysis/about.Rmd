@@ -7,4 +7,8 @@ editor_options:
   chunk_output_type: console
 ---
 
-Describe your project.
+HIPPO is a single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity. The detailed methodology can be found in on github page [here](https://github.com/tk382/HIPPO/blob/master/draft.pdf). 
+
+We provide two separate analysis files for two separate data sets. A smaller data set (Zhengmix4eq) is available on my github [here](https://github.com/tk382/HIPPO/blob/master/sce_Zhengmix4eq.rds). The bigger data set (PBMC68K) is available in 10X [website](https://support.10xgenomics.com/single-cell-gene-expression/datasets/1.1.0/fresh_68k_pbmc_donor_a).
+
+For more, extensive UMI data set with annotations, please see Duo (2018) where data set is downloadable at this [link for 3.3GB data sets](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz).
