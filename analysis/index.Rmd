@@ -8,4 +8,4 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+Welcome to the tutorial for HIPPO. Please look at About for general information and Example for a analysis pipeline. 
