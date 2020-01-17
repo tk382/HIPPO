@@ -58,7 +58,7 @@ preprocess_heterogeneous = function(X){
   gene_mean = rowMeans(X)
   zero_proportion = rowMeans(X==0)
   where = which(gene_mean > 0)
-  gene_var = NA
+  gene_var = rep(NA, nrow(X))
   gene_var[where] = matrixStats::rowVars(X[where,])
 
   df = data.frame(gene = rownames(X),
