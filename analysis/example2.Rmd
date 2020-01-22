@@ -57,7 +57,7 @@ hippo_diagnostic_plot(sce)
 
 ```{r}
 set.seed(20191031)
-sce = hippo(sce, K = 10, z_threshold = 1.5, outlier_proportion = 0.005)
+sce = hippo(sce, K = 6, z_threshold = 1.5, outlier_proportion = 0.005)
 ```
 
 ## Dimension Reduction for Each Round of HIPPO
@@ -80,7 +80,7 @@ zero_proportion_plot(sce)
 
 ## Differential Expression Example
 
-```{r, fig.width=6, fig.height=4}
+```{r, fig.width=6, fig.height=8}
 ref = data.frame(hgnc = rowData(sce)$V2,
                  ensg = rowData(sce)$V1)
 head(ref)
