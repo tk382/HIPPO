@@ -418,10 +418,10 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtreee5f797b66f62043a381fa83a7489ae9f5953279btargetblanke5f797ba"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/e5f797b66f62043a381fa83a7489ae9f5953279b" target="_blank">e5f797b</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree3531e4b053947044296239ba485475125898c919targetblank3531e4ba"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/3531e4b053947044296239ba485475125898c919" target="_blank">3531e4b</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtreee5f797b66f62043a381fa83a7489ae9f5953279btargetblanke5f797ba" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree3531e4b053947044296239ba485475125898c919targetblank3531e4ba" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -476,6 +476,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/3531e4b053947044296239ba485475125898c919/analysis/example2.Rmd" target="_blank">3531e4b</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+<td>
+wflow_publish(“analysis/example2.Rmd”,
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/tk382/HIPPO/8809a3d163a5bb6985a6655b5e6008d6e13054e7/docs/example2.html" target="_blank">8809a3d</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -571,9 +605,9 @@ coldata = coldata[cells, ]</code></pre>
                            colData = coldata)
 
 rm(X, rowdata, coldata); gc()</code></pre>
-<pre><code>            used  (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)
-Ncells   5399672 288.4   10211757  545.4         NA   6410325  342.4
-Vcells 107968972 823.8  216522494 1652.0      16384 180071020 1373.9</code></pre>
+<pre><code>            used  (Mb) gc trigger (Mb) limit (Mb)  max used   (Mb)
+Ncells   5399675 288.4   10091050  539         NA   6429567  343.4
+Vcells 107969105 823.8  216522220 1652      16384 177199263 1352.0</code></pre>
 </div>
 <div id="diagnostic-plot" class="section level2">
 <h2>Diagnostic Plot</h2>
@@ -620,16 +654,12 @@ tk382
 <div id="feature-selection-and-hierarchical-clustering" class="section level2">
 <h2>Feature Selection and Hierarchical Clustering</h2>
 <pre class="r"><code>set.seed(20191031)
-sce = hippo(sce, K = 10, z_threshold = 1.5, outlier_proportion = 0.005)</code></pre>
+sce = hippo(sce, K = 6, z_threshold = 1.5, outlier_proportion = 0.005)</code></pre>
 <pre><code>[1] &quot;K = 2..&quot;
 [1] &quot;K = 3..&quot;
 [1] &quot;K = 4..&quot;
 [1] &quot;K = 5..&quot;
-[1] &quot;K = 6..&quot;
-[1] &quot;K = 7..&quot;
-[1] &quot;K = 8..&quot;
-[1] &quot;K = 9..&quot;
-[1] &quot;K = 10..&quot;</code></pre>
+[1] &quot;K = 6..&quot;</code></pre>
 </div>
 <div id="dimension-reduction-for-each-round-of-hippo" class="section level2">
 <h2>Dimension Reduction for Each Round of HIPPO</h2>
@@ -658,6 +688,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/8809a3d163a5bb6985a6655b5e6008d6e13054e7/docs/figure/example2.Rmd/unnamed-chunk-6-1.png" target="_blank">8809a3d</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-6-1.png" target="_blank">75f668f</a>
@@ -698,6 +739,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/8809a3d163a5bb6985a6655b5e6008d6e13054e7/docs/figure/example2.Rmd/unnamed-chunk-7-1.png" target="_blank">8809a3d</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-7-1.png" target="_blank">75f668f</a>
@@ -742,6 +794,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/tk382/HIPPO/blob/8809a3d163a5bb6985a6655b5e6008d6e13054e7/docs/figure/example2.Rmd/unnamed-chunk-8-1.png" target="_blank">8809a3d</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-8-1.png" target="_blank">75f668f</a>
 </td>
 <td>
@@ -778,6 +841,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/8809a3d163a5bb6985a6655b5e6008d6e13054e7/docs/figure/example2.Rmd/unnamed-chunk-8-2.png" target="_blank">8809a3d</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-8-2.png" target="_blank">75f668f</a>
@@ -830,6 +904,17 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/8809a3d163a5bb6985a6655b5e6008d6e13054e7/docs/figure/example2.Rmd/unnamed-chunk-9-1.png" target="_blank">8809a3d</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-9-1.png" target="_blank">75f668f</a>
