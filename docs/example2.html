@@ -327,7 +327,7 @@ div.section {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2020-01-17
+<strong>Last updated:</strong> 2020-01-22
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -418,10 +418,10 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtreeb78600d87357063b7b5b56f3a70876c2ab1fa2aftargetblankb78600da"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/b78600d87357063b7b5b56f3a70876c2ab1fa2af" target="_blank">b78600d</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtreee5f797b66f62043a381fa83a7489ae9f5953279btargetblanke5f797ba"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/e5f797b66f62043a381fa83a7489ae9f5953279b" target="_blank">e5f797b</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtreeb78600d87357063b7b5b56f3a70876c2ab1fa2aftargetblankb78600da" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtreee5f797b66f62043a381fa83a7489ae9f5953279btargetblanke5f797ba" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -435,6 +435,9 @@ Ignored files:
 Untracked files:
     Untracked:  make_sce_zhengmix4eq.R
     Untracked:  sce_full_Zhengmix4eq.rds
+
+Unstaged changes:
+    Modified:   R/hippo.R
 
 </code></pre>
 <p>
@@ -473,6 +476,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/e5f797b66f62043a381fa83a7489ae9f5953279b/analysis/example2.Rmd" target="_blank">e5f797b</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+<td>
+wflow_publish(“analysis/example2.Rmd”, republish = TRUE)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/tk382/HIPPO/75f668f46d4bed083afa1a218e723965db5a8c31/docs/example2.html" target="_blank">75f668f</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-17
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -535,36 +572,227 @@ coldata = coldata[cells, ]</code></pre>
 
 rm(X, rowdata, coldata); gc()</code></pre>
 <pre><code>            used  (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)
-Ncells   5399381 288.4   10211220  545.4         NA   6410034  342.4
-Vcells 107968179 823.8  216520851 1652.0      16384 180070227 1373.9</code></pre>
+Ncells   5399672 288.4   10211757  545.4         NA   6410325  342.4
+Vcells 107968972 823.8  216522494 1652.0      16384 180071020 1373.9</code></pre>
 </div>
 <div id="diagnostic-plot" class="section level2">
 <h2>Diagnostic Plot</h2>
 <pre class="r"><code>hippo_diagnostic_plot(sce)</code></pre>
 <p><img src="figure/example2.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
+Past versions of unnamed-chunk-4-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-4-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-4-1.png" target="_blank">75f668f</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-17
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="feature-selection-and-hierarchical-clustering" class="section level2">
 <h2>Feature Selection and Hierarchical Clustering</h2>
 <pre class="r"><code>set.seed(20191031)
-sce = hippo(sce, K = 10, z_threshold = 2, outlier_proportion = 0.01)</code></pre>
+sce = hippo(sce, K = 10, z_threshold = 1.5, outlier_proportion = 0.005)</code></pre>
 <pre><code>[1] &quot;K = 2..&quot;
 [1] &quot;K = 3..&quot;
 [1] &quot;K = 4..&quot;
-[1] &quot;not enough important features left; terminating the procedure&quot;</code></pre>
+[1] &quot;K = 5..&quot;
+[1] &quot;K = 6..&quot;
+[1] &quot;K = 7..&quot;
+[1] &quot;K = 8..&quot;
+[1] &quot;K = 9..&quot;
+[1] &quot;K = 10..&quot;</code></pre>
 </div>
 <div id="dimension-reduction-for-each-round-of-hippo" class="section level2">
 <h2>Dimension Reduction for Each Round of HIPPO</h2>
 <pre class="r"><code>sce = dimension_reduction(sce, method=&quot;umap&quot;)
 hippo_umap_plot(sce)</code></pre>
-<p><img src="figure/example2.Rmd/unnamed-chunk-6-1.png" width="480" style="display: block; margin: auto;" /><img src="figure/example2.Rmd/unnamed-chunk-6-2.png" width="480" style="display: block; margin: auto;" /></p>
+<p><img src="figure/example2.Rmd/unnamed-chunk-6-1.png" width="480" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
+Past versions of unnamed-chunk-6-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-6-1.png" target="_blank">75f668f</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-17
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>sce = dimension_reduction(sce, method=&quot;tsne&quot;)
 hippo_tsne_plot(sce)</code></pre>
-<p><img src="figure/example2.Rmd/unnamed-chunk-7-1.png" width="576" style="display: block; margin: auto;" /><img src="figure/example2.Rmd/unnamed-chunk-7-2.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="figure/example2.Rmd/unnamed-chunk-7-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
+Past versions of unnamed-chunk-7-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-7-1.png" target="_blank">75f668f</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-17
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="visualize-the-selected-features-at-each-round" class="section level2">
 <h2>Visualize the selected features at each round</h2>
 <pre class="r"><code>zero_proportion_plot(sce)</code></pre>
-<p><img src="figure/example2.Rmd/unnamed-chunk-8-1.png" width="576" style="display: block; margin: auto;" /><img src="figure/example2.Rmd/unnamed-chunk-8-2.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="figure/example2.Rmd/unnamed-chunk-8-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-1">
+Past versions of unnamed-chunk-8-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-8-1.png" target="_blank">75f668f</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-17
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/example2.Rmd/unnamed-chunk-8-2.png" width="576" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-2">
+Past versions of unnamed-chunk-8-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-8-2.png" target="_blank">75f668f</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-17
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="differential-expression-example" class="section level2">
 <h2>Differential Expression Example</h2>
@@ -580,30 +808,67 @@ head(ref)</code></pre>
 6   AL627309.1 ENSG00000237683</code></pre>
 <pre class="r"><code>sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)</code></pre>
 <p><img src="figure/example2.Rmd/unnamed-chunk-9-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-9-1">
+Past versions of unnamed-chunk-9-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-9-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-9-1.png" target="_blank">75f668f</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-17
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes</code></pre>
-<pre><code>              genes  meandiff        sd        z     hgnc
-254 ENSG00000019582 17.038462 0.2134361 79.82935     CD74
-908 ENSG00000087086 15.955349 0.2358395 67.65342      FTL
-295 ENSG00000204287  9.472679 0.1564456 60.54933  HLA-DRA
-507 ENSG00000167996 11.558238 0.2021407 57.17916     FTH1
-297 ENSG00000196126  7.187445 0.1375766 52.24321 HLA-DRB1
-307 ENSG00000223865  5.669290 0.1227722 46.17730 HLA-DPB1</code></pre>
+<pre><code>               genes  meandiff        sd        z     hgnc
+1412 ENSG00000087086 26.433033 0.3766971 70.17053      FTL
+811  ENSG00000167996 19.176096 0.3222346 59.50975     FTH1
+425  ENSG00000019582 12.147147 0.2515863 48.28223     CD74
+1257 ENSG00000101439  8.741141 0.1977649 44.19965     CST3
+478  ENSG00000204287  8.507868 0.2024042 42.03404  HLA-DRA
+480  ENSG00000196126  7.643243 0.1910941 39.99728 HLA-DRB1</code></pre>
 <pre class="r"><code>head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells</code></pre>
-<pre><code>              genes  meandiff         sd        z  hgnc
-486 ENSG00000167526 10.210689 0.19199110 53.18314 RPL13
-194 ENSG00000227507  3.589504 0.06890271 52.09525   LTB
-467 ENSG00000140988  8.708400 0.18764717 46.40837  RPS2
-110 ENSG00000144713  5.916930 0.12979659 45.58617 RPL32
-9   ENSG00000142676  5.859918 0.12964041 45.20133 RPL11
-289 ENSG00000137154  7.297226 0.16245776 44.91768  RPS6</code></pre>
+<pre><code>               genes meandiff         sd        z hgnc
+153  ENSG00000115523 2.673250 0.04849780 55.12106 GNLY
+1130 ENSG00000105374 2.073494 0.04521215 45.86142 NKG7
+936  ENSG00000161570 2.213549 0.05142511 43.04413 CCL5
+884  ENSG00000008517 2.121804 0.05221637 40.63485 IL32
+689  ENSG00000198851 1.070603 0.03336386 32.08869 CD3E
+690  ENSG00000167286 1.380599 0.04354102 31.70801 CD3D</code></pre>
 <pre class="r"><code>head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells</code></pre>
-<pre><code>              genes  meandiff         sd         z          hgnc
-54  ENSG00000172116 0.3270666 0.02264913 14.440578          CD8B
-330 ENSG00000126353 0.2942714 0.02739772 10.740725          CCR7
-245 ENSG00000256039 0.1476583 0.01410074 10.471670 RP11-291B21.2
-410 ENSG00000160307 0.1486600 0.01449627 10.255055         S100B
-338 ENSG00000173762 0.4176998 0.04273547  9.774078           CD7
-270 ENSG00000122026 1.5208182 0.16421077  9.261379         RPL21</code></pre>
+<pre><code>              genes  meandiff         sd        z  hgnc
+330 ENSG00000227507  4.246589 0.05832592 72.80791   LTB
+797 ENSG00000167526 12.628950 0.20384160 61.95472 RPL13
+764 ENSG00000140988 10.844160 0.20152392 53.81078  RPS2
+188 ENSG00000144713  6.660212 0.13700637 48.61242 RPL32
+478 ENSG00000137154  8.373744 0.17540230 47.74022  RPS6
+18  ENSG00000142676  6.366841 0.13830197 46.03579 RPL11</code></pre>
 </div>
 <div id="session-info" class="section level2">
 <h2>Session Info</h2>
