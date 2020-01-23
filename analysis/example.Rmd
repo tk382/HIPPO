@@ -37,7 +37,7 @@ Alternatively, you can start from a matrix object.
 This plot shows the zero inflation compared to the expected Poisson line. If most genes don't align with the black line, it shows that there is cell heterogeneity driving the zero inflation.
 
 ```{r}
-hippo_diagnostic_plot(sce)
+hippo_diagnostic_plot(sce, show_outliers = TRUE, zvalue_thresh = 15)
 ```
 
 ## Feature Selection and Hierarchical Clustering
@@ -74,24 +74,22 @@ hippo_tsne_plot(sce)
 
 ## Visualize the selected features at each round
 
-This shows the UMAP and t-SNE plot of each round of clustering. 
+This function shows how the zero-inflation decreases as HIPPO proceeds in the clustering. This function has arguments called switch_to_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
 
-```{r}
-zero_proportion_plot(sce)
+```{r, fig.width = 6, fig.height = 6}
+ref = data.frame(hgnc = rowData(sce)$symbol,
+                 ensg = rowData(sce)$id)
+head(ref)
+zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)
 ```
 
 ## Differential Expression Example
 
 We also offer a differential expression analysis tool.
 
-diffexp has arguments called switch_to_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
-
-top.n argument lets users choose how many top genes to show in the box plot. The default is 5.
+This function also has an option to switch the gene names to HGNC symbols. top.n argument lets users choose how many top genes to show in the box plot. The default is 5.
 
 ```{r}
-ref = data.frame(hgnc = rowData(sce)$symbol,
-                 ensg = rowData(sce)$id)
-head(ref)
 sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 ```
 
