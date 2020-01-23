@@ -524,7 +524,7 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
     newcount = reshape2::melt(newcount, id="celltype")
     newcount$celltype = as.factor(newcount$celltype)
     colnames(newcount) = c("celltype", "gene", "logcount")
-    g = ggplot(newcount, ggplot2::aes(x = .data$gene, y = .data$logcount, col = .data$celltype)) +
+    g = ggplot2::ggplot(newcount, ggplot2::aes(x = .data$gene, y = .data$logcount, col = .data$celltype)) +
       geom_boxplot(outlier.size = 0.2) +
       theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
       ggtitle(paste("Round", k-1)) +
