@@ -145,16 +145,28 @@ preprocess_homogeneous = function(sce, label, normalize = FALSE){
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
 #' hippo_diagnostic_plot(sce)
 #' @export
-hippo_diagnostic_plot = function(sce){
+hippo_diagnostic_plot = function(sce, show_outliers = FALSE, zvalue_thresh = 10){
   df = preprocess_heterogeneous(sce@assays@data$counts)
   df = compute_test_statistic(df)
-  g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion)) +
-    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
-    ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
-    ggplot2::xlim(c(0,10))+
-    ggplot2::theme_bw() +
-    ggplot2::ylab("zero proportion") +
-    ggplot2::xlab("gene mean")
+  subset = df[which(df$zvalue > zvalue_thresh), ]
+  if(show_outliers){
+    g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion)) +
+      ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+      ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
+      ggplot2::xlim(c(0,10)) +
+      ggplot2::theme_bw() +
+      ggplot2::ylab("zero proportion") +
+      ggplot2::xlab("gene mean") +
+      ggplot2::geom_point(data = subset, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion), shape = 21, col = 'red')
+  }else{
+    g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion)) +
+      ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+      ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
+      ggplot2::xlim(c(0,10)) +
+      ggplot2::theme_bw() +
+      ggplot2::ylab("zero proportion") +
+      ggplot2::xlab("gene mean")
+  }
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
 }
 
@@ -260,12 +272,15 @@ hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
     features[[k-1]] = thisk$features
     featuredata[[k-1]] = thisk$subdf
   }
-  sce@int_metadata$hippo = list(X = X, features = features, labelmatrix = labelmatrix)
+  sce@int_metadata$hippo = list(X = X, features = features, labelmatrix = labelmatrix,
+                                z_threshold = z_threshold, outlier_proportion = outlier_proportion)
   return(sce)
 }
 
 #' visualize each round of hippo through zero proportion plot
 #' @param sce SingleCellExperiment object with hippo element in it
+#' @param switch_to_hgnc boolean argument to indicate whether to change the gene names from ENSG IDs to HGNC symbols
+#' @param ref a data frame with hgnc column and ensg column
 #' @return a ggplot object that shows the zero proportions for each round
 #' @examples
 #' library(SingleCellExperiment)
@@ -278,36 +293,45 @@ hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
 #' sce = hippo(sce, K = 3)
 #' zero_proportion_plot(sce)
 #' @export
-zero_proportion_plot = function(sce){
+zero_proportion_plot = function(sce, switch_to_hgnc = FALSE, ref = NA){
   hippo_object = sce@int_metadata$hippo
   plist = list()
   dflist = list()
+  topzlist = list()
   K = ncol(hippo_object$labelmatrix)
-  # df = preprocess_heterogeneous(hippo_object$X)
-  # df$celltype = "combined"
-  # df$selected_feature = FALSE
-  # df$K = 1
-  # dflist[[1]] = df
   for (i in 2:K){
     df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,i])
+    df = compute_test_statistic(df)
     df$selected_feature = df$gene %in% hippo_object$features[[i-1]]
     df$K = i
     dflist[[i-1]] = df
+    topz = df[df$gene_mean < 10,]
+    topz = topz[order(topz$zvalue, decreasing = TRUE)[1:5], ]
+    topzlist[[i-1]] = topz
   }
   df = do.call(rbind, dflist)
   df = df[sample(nrow(df)), ]
+  topz = do.call(rbind, topzlist)
+  if(switch_to_hgnc){
+    topz$hgnc = ref$hgnc[match(topz$gene, ref$ensg)]
+  }
   df$celltype = as.factor(as.numeric(df$celltype))
   g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
     ggplot2::geom_point(size = 0.4, alpha = 0.5) +
     ggplot2::facet_wrap(~.data$K) +
     ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
     ggplot2::xlim(c(0,10))+
+    ggplot2::geom_point(data = df %>% filter(.data$zvalue > 15),
+                        ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion),
+                        shape = 21, col = 'red', size = 0.5) +
+    ggrepel::geom_label_repel(data = topz,
+                              ggplot2::aes(label = hgnc), size = 3) +
     ggplot2::theme(legend.position = "none") +
     ggplot2::theme_bw() +
     ggplot2::ylab("zero proportion") +
     ggplot2::xlab("gene mean") +
     ggplot2::theme(legend.title = ggplot2::element_blank()) +
-    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1)))
+    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1, shape = 19)))
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
   return(g)
 }
@@ -402,7 +426,7 @@ hippo_umap_plot = function(sce){
   }else{
     stop("use dimension_reduction to compute umap first")
   }
-  return(g)
+  # return(g)
 }
 
 #' visualize each round of hippo through t-SNE
@@ -435,7 +459,7 @@ hippo_tsne_plot = function(sce){
   }else{
     stop("use dimension_reduction to compute tsne first")
   }
-  return(g)
+  # return(g)
 }
 
 #' HIPPO's differential expression

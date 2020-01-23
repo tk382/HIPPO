@@ -25,5 +25,6 @@ Imports:
     magrittr,
     irlba,
     Matrix,
-    SingleCellExperiment
+    SingleCellExperiment,
+    ggrepel
 RoxygenNote: 7.0.2
