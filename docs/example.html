@@ -327,7 +327,7 @@ div.section {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2020-01-22
+<strong>Last updated:</strong> 2020-01-23
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -418,10 +418,10 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree3531e4b053947044296239ba485475125898c919targetblank3531e4ba"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/3531e4b053947044296239ba485475125898c919" target="_blank">3531e4b</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree47c6a6c91cfdf48d19364867279b1a596767334btargetblank47c6a6ca"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/47c6a6c91cfdf48d19364867279b1a596767334b" target="_blank">47c6a6c</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree3531e4b053947044296239ba485475125898c919targetblank3531e4ba" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree47c6a6c91cfdf48d19364867279b1a596767334btargetblank47c6a6ca" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -437,7 +437,10 @@ Untracked files:
     Untracked:  sce_full_Zhengmix4eq.rds
 
 Unstaged changes:
-    Modified:   R/hippo.R
+    Modified:   analysis/example2.Rmd
+    Deleted:    analysis/figure/example.Rmd/unnamed-chunk-3-1.png
+    Deleted:    analysis/figure/example.Rmd/unnamed-chunk-5-1.png
+    Deleted:    analysis/figure/example.Rmd/unnamed-chunk-6-1.png
 
 </code></pre>
 <p>
@@ -476,6 +479,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/47c6a6c91cfdf48d19364867279b1a596767334b/analysis/example.Rmd" target="_blank">47c6a6c</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-23
+</td>
+<td>
+workflowr::wflow_publish(“analysis/example.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/tk382/HIPPO/323564eacc07aeb843cb260da31fc240330fd63c/docs/example.html" target="_blank">323564e</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 html
@@ -647,7 +684,7 @@ add workflow analysis files
 <div id="diagnostic-plot" class="section level2">
 <h2>Diagnostic Plot</h2>
 <p>This plot shows the zero inflation compared to the expected Poisson line. If most genes don’t align with the black line, it shows that there is cell heterogeneity driving the zero inflation.</p>
-<pre class="r"><code>hippo_diagnostic_plot(sce)</code></pre>
+<pre class="r"><code>hippo_diagnostic_plot(sce, show_outliers = TRUE, zvalue_thresh = 15)</code></pre>
 <p><img src="figure/example.Rmd/unnamed-chunk-3-1.png" width="576" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-3-1">
@@ -843,8 +880,60 @@ tk382
 </div>
 <div id="visualize-the-selected-features-at-each-round" class="section level2">
 <h2>Visualize the selected features at each round</h2>
-<p>This shows the UMAP and t-SNE plot of each round of clustering.</p>
-<pre class="r"><code>zero_proportion_plot(sce)</code></pre>
+<p>This function shows how the zero-inflation decreases as HIPPO proceeds in the clustering. This function has arguments called switch_to_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.</p>
+<pre class="r"><code>ref = data.frame(hgnc = rowData(sce)$symbol,
+                 ensg = rowData(sce)$id)
+head(ref)</code></pre>
+<pre><code>           hgnc            ensg
+1    AL627309.1 ENSG00000237683
+2 RP11-206L10.2 ENSG00000228327
+3 RP11-206L10.9 ENSG00000237491
+4     LINC00115 ENSG00000225880
+5        FAM41C ENSG00000230368
+6        SAMD11 ENSG00000187634</code></pre>
+<pre class="r"><code>zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)</code></pre>
+<pre><code>                 gene gene_mean  gene_var zero_proportion celltype samplesize
+237   ENSG00000142676  9.936378 50.375827     0.009748589        2       1949
+278   ENSG00000169442  2.243202  8.651295     0.387891226        2       1949
+476   ENSG00000142937  6.837866 28.607169     0.031298102        2       1949
+658   ENSG00000122406  3.364802 13.178452     0.250897896        2       1949
+918   ENSG00000163220  4.158030 36.833330     0.524884556        2       1949
+2371  ENSG00000142676  9.936378 50.375827     0.009748589        2       1949
+2781  ENSG00000169442  2.243202  8.651295     0.387891226        2       1949
+4761  ENSG00000142937  6.837866 28.607169     0.031298102        2       1949
+6581  ENSG00000122406  3.364802 13.178452     0.250897896        2       1949
+9181  ENSG00000163220  4.158030 36.833330     0.524884556        2       1949
+2372  ENSG00000142676  9.936378 50.375827     0.009748589        2       1949
+2782  ENSG00000169442  2.243202  8.651295     0.387891226        2       1949
+4762  ENSG00000142937  6.837866 28.607169     0.031298102        2       1949
+6582  ENSG00000122406  3.364802 13.178452     0.250897896        2       1949
+9182  ENSG00000163220  4.158030 36.833330     0.524884556        2       1949
+11821 ENSG00000254709  1.759960 83.169641     0.731075697        2       1004
+29517 ENSG00000147604  5.527309 19.331013     0.081429990        1       1007
+33131 ENSG00000008517  3.913605 16.186365     0.198609732        1       1007
+37044 ENSG00000163220  8.566138 38.199276     0.022222222        5        945
+37046 ENSG00000143546  7.973545 38.059681     0.043386243        5        945
+       expected_pi           se minus_logp  zvalue selected_feature K   hgnc
+237   4.839466e-05 0.0001576237        500 31.4843             TRUE 2  RPL11
+278   1.061454e-01 0.0069793904        500 31.4843             TRUE 2   CD52
+476   1.072665e-03 0.0007417071        500 31.4843             TRUE 2   RPS8
+658   3.457771e-02 0.0041399033        500 31.4843             TRUE 2   RPL5
+918   1.564235e-02 0.0028116475        500 31.4843             TRUE 2 S100A9
+2371  4.839466e-05 0.0001576237        500 31.4843             TRUE 3  RPL11
+2781  1.061454e-01 0.0069793904        500 31.4843             TRUE 3   CD52
+4761  1.072665e-03 0.0007417071        500 31.4843             TRUE 3   RPS8
+6581  3.457771e-02 0.0041399033        500 31.4843             TRUE 3   RPL5
+9181  1.564235e-02 0.0028116475        500 31.4843             TRUE 3 S100A9
+2372  4.839466e-05 0.0001576237        500 31.4843             TRUE 4  RPL11
+2782  1.061454e-01 0.0069793904        500 31.4843             TRUE 4   CD52
+4762  1.072665e-03 0.0007417071        500 31.4843             TRUE 4   RPS8
+6582  3.457771e-02 0.0041399033        500 31.4843             TRUE 4   RPL5
+9182  1.564235e-02 0.0028116475        500 31.4843            FALSE 4 S100A9
+11821 1.721374e-01 0.0119212133        500 31.4843            FALSE 5  IGLL5
+29517 3.978652e-03 0.0019849853        500 31.4843             TRUE 5   RPL7
+33131 1.997831e-02 0.0044121695        500 31.4843             TRUE 5   IL32
+37044 1.905476e-04 0.0004492953        500 31.4843            FALSE 5 S100A9
+37046 3.446381e-04 0.0006041966        500 31.4843            FALSE 5 S100A8</code></pre>
 <p><img src="figure/example.Rmd/unnamed-chunk-7-1.png" width="576" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
@@ -969,18 +1058,7 @@ tk382
 <div id="differential-expression-example" class="section level2">
 <h2>Differential Expression Example</h2>
 <p>We also offer a differential expression analysis tool.</p>
-<p>diffexp has arguments called switch_to_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.</p>
-<p>top.n argument lets users choose how many top genes to show in the box plot. The default is 5.</p>
-<pre class="r"><code>ref = data.frame(hgnc = rowData(sce)$symbol,
-                 ensg = rowData(sce)$id)
-head(ref)</code></pre>
-<pre><code>           hgnc            ensg
-1    AL627309.1 ENSG00000237683
-2 RP11-206L10.2 ENSG00000228327
-3 RP11-206L10.9 ENSG00000237491
-4     LINC00115 ENSG00000225880
-5        FAM41C ENSG00000230368
-6        SAMD11 ENSG00000187634</code></pre>
+<p>This function also has an option to switch the gene names to HGNC symbols. top.n argument lets users choose how many top genes to show in the box plot. The default is 5.</p>
 <pre class="r"><code>sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)</code></pre>
 <p><img src="figure/example.Rmd/unnamed-chunk-8-1.png" width="576" style="display: block; margin: auto;" /></p>
 <p>
@@ -1103,26 +1181,26 @@ other attached packages:
 [11] BiocGenerics_0.32.0         HIPPO_0.1.0                
 
 loaded via a namespace (and not attached):
- [1] Rcpp_1.0.2             lattice_0.20-38        assertthat_0.2.1      
- [4] rprojroot_1.3-2        digest_0.6.21          RSpectra_0.15-0       
- [7] R6_2.4.0               plyr_1.8.4             backports_1.1.5       
-[10] evaluate_0.14          ggplot2_3.2.1          pillar_1.4.2          
-[13] zlibbioc_1.32.0        rlang_0.4.1            lazyeval_0.2.2        
-[16] irlba_2.3.3            whisker_0.4            Matrix_1.2-17         
-[19] reticulate_1.13        rmarkdown_2.0          labeling_0.3          
-[22] Rtsne_0.15             stringr_1.4.0          RCurl_1.95-4.12       
-[25] munsell_0.5.0          umap_0.2.3.1           compiler_3.6.1        
-[28] httpuv_1.5.2           xfun_0.11              pkgconfig_2.0.3       
-[31] askpass_1.1            htmltools_0.4.0        openssl_1.4.1         
-[34] tidyselect_0.2.5       tibble_2.1.3           gridExtra_2.3         
-[37] GenomeInfoDbData_1.2.2 workflowr_1.5.0        crayon_1.3.4          
-[40] dplyr_0.8.3            later_1.0.0            bitops_1.0-6          
-[43] grid_3.6.1             jsonlite_1.6           gtable_0.3.0          
-[46] git2r_0.26.1           magrittr_1.5           scales_1.0.0          
-[49] stringi_1.4.3          XVector_0.26.0         reshape2_1.4.3        
-[52] fs_1.3.1               promises_1.1.0         tools_3.6.1           
-[55] glue_1.3.1             purrr_0.3.3            yaml_2.2.0            
-[58] colorspace_1.4-1       knitr_1.26            </code></pre>
+ [1] ggrepel_0.8.1          Rcpp_1.0.2             lattice_0.20-38       
+ [4] assertthat_0.2.1       rprojroot_1.3-2        digest_0.6.21         
+ [7] RSpectra_0.15-0        R6_2.4.0               plyr_1.8.4            
+[10] backports_1.1.5        evaluate_0.14          ggplot2_3.2.1         
+[13] pillar_1.4.2           zlibbioc_1.32.0        rlang_0.4.1           
+[16] lazyeval_0.2.2         irlba_2.3.3            whisker_0.4           
+[19] Matrix_1.2-17          reticulate_1.13        rmarkdown_2.0         
+[22] labeling_0.3           Rtsne_0.15             stringr_1.4.0         
+[25] RCurl_1.95-4.12        munsell_0.5.0          umap_0.2.3.1          
+[28] compiler_3.6.1         httpuv_1.5.2           xfun_0.11             
+[31] pkgconfig_2.0.3        askpass_1.1            htmltools_0.4.0       
+[34] openssl_1.4.1          tidyselect_0.2.5       tibble_2.1.3          
+[37] gridExtra_2.3          GenomeInfoDbData_1.2.2 workflowr_1.5.0       
+[40] crayon_1.3.4           dplyr_0.8.3            later_1.0.0           
+[43] bitops_1.0-6           grid_3.6.1             jsonlite_1.6          
+[46] gtable_0.3.0           git2r_0.26.1           magrittr_1.5          
+[49] scales_1.0.0           stringi_1.4.3          XVector_0.26.0        
+[52] reshape2_1.4.3         fs_1.3.1               promises_1.1.0        
+[55] tools_3.6.1            glue_1.3.1             purrr_0.3.3           
+[58] yaml_2.2.0             colorspace_1.4-1       knitr_1.26            </code></pre>
 </div>
 </div>
 
