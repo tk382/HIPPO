@@ -313,7 +313,7 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE, ref = NA){
   df = df[sample(nrow(df)), ]
   topz = do.call(rbind, topzlist)
   if(switch_to_hgnc){
-    topz$hgnc = ref$hgnc[match(topz$gene, ref$ensg)]
+    topz = topz %>% mutate(hgnc = ref$hgnc[match(topz$gene, ref$ensg)])
   }
   df$celltype = as.factor(as.numeric(df$celltype))
   g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
@@ -517,7 +517,8 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
     colnames(newcount) = rowdata$genes[1:top.n]
     if(switch_to_hgnc){
       colnames(newcount) = features_hgnc
-      rowdata$hgnc = ref$hgnc[match(rowdata$genes, ref$ensg)]
+      rowdata = rowdata %>%
+        mutate(hgnc = ref$hgnc[match(rowdata$genes, ref$ensg)])
     }
     newcount$celltype = c(rep(types[1], length(cellgroup1)), rep(types[2], length(cellgroup2)))
     newcount = reshape2::melt(newcount, id="celltype")
