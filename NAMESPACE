@@ -27,3 +27,5 @@ importFrom(irlba, irlba, prcomp_irlba)
 importFrom(magrittr,"%>%")
 importFrom(Matrix, readMM)
 importFrom(SingleCellExperiment, rowData, SingleCellExperiment)
+importFrom(ggrepel, geom_label_repel)
+
