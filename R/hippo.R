@@ -331,9 +331,8 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE, ref = NA){
     ggplot2::ylab("zero proportion") +
     ggplot2::xlab("gene mean") +
     ggplot2::theme(legend.title = ggplot2::element_blank()) +
-    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1, shape = 19)))
+    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1), shape = 19))
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
-  return(g)
 }
 
 #' compute t-SNE or umap of each round of HIPPO
