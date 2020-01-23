@@ -19,7 +19,7 @@ library(SingleCellExperiment)
 
 ## Read the data
 
-The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set. From the SingleCellExperiment object, we extracted the count matrix only (gene x cell) as .rds file, and we also created the reference matrix where the gene names are matched between HGNC symbol and ENSG IDs. 
+The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set. 
 
 ```{r}
 sce = readRDS("../sce_Zhengmix4eq.rds")
@@ -27,7 +27,7 @@ sce = readRDS("../sce_Zhengmix4eq.rds")
 
 Alternatively, you can start from a matrix object.
 
-```{r}
+```{r, eval = FALSE}
 # X = readRDS("../zhengmix4eq_counts.rds")
 # sce = SingleCellExperiment(assays = list(counts = X))
 ```
@@ -65,7 +65,6 @@ We offer two dimension reduction methods: umap and tsne. And we offer two separa
 sce = dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce)
 ```
-
 
 ```{r}
 sce = dimension_reduction(sce, method="tsne")
