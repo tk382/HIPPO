@@ -418,10 +418,10 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree5f3a72b7c6076d4cfd1b589f0424b0a157fc33f5targetblank5f3a72ba"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/5f3a72b7c6076d4cfd1b589f0424b0a157fc33f5" target="_blank">5f3a72b</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtreecde8d36f23eab1f4007035d641ee4da00d332f85targetblankcde8d36a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/cde8d36f23eab1f4007035d641ee4da00d332f85" target="_blank">cde8d36</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree5f3a72b7c6076d4cfd1b589f0424b0a157fc33f5targetblank5f3a72ba" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtreecde8d36f23eab1f4007035d641ee4da00d332f85targetblankcde8d36a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -431,6 +431,7 @@ Ignored files:
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    R/.Rhistory
+    Ignored:    analysis/figure/
 
 Untracked files:
     Untracked:  make_sce_zhengmix4eq.R
@@ -476,6 +477,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/cde8d36f23eab1f4007035d641ee4da00d332f85/analysis/example.Rmd" target="_blank">cde8d36</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-23
+</td>
+<td>
+wflow_publish(“analysis/example.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/tk382/HIPPO/c484409f84cce30fd7b5dfa9971e1ab299180bd9/docs/example.html" target="_blank">c484409</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-23
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 html
@@ -689,7 +724,7 @@ add workflow analysis files
 </div>
 <div id="read-the-data" class="section level2">
 <h2>Read the data</h2>
-<p>The data set is available in the following <a href="http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz">link</a>, where the detailed explanation is available <a href="https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison">here</a>. Note that the file is very large (3.3GB). We use Zhengmix4eq data set. From the SingleCellExperiment object, we extracted the count matrix only (gene x cell) as .rds file, and we also created the reference matrix where the gene names are matched between HGNC symbol and ENSG IDs.</p>
+<p>The data set is available in the following <a href="http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz">link</a>, where the detailed explanation is available <a href="https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison">here</a>. Note that the file is very large (3.3GB). We use Zhengmix4eq data set.</p>
 <pre class="r"><code>sce = readRDS(&quot;../sce_Zhengmix4eq.rds&quot;)</code></pre>
 <p>Alternatively, you can start from a matrix object.</p>
 <pre class="r"><code># X = readRDS(&quot;../zhengmix4eq_counts.rds&quot;)
@@ -942,6 +977,17 @@ Date
 <tbody>
 <tr>
 <td>
+<a href="https://github.com/tk382/HIPPO/blob/c484409f84cce30fd7b5dfa9971e1ab299180bd9/docs/figure/example.Rmd/unnamed-chunk-7-1.png" target="_blank">c484409</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-23
+</td>
+</tr>
+<tr>
+<td>
 <a href="https://github.com/tk382/HIPPO/blob/d0679e4fe5d78e75f8e63f060db6704b709f1feb/docs/figure/example.Rmd/unnamed-chunk-7-1.png" target="_blank">d0679e4</a>
 </td>
 <td>
@@ -976,77 +1022,6 @@ tk382
 <tr>
 <td>
 <a href="https://github.com/tk382/HIPPO/blob/ed7a3997d76e09840fa9e2abb2cb1d7d9a2291a8/docs/figure/example.Rmd/unnamed-chunk-7-1.png" target="_blank">ed7a399</a>
-</td>
-<td>
-tk382
-</td>
-<td>
-2020-01-17
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p><img src="figure/example.Rmd/unnamed-chunk-7-2.png" width="576" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-2">
-Past versions of unnamed-chunk-7-2.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-7-2" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/tk382/HIPPO/blob/d0679e4fe5d78e75f8e63f060db6704b709f1feb/docs/figure/example.Rmd/unnamed-chunk-7-2.png" target="_blank">d0679e4</a>
-</td>
-<td>
-tk382
-</td>
-<td>
-2020-01-23
-</td>
-</tr>
-<tr>
-<td>
-<a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example.Rmd/unnamed-chunk-7-2.png" target="_blank">75f668f</a>
-</td>
-<td>
-tk382
-</td>
-<td>
-2020-01-17
-</td>
-</tr>
-<tr>
-<td>
-<a href="https://github.com/tk382/HIPPO/blob/cb4b8f08924067be279b4e072d732cacf9bdcaf7/docs/figure/example.Rmd/unnamed-chunk-7-2.png" target="_blank">cb4b8f0</a>
-</td>
-<td>
-tk382
-</td>
-<td>
-2020-01-17
-</td>
-</tr>
-<tr>
-<td>
-<a href="https://github.com/tk382/HIPPO/blob/ed7a3997d76e09840fa9e2abb2cb1d7d9a2291a8/docs/figure/example.Rmd/unnamed-chunk-7-2.png" target="_blank">ed7a399</a>
 </td>
 <td>
 tk382
