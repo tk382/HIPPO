@@ -4,7 +4,7 @@
 \alias{hippo_diagnostic_plot}
 \title{Conduct feature selection by computing test statistics for each gene}
 \usage{
-hippo_diagnostic_plot(sce)
+hippo_diagnostic_plot(sce, show_outliers = FALSE, zvalue_thresh = 10)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with count matrix}
