@@ -315,7 +315,6 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE, ref = NA){
   if(switch_to_hgnc){
     topz$hgnc = ref$hgnc[match(topz$gene, ref$ensg)]
   }
-  print(topz)
   df$celltype = as.factor(as.numeric(df$celltype))
   g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
     ggplot2::geom_point(size = 0.4, alpha = 0.5) +
