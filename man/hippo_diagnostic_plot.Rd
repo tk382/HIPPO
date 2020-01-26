@@ -8,6 +8,10 @@ hippo_diagnostic_plot(sce, show_outliers = FALSE, zvalue_thresh = 10)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with count matrix}
+
+\item{show_outliers}{boolean to indicate whether to circle the outliers with given zvalue_thresh}
+
+\item{zvalue_thresh}{a numeric v}
 }
 \value{
 a diagnostic plot that shows genes with zero inflation

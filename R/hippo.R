@@ -142,6 +142,8 @@ preprocess_homogeneous = function(sce, label, normalize = FALSE){
 #' Conduct feature selection by computing test statistics for each gene
 #'
 #' @param sce SingleCellExperiment object with count matrix
+#' @param show_outliers boolean to indicate whether to circle the outliers with given zvalue_thresh
+#' @param zvalue_thresh a numeric v
 #' @return a diagnostic plot that shows genes with zero inflation
 #' @example
 #' library(SingleCellExperiment)
@@ -324,19 +326,33 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE, ref = NA){
     # topz = topz %>% mutate(hgnc = ref$hgnc[match(topz$gene, ref$ensg)])
   }
   df$celltype = as.factor(as.numeric(df$celltype))
-  g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
-    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
-    ggplot2::facet_wrap(~.data$K) +
-    ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
-    ggplot2::xlim(c(0,10))+
-    ggrepel::geom_label_repel(data = topz,
-                              ggplot2::aes(label = hgnc), size = 3) +
-    ggplot2::theme(legend.position = "none") +
-    ggplot2::theme_bw() +
-    ggplot2::ylab("zero proportion") +
-    ggplot2::xlab("gene mean") +
-    ggplot2::theme(legend.title = ggplot2::element_blank()) +
-    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1), shape = 19))
+  if(switch_to_hgnc){
+    g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
+      ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+      ggplot2::facet_wrap(~.data$K) +
+      ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
+      ggplot2::xlim(c(0,10))+
+      ggrepel::geom_label_repel(data = topz,
+                                ggplot2::aes(label = hgnc), size = 3) +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::theme_bw() +
+      ggplot2::ylab("zero proportion") +
+      ggplot2::xlab("gene mean") +
+      ggplot2::theme(legend.title = ggplot2::element_blank()) +
+      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1), shape = 19))
+  }else{
+    g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
+      ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+      ggplot2::facet_wrap(~.data$K) +
+      ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
+      ggplot2::xlim(c(0,10))+
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::theme_bw() +
+      ggplot2::ylab("zero proportion") +
+      ggplot2::xlab("gene mean") +
+      ggplot2::theme(legend.title = ggplot2::element_blank()) +
+      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1), shape = 19))
+  }
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
 }
 
