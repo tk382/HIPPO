@@ -549,6 +549,7 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
           legend.title = ggplot2::element_blank()) +
     ggplot2::ylab("log(count+1)") +
     ggplot2::xlab("")
+  gridExtra::grid.arrange(g, nrow=1, ncol=1)
   sce@int_metadata$hippo$diffexp$plot = g
   return(sce)
 }
