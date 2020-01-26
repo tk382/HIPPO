@@ -1,10 +1,11 @@
 ---
 title: "Example1: Zhengmix4eq"
 output:
-  workflowr::wflow_html:
-    toc: false
-editor_options:
-  chunk_output_type: console
+output: rmarkdown::html_vignette	output:
+vignette: >	  workflowr::wflow_html:
+  %\VignetteIndexEntry{Example analysis}	    toc: false
+  %\VignetteEngine{knitr::rmarkdown}	editor_options:
+  \usepackage[utf8]{inputenc}
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
