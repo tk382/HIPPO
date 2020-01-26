@@ -1,3 +1,10 @@
+
+
+RowVar <- function(x) {
+  Matrix::rowSums((x - Matrix::rowMeans(x))^2)/(dim(x)[2] - 1)
+}
+
+
 #' Expected zero proportion under Poisson
 #'
 #' @param lambda numeric vector of means of Poisson
@@ -55,15 +62,15 @@ zinb_prob_zero = function(lambda, theta, pi){
 #' df = preprocess_heterogeneous(X) #get gene information
 #' @export
 preprocess_heterogeneous = function(X){
-  gene_mean = rowMeans(X)
-  zero_proportion = rowMeans(X==0)
+  gene_mean = Matrix::rowMeans(X)
+  zero_proportion = Matrix::rowMeans(X==0)
   where = which(gene_mean > 0)
   gene_var = rep(NA, nrow(X))
-  gene_var[where] = matrixStats::rowVars(X[where,])
+  gene_var[where] = RowVar(X[where,])
 
   df = data.frame(gene = rownames(X),
-                  gene_mean = rowMeans(X),
-                  zero_proportion = rowMeans(X==0),
+                  gene_mean = Matrix::rowMeans(X),
+                  zero_proportion = Matrix::rowMeans(X==0),
                   gene_var = gene_var)
   df$samplesize = ncol(X)
   return(df)
@@ -92,7 +99,7 @@ preprocess_homogeneous = function(sce, label, normalize = FALSE){
   }else{
     stop("input must be a SingleCellExperiment object")
   }
-  sf = median(colSums(X))
+  sf = median(Matrix::colSums(X))
   if(normalize){
     X = apply(X, 2, function(x) x/sum(x)*sf)
   }
@@ -104,10 +111,10 @@ preprocess_homogeneous = function(sce, label, normalize = FALSE){
   samplesize = table(label)
   for (i in 1:length(labelnames)){
     ind = which(label==labelnames[i])
-    zero_proportion[,i] = rowMeans(X[,ind]==0)
-    gene_mean[,i] = rowMeans(X[, ind])
+    zero_proportion[,i] = Matrix::rowMeans(X[,ind]==0)
+    gene_mean[,i] = Matrix::rowMeans(X[, ind])
     where = gene_mean[,i] != 0
-    gene_var[where,i] = matrixStats::rowVars(X[where, ind])
+    gene_var[where,i] = RowVar(X[where, ind])
   }
   colnames(zero_proportion) =
     colnames(gene_mean) =
@@ -312,18 +319,16 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE, ref = NA){
   df = do.call(rbind, dflist)
   df = df[sample(nrow(df)), ]
   topz = do.call(rbind, topzlist)
-  # if(switch_to_hgnc){
-  #   topz = topz %>% mutate(hgnc = ref$hgnc[match(topz$gene, ref$ensg)])
-  # }
+  if(switch_to_hgnc){
+    topz$hgnc = ref$hgnc[match(topz$gene, ref$ensg)]
+    # topz = topz %>% mutate(hgnc = ref$hgnc[match(topz$gene, ref$ensg)])
+  }
   df$celltype = as.factor(as.numeric(df$celltype))
   g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
     ggplot2::geom_point(size = 0.4, alpha = 0.5) +
     ggplot2::facet_wrap(~.data$K) +
     ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
     ggplot2::xlim(c(0,10))+
-    # ggplot2::geom_point(data = df %>% filter(.data$zvalue > 15),
-    #                     ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion),
-    #                     shape = 21, col = 'red', size = 0.5) +
     ggrepel::geom_label_repel(data = topz,
                               ggplot2::aes(label = hgnc), size = 3) +
     ggplot2::theme(legend.position = "none") +
@@ -502,9 +507,9 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
     cellgroup1 = which(hippo_object$labelmatrix[,k] == types[1])
     cellgroup2 = which(hippo_object$labelmatrix[,k] == types[2])
     rowdata = data.frame(genes = features)
-    rowdata$meandiff = rowMeans(count[features,cellgroup1]) - rowMeans(count[features,cellgroup2])
-    rowdata$sd = sqrt(rowMeans(count[features,cellgroup1])/length(cellgroup1) +
-                        rowMeans(count[features,cellgroup2])/length(cellgroup2))
+    rowdata$meandiff = Matrix::rowMeans(count[features,cellgroup1]) - Matrix::rowMeans(count[features,cellgroup2])
+    rowdata$sd = sqrt(Matrix::rowMeans(count[features,cellgroup1])/length(cellgroup1) +
+                        Matrix::rowMeans(count[features,cellgroup2])/length(cellgroup2))
     rowdata$z = rowdata$meandiff/rowdata$sd
     rowdata = rowdata[order(rowdata$z, decreasing=TRUE), ]
     rowdata$genes = as.character(rowdata$genes)
