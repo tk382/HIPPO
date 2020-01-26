@@ -493,6 +493,7 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
   labelmatrix = hippo_object$labelmatrix
   result = list()
   count = hippo_object$X
+  finalnewcount = data.frame()
   for (k in 2:K){
     features = hippo_object$features[[k-1]]
 
@@ -524,19 +525,30 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
     newcount = reshape2::melt(newcount, id="celltype")
     newcount$celltype = as.factor(newcount$celltype)
     colnames(newcount) = c("celltype", "gene", "logcount")
-    g = ggplot2::ggplot(newcount, ggplot2::aes(x = .data$gene, y = .data$logcount, col = .data$celltype)) +
-      geom_boxplot(outlier.size = 0.2) +
-      theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
-      ggtitle(paste("Round", k-1)) +
-      xlab("") +
-      theme(legend.position='none') +
-      ylab("log count")
+    newcount$round = paste0("K = ", k)
+    finalnewcount = rbind(finalnewcount, newcount)
 
-    plist[[k-1]] = g
+    # plist[[k-1]] = g
     result[[k-1]] = rowdata
   }
-  bpl = gridExtra::grid.arrange(grobs = plist, ncol = 2)
+  # bpl = gridExtra::grid.arrange(grobs = plist, ncol = 2)
   sce@int_metadata$hippo$diffexp$result_table = result
-  sce@int_metadata$hippo$diffexp$plot = bpl
+
+  g = ggplot2::ggplot(finalnewcount, ggplot2::aes(x = gene, y = logcount, col = celltype)) +
+    ggplot2::facet_wrap(~round, scales="free") +
+    ggplot2::geom_boxplot(outlier.size = 0.2) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle=45, hjust=1),
+          panel.border = ggplot2::element_blank(),
+          panel.background = ggplot2::element_blank(),
+          panel.grid = ggplot2::element_blank(),
+          panel.grid.major = ggplot2::element_blank(),
+          panel.grid.minor = ggplot2::element_blank(),
+          axis.line = ggplot2::element_line(colour = "black"),
+          strip.background = ggplot2::element_blank(),
+          legend.title = ggplot2::element_blank()) +
+    ggplot2::ylab("log(count+1)") +
+    ggplot2::xlab("")
+  sce@int_metadata$hippo$diffexp$plot = g
   return(sce)
 }
