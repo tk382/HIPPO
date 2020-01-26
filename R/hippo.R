@@ -333,7 +333,7 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE, ref = NA){
       ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
       ggplot2::xlim(c(0,10))+
       ggrepel::geom_label_repel(data = topz,
-                                ggplot2::aes(label = hgnc), size = 3) +
+                                ggplot2::aes(label = .data$hgnc), size = 3) +
       ggplot2::theme(legend.position = "none") +
       ggplot2::theme_bw() +
       ggplot2::ylab("zero proportion") +
