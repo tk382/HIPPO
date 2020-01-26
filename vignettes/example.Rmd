@@ -1,10 +1,10 @@
 ---
 title: "Example1: Zhengmix4eq"
 output:
-output: rmarkdown::html_vignette	output:
-vignette: >	  workflowr::wflow_html:
-  %\VignetteIndexEntry{Example analysis}	    toc: false
-  %\VignetteEngine{knitr::rmarkdown}	editor_options:
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Example analysis}
+  %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
 ```{r setup, include=FALSE}
