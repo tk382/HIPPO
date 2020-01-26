@@ -1,3 +1,15 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^\.travis.yml
+^\_workflowr\.yml$
+^docs$
+^analysis$
+^readme$
+^sce\_full\_Zhengmix4eq\.rds$
+^sce\_Zhengmix4eq\.rds$
+^zhengmix4eq\_counts\.rds$
+^\.gitignore$
+^\.git$
+^.*\.o$
+^.*\.so$
+^\.Rprofile$
+^\.travis\.yml$
