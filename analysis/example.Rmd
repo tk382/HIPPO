@@ -88,18 +88,17 @@ We also offer a differential expression analysis tool.
 
 This function also has an option to switch the gene names to HGNC symbols. top.n argument lets users choose how many top genes to show in the box plot. The default is 5.
 
+The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is equal to 2, the color codes match with the cell groups as separated in the dimension reduction plot. 
+
 ```{r}
 sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
-# sce@int_metadata$hippo$diffexp$plot
 ```
 
-The labels of boxplots are not quite straightfoward, as we look at different cell groups at each round of HIPPO. This must be interepreted simultaneously with the hierarchical clustering plot such as t-SNE plot above.
 
-First, in the first round, K moves from 1 to 2, and the red group is separated. This group is Monocytes in this particular data set. The box plot always shows the "separated" group in the green box, and hence the group 1. The red boxes represent the remaining cells, so groups 2, 3, and 4 combined.
 
-In the second round, K moves from 2 to 3, and as shown in the t-SNE plot, groups 3 and 4 are separated from the group 2 because they're assigned a new color. Group 2 in this data set is B cells. (Note that this is different from group 2 is separated. Group 2 remains green.) Therefore, in the second round of box plots, the green boxes represent groups 3 and 4, and the red box represents group 2. In this round, the first group of cells have been removed from the samples.
 
-In the last round, K moves from 3 to 4, and group 4 has been assigned a new color of violet. Hence, the green boxes represent group 4, which is Regulatory T cells, while the red boxes represent the remaining cells of group 3: Naive T cells.
+Each round of differential expression test results are also saved in the list of data frames.
+
 
 ```{r}
 head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes
@@ -107,6 +106,6 @@ head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells
 head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells
 ```
 
-Each round of differential expression test results are also saved in the list of data frames.
+
 
 
