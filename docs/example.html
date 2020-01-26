@@ -418,10 +418,10 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree07ee64ce0e4f75ea1ff98d5d578d84160107f7f7targetblank07ee64ca"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/07ee64ce0e4f75ea1ff98d5d578d84160107f7f7" target="_blank">07ee64c</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtreeb53e8b20e3b6f4c0d657b525d11896b9f8ac1d0ftargetblankb53e8b2a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/b53e8b20e3b6f4c0d657b525d11896b9f8ac1d0f" target="_blank">b53e8b2</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree07ee64ce0e4f75ea1ff98d5d578d84160107f7f7targetblank07ee64ca" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtreeb53e8b20e3b6f4c0d657b525d11896b9f8ac1d0ftargetblankb53e8b2a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -438,6 +438,7 @@ Untracked files:
     Untracked:  sce_full_Zhengmix4eq.rds
 
 Unstaged changes:
+    Modified:   R/hippo.R
     Modified:   analysis/example2.Rmd
 
 </code></pre>
@@ -477,6 +478,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/b53e8b20e3b6f4c0d657b525d11896b9f8ac1d0f/analysis/example.Rmd" target="_blank">b53e8b2</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-26
+</td>
+<td>
+workflowr::wflow_publish(“analysis/example.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/tk382/HIPPO/63092dcce8cb89ed1a2d3ce955abf7e34166486f/docs/example.html" target="_blank">63092dc</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-26
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -1102,7 +1137,8 @@ tk382
 <p>We also offer a differential expression analysis tool.</p>
 <p>This function also has an option to switch the gene names to HGNC symbols. top.n argument lets users choose how many top genes to show in the box plot. The default is 5.</p>
 <pre class="r"><code>sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
-# sce@int_metadata$hippo$diffexp$plot</code></pre>
+sce@int_metadata$hippo$diffexp$plot</code></pre>
+<pre><code>NULL</code></pre>
 <p>The labels of boxplots are not quite straightfoward, as we look at different cell groups at each round of HIPPO. This must be interepreted simultaneously with the hierarchical clustering plot such as t-SNE plot above.</p>
 <p>First, in the first round, K moves from 1 to 2, and the red group is separated. This group is Monocytes in this particular data set. The box plot always shows the “separated” group in the green box, and hence the group 1. The red boxes represent the remaining cells, so groups 2, 3, and 4 combined.</p>
 <p>In the second round, K moves from 2 to 3, and as shown in the t-SNE plot, groups 3 and 4 are separated from the group 2 because they’re assigned a new color. Group 2 in this data set is B cells. (Note that this is different from group 2 is separated. Group 2 remains green.) Therefore, in the second round of box plots, the green boxes represent groups 3 and 4, and the red box represents group 2. In this round, the first group of cells have been removed from the samples.</p>
