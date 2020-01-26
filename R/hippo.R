@@ -555,7 +555,7 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
   # bpl = gridExtra::grid.arrange(grobs = plist, ncol = 2)
   sce@int_metadata$hippo$diffexp$result_table = result
 
-  g = ggplot2::ggplot(finalnewcount, ggplot2::aes(x = gene, y = logcount, col = celltype)) +
+  g = ggplot2::ggplot(finalnewcount, ggplot2::aes(x = .data$gene, y = .data$logcount, col = .data$celltype)) +
     ggplot2::facet_wrap(~round, scales="free") +
     ggplot2::geom_boxplot(outlier.size = 0.2) +
     ggplot2::theme_classic() +
