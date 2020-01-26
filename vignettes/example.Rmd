@@ -1,24 +1,25 @@
 ---
-title: "Feature Selection and Clustering of PBMC UMI Data"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Example analysis}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+title: "Example1: Zhengmix4eq"
+output:
+  workflowr::wflow_html:
+    toc: false
+editor_options:
+  chunk_output_type: console
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE,
                       warning = FALSE,
-                      comment = NA)
+                      comment = NA,
+                      fig.width = 6,
+                      fig.height = 4)
 library(HIPPO)
 library(SingleCellExperiment)
 ```
 
 ## Read the data
 
-The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set. From the SingleCellExperiment object, we extracted the count matrix only (gene x cell) as .rds file, and we also created the reference matrix where the gene names are matched between HGNC symbol and ENSG IDs. 
+The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set. 
 
 ```{r}
 sce = readRDS("../sce_Zhengmix4eq.rds")
@@ -26,65 +27,82 @@ sce = readRDS("../sce_Zhengmix4eq.rds")
 
 Alternatively, you can start from a matrix object.
 
-```{r}
+```{r, eval = FALSE}
 # X = readRDS("../zhengmix4eq_counts.rds")
 # sce = SingleCellExperiment(assays = list(counts = X))
 ```
 
 ## Diagnostic Plot
 
-```{r}
-hippo_diagnostic_plot(sce)
+This plot shows the zero inflation compared to the expected Poisson line. If most genes don't align with the black line, it shows that there is cell heterogeneity driving the zero inflation.
+
+```{r, warning = FALSE}
+hippo_diagnostic_plot(sce, show_outliers = TRUE, zvalue_thresh = 15)
 ```
 
 ## Feature Selection and Hierarchical Clustering
 
-Below, hippo function will return each round of feature selection and clustering result, and save it in sce@int_metadata$hippo. K = 4 and z-threshold = 3 is the stopping criterion for hierarchical clustering. The algorithm will automatically stop after 4 clustering or if there are no more features left with z-scores higher than 5. Also, the clustering will terminate when there are less than 1\% of the genes are selected as outliers in order to account for natural with-in cell-type heterogeneity.
+HIPPO assumes that the count matrix is placed in sce@assays@data\$counts. Some objects that we found online have the count matrix in sce@assays\$data\$counts. In this case, HIPPO will throw an error because it cannot found a count matrix. In this case, you have to create another SingleCellExperiment object to assign the count matrix in the correct slot.
 
-```{r}
+Next, you can run hippo function to do the pre-processing that simutlaneously conducts feature selection and hierarchcial clustering. There are three arguments that help you decide the stopping criterion of clustering procedure.
+
+K is the maximum number of clusters that you want. HIPPO will return the clustering results for all k = 2, 3, ..., K, so you can overestimate the number of potential clusters. The default is 10, but users are highly recommended to adjust this.
+
+z_threshold is the feature selection criterion. For each round of hierarchical clustering, hippo will find outlier genes where the z-value of significance is greater than the threshold. For example, if you would like to select genes with p-values less than 0.05, z_threshold would be 1.96. The default threshold is 2, but users can use their discretion to change this value.
+
+outlier_proportion is the number of outlier genes to allow. The default is 0.01 (1%) which means the clustering procedure will automatically stop if there are less than 1% of genes remain as important features. With the example data set, the default choice has empirically worked well.
+
+```{r, warning = FALSE}
 set.seed(20191031)
-sce = hippo(sce, K = 4, z_threshold = 2, outlier_proportion = 0.01)
+sce = hippo(sce, K = 10, z_threshold = 2, outlier_proportion = 0.01)
 ```
 
 ## Dimension Reduction for Each Round of HIPPO
 
-Users can compute umap and t-SNE at each round of HIPPO, and see how the clustering result changes for each round of hierarchical clustering. We offer two dimension reduction methods: t-SNE and UMAP.
+We offer two dimension reduction methods: umap and tsne. And we offer two separate visualization functions.
 
-```{r,fig.width = 5, fig.height = 2}
+```{r, warning = FALSE}
 sce = dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce)
 ```
 
-```{r,fig.width = 6, fig.height = 3}
+```{r}
 sce = dimension_reduction(sce, method="tsne")
 hippo_tsne_plot(sce)
 ```
 
 ## Visualize the selected features at each round
 
-This shows the UMAP and t-SNE plot of each round of clustering. 
+This function shows how the zero-inflation decreases as HIPPO proceeds in the clustering. This function has arguments called switch_to_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
 
-```{r,fig.width = 6, fig.height = 3}
-zero_proportion_plot(sce)
+```{r, fig.width = 6, fig.height = 6}
+ref = data.frame(hgnc = rowData(sce)$symbol,
+                 ensg = rowData(sce)$id)
+head(ref)
+zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)
 ```
 
 ## Differential Expression Example
 
-Sometimes, the expression level data have ENSG ID as the gene names, and they are hard to interpret. We have a function to switch the ENSG IDs to HGNC symbols, but in that case, users need to supply with the reference data frame like below.
+We also offer a differential expression analysis tool.
 
-```{r, fig.width=6, fig.height=4}
-ref = data.frame(hgnc = rowData(sce)$symbol,
-                 ensg = rowData(sce)$id)
-head(ref)
+This function also has an option to switch the gene names to HGNC symbols. top.n argument lets users choose how many top genes to show in the box plot. The default is 5.
+
+The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is equal to 2, the color codes match with the cell groups as separated in the dimension reduction plot. 
+
+```{r}
 sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
+```
+
+
+
+
+Each round of differential expression test results are also saved in the list of data frames.
+
+
+```{r}
 head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes
 head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells
 head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells
 ```
 
-
-## Session Info
-
-```{r}
-sessionInfo()
-```

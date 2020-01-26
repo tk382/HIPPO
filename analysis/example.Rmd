@@ -36,13 +36,13 @@ Alternatively, you can start from a matrix object.
 
 This plot shows the zero inflation compared to the expected Poisson line. If most genes don't align with the black line, it shows that there is cell heterogeneity driving the zero inflation.
 
-```{r}
+```{r, warning = FALSE}
 hippo_diagnostic_plot(sce, show_outliers = TRUE, zvalue_thresh = 15)
 ```
 
 ## Feature Selection and Hierarchical Clustering
 
-HIPPO assumes that the count matrix is placed in sce@assays@data$counts. Some objects that we found online have the count matrix in sce@assays$data$counts. In this case, HIPPO will throw an error because it cannot found a count matrix. In this case, you have to create another SingleCellExperiment object to assign the count matrix in the correct slot.
+HIPPO assumes that the count matrix is placed in sce@assays@data\$counts. Some objects that we found online have the count matrix in sce@assays\$data\$counts. In this case, HIPPO will throw an error because it cannot found a count matrix. In this case, you have to create another SingleCellExperiment object to assign the count matrix in the correct slot.
 
 Next, you can run hippo function to do the pre-processing that simutlaneously conducts feature selection and hierarchcial clustering. There are three arguments that help you decide the stopping criterion of clustering procedure.
 
@@ -52,7 +52,7 @@ z_threshold is the feature selection criterion. For each round of hierarchical c
 
 outlier_proportion is the number of outlier genes to allow. The default is 0.01 (1%) which means the clustering procedure will automatically stop if there are less than 1% of genes remain as important features. With the example data set, the default choice has empirically worked well.
 
-```{r}
+```{r, warning = FALSE}
 set.seed(20191031)
 sce = hippo(sce, K = 10, z_threshold = 2, outlier_proportion = 0.01)
 ```
@@ -61,7 +61,7 @@ sce = hippo(sce, K = 10, z_threshold = 2, outlier_proportion = 0.01)
 
 We offer two dimension reduction methods: umap and tsne. And we offer two separate visualization functions.
 
-```{r}
+```{r, warning = FALSE}
 sce = dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce)
 ```

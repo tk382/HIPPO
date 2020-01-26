@@ -221,7 +221,7 @@ one_level_clustering = function(subX, z_threshold){
     return(list(features = NA, pcs = NA, km = NA))
   }
   pcs = irlba::irlba(log(subX[features, ]+1), 10)$v
-  unscaledpc = irlba::prcomp_irlba(log(t(subX[features,])+1), n = 10, scale.=FALSE, center=FALSE)$x[,1:10]
+  unscaledpc = irlba::prcomp_irlba(log(t(as.matrix(subX[features,]))+1), n = 10, scale.=FALSE, center=FALSE)$x[,1:10]
   km = kmeans(pcs, 2, nstart = 10, iter.max = 50)
   return(list(features = features, pcs = pcs, km = km, unscaled_pcs = unscaledpc, subdf = subdf))
 }
