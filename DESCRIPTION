@@ -14,7 +14,6 @@ VignetteBuilder: knitr
 Imports:
     ggplot2,
     graphics,
-    matrixStats,
     stats,
     reshape2,
     gridExtra,
