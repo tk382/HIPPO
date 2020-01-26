@@ -90,6 +90,7 @@ This function also has an option to switch the gene names to HGNC symbols. top.n
 
 ```{r}
 sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
+# sce@int_metadata$hippo$diffexp$plot
 ```
 
 The labels of boxplots are not quite straightfoward, as we look at different cell groups at each round of HIPPO. This must be interepreted simultaneously with the hierarchical clustering plot such as t-SNE plot above.
