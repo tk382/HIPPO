@@ -8,9 +8,15 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "README-"
+  fig.path = "README-",
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 6,
+  fig.height = 4
 )
-library(exampleRPackage)
+library(HIPPO)
+library(SingleCellExperiment)
+library(magrittr)
 ```
 
 # HIPPO
@@ -24,7 +30,7 @@ These instructions will get you a copy of the project up and running on your loc
 ##Prerequisites
 HIPPO works on the SingleCellExperiment object. You can download the library like the following.
 
-```{r}
+```{r, eval=FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("SingleCellExperiment")
@@ -33,7 +39,7 @@ BiocManager::install("SingleCellExperiment")
 
 ## Installing
 HIPPO is under review for Bioconductor and CRAN submission. You can download the developer version as below. Please allow up to 5 minutes to completely compile the vignette.
-```{r}
+```{r, eval=FALSE}
 devtools::install_github("tk382/HIPPO", build_vignettes = TRUE)
 ```
 
@@ -43,13 +49,13 @@ devtools::install_github("tk382/HIPPO", build_vignettes = TRUE)
 
 The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set. 
 
-```{r}
+```{r readdata}
 sce <- readRDS(url("https://github.com/tk382/HIPPO/raw/master/sce_Zhengmix4eq.rds","rb"))
 ```
 
 Alternatively, you can start from a matrix object.
 
-```{r, eval = FALSE}
+```{r readdata2, eval = FALSE}
 # X = readRDS("../zhengmix4eq_counts.rds")
 # sce = SingleCellExperiment(assays = list(counts = X))
 ```
@@ -97,7 +103,7 @@ hippo_tsne_plot(sce)
 
 This function shows how the zero-inflation decreases as HIPPO proceeds in the clustering. This function has arguments called switch_to_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
 
-```{r, fig.width = 6, fig.height = 6}
+```{r, fig.width = 5, fig.height = 5}
 ref = data.frame(hgnc = rowData(sce)$symbol,
                  ensg = rowData(sce)$id)
 head(ref)
