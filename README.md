@@ -1,6 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-HIPPO
+HIPPO ![](https://github.com/tk382/HIPPO/blob/master/readme/hippo_image.png)
 =====
 
 Single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity
