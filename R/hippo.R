@@ -223,7 +223,7 @@ one_level_clustering = function(subX, z_threshold){
     return(list(features = NA, pcs = NA, km = NA))
   }
   pcs = irlba::irlba(log(subX[features, ]+1), 10)$v
-  unscaledpc = irlba::prcomp_irlba(log(Matrix::t(as.matrix(subX[features,]))+1), n = 10, scale.=FALSE, center=FALSE)$x[,1:10]
+  unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features,]))+1), n = 10, scale.=FALSE, center=FALSE)$x[,1:10]
   km = kmeans(pcs, 2, nstart = 10, iter.max = 50)
   return(list(features = features, pcs = pcs, km = km, unscaled_pcs = unscaledpc, subdf = subdf))
 }
@@ -535,7 +535,7 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
     if(switch_to_hgnc){
       features_hgnc = ref$hgnc[match(topgenes, ref$ensg)]
     }
-    newcount = as.data.frame(newcount)
+    newcount = as.data.frame(as.matrix(newcount))
     colnames(newcount) = rowdata$genes[1:top.n]
     if(switch_to_hgnc){
       colnames(newcount) = features_hgnc
