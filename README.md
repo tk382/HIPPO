@@ -36,11 +36,11 @@ You can see a full analysis example through the vignette.
 browseVignettes("HIPPO")
 ```
 
-Here is a brief tutorial to get you started.
+Or, a detailed tutorial is also in [here](https://tk382.github.io/HIPPO/example.html)
 
 ### Prepare the data
 
-Many UMI data sets are already SingleCellExperiment objects. We have an example data set uploaded on github "sce_Zhengmix4eq.rds" around 6Mb. 
+Many UMI data sets are already SingleCellExperiment objects. We have an example data set uploaded on github "sce_Zhengmix4eq.rds." The file is around 6Mb in size. 
 
 ```
 sce = readRDS("sce_Zhengmix4eq.rds")
@@ -108,6 +108,7 @@ zero_inflation_plot(sce)
 ```
 <img src="https://github.com/tk382/HIPPO/blob/master/readme/zero_inflation.png" width="800">
 
+<!--
 ### Differential Expression with HIPPO
 
 We also offer a differential expression analysis tool. 
@@ -139,6 +140,8 @@ sce@int_metadata$hippo$diffexp$result_table[[1]]
 ```
 
 Above code will show the list of genes in the order of significance that differentiates the first group from the rest. The second element of the list will show the list of genes in the order of significance that differentiates the third and fourth group from the second group.
+-->
+
 
 ## Authors
 
