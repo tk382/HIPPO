@@ -1,154 +1,180 @@
-[![Travis-CI Build Status](https://travis-ci.com/tk382/HIPPO.svg?branch=master)](https://travis-ci.org/tk382/HIPPO)
-<!-- [![CRAN status](https://www.r-pkg.org/badges/version/DynamicCorrelation)](https://cran.r-project.org/package=DynamicCorrelation)-->
 
-# HIPPO <img src="https://github.com/tk382/HIPPO/blob/master/readme/hippo_image.png" width="40">
-
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+HIPPO
+=====
 
 Single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity
 
-## Getting Started
+Getting Started
+---------------
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Prerequisites
+Prerequisites
+-------------
 
 HIPPO works on the SingleCellExperiment object. You can download the library like the following.
 
-```
+``` r
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("SingleCellExperiment")
 ```
 
-### Installing
+Installing
+----------
 
 HIPPO is under review for Bioconductor and CRAN submission. You can download the developer version as below. Please allow up to 5 minutes to completely compile the vignette.
 
-```
+``` r
 devtools::install_github("tk382/HIPPO", build_vignettes = TRUE)
 ```
 
-## Example Analysis
+Example Analysis
+================
 
-You can see a full analysis example through the vignette. 
+Read the data
+-------------
 
-```
-browseVignettes("HIPPO")
-```
+The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set.
 
-Or, a detailed tutorial is also in [here](https://tk382.github.io/HIPPO/example.html)
-
-### Prepare the data
-
-Many UMI data sets are already SingleCellExperiment objects. We have an example data set uploaded on github "sce_Zhengmix4eq.rds." The file is around 6Mb in size. 
-
-```
-sce = readRDS("sce_Zhengmix4eq.rds")
+``` r
+sce <- readRDS(url("https://github.com/tk382/HIPPO/raw/master/sce_Zhengmix4eq.rds","rb"))
 ```
 
-We also have an example data set that is only count matrix: "zhengmix4eq_counts.rds". In that case, you can use the count matrix to create a SingleCellExperiment object.
+Alternatively, you can start from a matrix object.
 
+``` r
+# X = readRDS("../zhengmix4eq_counts.rds")
+# sce = SingleCellExperiment(assays = list(counts = X))
 ```
-X = readRDS("zhengmix4eq_counts.rds")
-sce = SingleCellExperiment(assays=list(counts = X))
+
+Diagnostic Plot
+---------------
+
+This plot shows the zero inflation compared to the expected Poisson line. If most genes don't align with the black line, it shows that there is cell heterogeneity driving the zero inflation.
+
+``` r
+hippo_diagnostic_plot(sce, show_outliers = TRUE, zvalue_thresh = 15)
 ```
 
-### Plot diagnostics
+![](README_files/figure-markdown_github/diagnostic-1.png)
 
-This plot shows the zero inflation compared to the expected Poisson line. If most genes don't align with the black line, it shows that there is cell heterogeneity driving the zero inflation. 
+Feature Selection and Hierarchical Clustering
+---------------------------------------------
 
-```
-hippo_diagnostic_plot(sce)
-```
-<img src="https://github.com/tk382/HIPPO/blob/master/readme/diagnostic_plot.png" width="350">
-
-### Run hippo
-
-HIPPO assumes that the count matrix is placed in sce@assays@data$counts. Some objects that we found online have the count matrix in sce@assays$data$counts. In this case, HIPPO will throw an error because it cannot found a count matrix. In this case, you have to create another SingleCellExperiment object to assign the count matrix in the correct slot.
+HIPPO assumes that the count matrix is placed in <sce@assays@data>$counts. Some objects that we found online have the count matrix in <sce@assays>$data$counts. In this case, HIPPO will throw an error because it cannot found a count matrix. In this case, you have to create another SingleCellExperiment object to assign the count matrix in the correct slot.
 
 Next, you can run hippo function to do the pre-processing that simutlaneously conducts feature selection and hierarchcial clustering. There are three arguments that help you decide the stopping criterion of clustering procedure.
 
-1. K is the maximum number of clusters that you want. HIPPO will return the clustering results for all k = 2, 3, ..., K, so you can overestimate the number of potential clusters. The default is 10, but users are highly recommended to adjust this.
+K is the maximum number of clusters that you want. HIPPO will return the clustering results for all k = 2, 3, ..., K, so you can overestimate the number of potential clusters. The default is 10, but users are highly recommended to adjust this.
 
-2. z_threshold is the feature selection criterion. For each round of hierarchical clustering, hippo will find outlier genes where the z-value of significance is greater than the threshold. For example, if you would like to select genes with p-values less than 0.05, z_threshold would be 1.96. The default threshold is 2, but users can use their discretion to change this value.
+z\_threshold is the feature selection criterion. For each round of hierarchical clustering, hippo will find outlier genes where the z-value of significance is greater than the threshold. For example, if you would like to select genes with p-values less than 0.05, z\_threshold would be 1.96. The default threshold is 2, but users can use their discretion to change this value.
 
-3. outlier_proportion is the number of outlier genes to allow. The default is 0.01 (1\%) which means the clustering procedure will automatically stop if there are less than 1\% of genes remain as important features. With the example data set, the default choice has empirically worked well.
+outlier\_proportion is the number of outlier genes to allow. The default is 0.01 (1%) which means the clustering procedure will automatically stop if there are less than 1% of genes remain as important features. With the example data set, the default choice has empirically worked well.
 
-```
-sce = hippo(sce, K=4, z_threshold = 2, outlier_proportion = 0.01)
-```
-
-### Dimension Reduction and Visualization
-
-We offer two dimension reduction methods: umap and tsne.
-
-```
-sce = dimension_reduction(sce, method = "umap")
-sce = dimension_reduction(sce, method = "tsne")
+``` r
+set.seed(20191031)
+sce = hippo(sce, K = 10, z_threshold = 2, outlier_proportion = 0.01)
+#> [1] "K = 2.."
+#> [1] "K = 3.."
+#> [1] "K = 4.."
+#> [1] "K = 5.."
+#> [1] "not enough important features left; terminating the procedure"
 ```
 
-And we offer two separate visualization functions.
+Dimension Reduction for Each Round of HIPPO
+-------------------------------------------
 
-```
+We offer two dimension reduction methods: umap and tsne. And we offer two separate visualization functions.
+
+``` r
+sce = dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce)
 ```
-<img src="https://github.com/tk382/HIPPO/blob/master/readme/umap.png" width="800">
- 
-```
+
+![](README_files/figure-markdown_github/umap-1.png)
+
+``` r
+sce = dimension_reduction(sce, method="tsne")
 hippo_tsne_plot(sce)
 ```
-<img src="https://github.com/tk382/HIPPO/blob/master/readme/tsne.png" width="800">
 
-### Diagnostic plots after HIPPO
+![](README_files/figure-markdown_github/tsne-1.png)
 
-We also recommend users to check the diagnostic plots of zero inflation for each round of hippo as below. The zero proportion of each gene in each clustered group aligns better and better after each round of hierarchical clustering. 
+Visualize the selected features at each round
+---------------------------------------------
 
+This function shows how the zero-inflation decreases as HIPPO proceeds in the clustering. This function has arguments called switch\_to\_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
+
+``` r
+ref = data.frame(hgnc = rowData(sce)$symbol,
+                 ensg = rowData(sce)$id)
+head(ref)
+#>            hgnc            ensg
+#> 1    AL627309.1 ENSG00000237683
+#> 2 RP11-206L10.2 ENSG00000228327
+#> 3 RP11-206L10.9 ENSG00000237491
+#> 4     LINC00115 ENSG00000225880
+#> 5        FAM41C ENSG00000230368
+#> 6        SAMD11 ENSG00000187634
+zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)
 ```
-zero_inflation_plot(sce)
-```
-<img src="https://github.com/tk382/HIPPO/blob/master/readme/zero_inflation.png" width="800">
 
-<!--
-### Differential Expression with HIPPO
+![](README_files/figure-markdown_github/featureselection-1.png)
 
-We also offer a differential expression analysis tool. 
+Differential Expression Example
+-------------------------------
 
-*diffexp* has arguments called *switch_to_hgnc* and *ref*. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in *rowData(sce)*. Users can create a data frame with *ensg* and *hgnc* columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
+We also offer a differential expression analysis tool.
 
-*top.n* argument lets users choose how many top genes to show in the box plot. The default is 5.
+This function also has an option to switch the gene names to HGNC symbols. top.n argument lets users choose how many top genes to show in the box plot. The default is 5.
 
-```
-ref = data.frame(hgnc = rowData(sce)$symbol, ensg = rowData(sce)$id)
+The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is equal to 2, the color codes match with the cell groups as separated in the dimension reduction plot.
+
+``` r
 sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 ```
-<img src="https://github.com/tk382/HIPPO/blob/master/readme/diffexp.png" width="600">
 
-The labels of boxplots are not quite straightfoward, as we look at different cell groups at each round of HIPPO. This must be interepreted simultaneously with the hierarchical clustering plot such as t-SNE plot above. 
-
-First, in the first round, K moves from 1 to 2, and the red group is separated. This group is Monocytes in this particular data set. The box plot always shows the "separated" group in the green box, and hence the group 1. The red boxes represent the remaining cells, so groups 2, 3, and 4 combined.
-
-In the second round, K moves from 2 to 3, and as shown in the t-SNE plot, groups 3 and 4 are separated from the group 2 because they're assigned a new color. Group 2 in this data set is B cells. (Note that this is different from group 2 is separated. Group 2 remains green.) Therefore, in the second round of box plots, the green boxes represent groups 3 and 4, and the red box represents group 2. In this round, the first group of cells have been removed from the samples. 
-
-In the last round, K moves from 3 to 4, and group 4 has been assigned a new color of violet. Hence, the green boxes represent group 4, which is Regulatory T cells, while the red boxes represent the remaining cells of group 3: Naive T cells.
-
-
+![](README_files/figure-markdown_github/diffexp-1.png)
 
 Each round of differential expression test results are also saved in the list of data frames.
 
+``` r
+head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes
+#>             genes  meandiff         sd         z     hgnc
+#> 1 ENSG00000019582 11.146811 0.09138445 121.97711     CD74
+#> 2 ENSG00000163220  4.086147 0.04656788  87.74604   S100A9
+#> 3 ENSG00000143546  3.825106 0.04478527  85.40990   S100A8
+#> 4 ENSG00000204287  5.081744 0.06486717  78.34077  HLA-DRA
+#> 5 ENSG00000196126  4.565034 0.05980462  76.33246 HLA-DRB1
+#> 6 ENSG00000087086  7.400703 0.09739490  75.98656      FTL
+head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells
+#>             genes  meandiff         sd        z hgnc
+#> 1 ENSG00000008517 2.6307385 0.03623181 72.60854 IL32
+#> 2 ENSG00000167286 1.6506986 0.02870021 57.51522 CD3D
+#> 3 ENSG00000198851 1.5618762 0.02791737 55.94640 CD3E
+#> 4 ENSG00000139193 0.8038922 0.02002858 40.13726 CD27
+#> 5 ENSG00000172116 0.7450100 0.01928112 38.63936 CD8B
+#> 6 ENSG00000227507 3.5283579 0.10424241 33.84763  LTB
+head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells
+#>             genes meandiff        sd        z  hgnc
+#> 1 ENSG00000109475 7.180592 0.1288168 55.74265 RPL34
+#> 2 ENSG00000177954 9.368816 0.1688232 55.49483 RPS27
+#> 3 ENSG00000144713 9.576198 0.1727974 55.41864 RPL32
+#> 4 ENSG00000112306 8.694732 0.1600532 54.32402 RPS12
+#> 5 ENSG00000071082 7.166027 0.1321860 54.21170 RPL31
+#> 6 ENSG00000177600 8.177438 0.1521632 53.74123 RPLP2
 ```
-sce@int_metadata$hippo$diffexp$result_table[[1]]
-```
 
-Above code will show the list of genes in the order of significance that differentiates the first group from the rest. The second element of the list will show the list of genes in the order of significance that differentiates the third and fourth group from the second group.
--->
+Authors
+-------
 
+-   [Tae Kim](https://github.com/tk382)
 
-## Authors
+Acknowledgments
+---------------
 
-* [Tae Kim](https://github.com/tk382)
-
-## Acknowledgments
-
-* [Mengjie Chen](http://www.mengjiechen.com) provided guidance in methodology development.
-* [Yong Peng](https://github.com/bigdataage) contributed in packaging the code to meet the Bioconductor requirements.
-* The hippo icon is from [here](https://www.needpix.com/photo/178308/hippo-head-cartoon-cute-grey-zoo-wildlife)
+-   [Mengjie Chen](http://www.mengjiechen.com) provided guidance in methodology development.
+-   [Yong Peng](https://github.com/bigdataage) contributed in packaging the code to meet the Bioconductor requirements.
+-   The hippo icon is from [here](https://www.needpix.com/photo/178308/hippo-head-cartoon-cute-grey-zoo-wildlife)
