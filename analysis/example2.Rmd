@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       comment = NA)
 library(HIPPO)
 library(SingleCellExperiment)
+library(magrittr)
 ```
 
 ## Read the data
@@ -28,26 +29,33 @@ rownames(X) = rowdata$V1
 colnames(X) = coldata$barcodes
 ```
 
-My local laptop cannot handle such a large matrix, so I will reduce the number of cells by random sampling.
+HIPPO also works with a sparse matrix object (dgCMatrix from Matrix package) as well, but the visualization package UMAP and Rtsne does not work with it well as of now. 
+
+To expedite the process, I sampled 10,000 cells from 68,000 cells.
 
 ```{r}
 set.seed(20200117)
-cells = sample(1:ncol(X), size = 3000)
+cells = sample(1:ncol(X), size = 10000)
 X = X[, cells]
 coldata = coldata[cells, ]
+rm(cells)
 ```
 
 Then create the SingleCellExperiment object.
 
 ```{r}
-sce = SingleCellExperiment(assays = list(counts = as.matrix(X)),
+sce = SingleCellExperiment(assays = list(counts = X),
                            rowData = rowdata,
                            colData = coldata)
+```
 
+```{r, echo = FALSE, include = FALSE}
 rm(X, rowdata, coldata); gc()
 ```
 
 ## Diagnostic Plot
+
+This shows how noisy our initial data is.
 
 ```{r}
 hippo_diagnostic_plot(sce)
@@ -55,35 +63,23 @@ hippo_diagnostic_plot(sce)
 
 ## Feature Selection and Hierarchical Clustering
 
+This step performs the feature selection and hierarchical clustering.
+
 ```{r}
-set.seed(20191031)
-sce = hippo(sce, K = 6, z_threshold = 1.5, outlier_proportion = 0.005)
-```
-
-## Dimension Reduction for Each Round of HIPPO
-
-```{r,fig.width = 5, fig.height = 6}
-sce = dimension_reduction(sce, method="umap")
-hippo_umap_plot(sce)
-```
-
-```{r,fig.width = 6, fig.height = 6}
-sce = dimension_reduction(sce, method="tsne")
-hippo_tsne_plot(sce)
+sce = hippo(sce, K = 7, z_threshold = 1.5, outlier_proportion = 0.005)
 ```
 
 ## Visualize the selected features at each round
 
-```{r,fig.width = 6, fig.height = 6}
-zero_proportion_plot(sce)
+```{r,fig.width = 6, fig.height = 4}
+ref = data.frame(hgnc = rowData(sce)$V2,
+                 ensg = rowData(sce)$V1)
+zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)
 ```
 
 ## Differential Expression Example
 
 ```{r, fig.width=6, fig.height=8}
-ref = data.frame(hgnc = rowData(sce)$V2,
-                 ensg = rowData(sce)$V1)
-head(ref)
 sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes
 head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells
@@ -91,8 +87,3 @@ head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T ce
 ```
 
 
-## Session Info
-
-```{r}
-sessionInfo()
-```
