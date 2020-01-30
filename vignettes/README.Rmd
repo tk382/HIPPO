@@ -8,7 +8,6 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "README-",
   warning = FALSE,
   message = FALSE,
   fig.width = 6,
@@ -64,7 +63,7 @@ Alternatively, you can start from a matrix object.
 
 This plot shows the zero inflation compared to the expected Poisson line. If most genes don't align with the black line, it shows that there is cell heterogeneity driving the zero inflation.
 
-```{r, warning = FALSE}
+```{r diagnostic, warning = FALSE}
 hippo_diagnostic_plot(sce, show_outliers = TRUE, zvalue_thresh = 15)
 ```
 
@@ -80,7 +79,7 @@ z_threshold is the feature selection criterion. For each round of hierarchical c
 
 outlier_proportion is the number of outlier genes to allow. The default is 0.01 (1%) which means the clustering procedure will automatically stop if there are less than 1% of genes remain as important features. With the example data set, the default choice has empirically worked well.
 
-```{r, warning = FALSE}
+```{r hippo, warning = FALSE}
 set.seed(20191031)
 sce = hippo(sce, K = 10, z_threshold = 2, outlier_proportion = 0.01)
 ```
@@ -89,12 +88,12 @@ sce = hippo(sce, K = 10, z_threshold = 2, outlier_proportion = 0.01)
 
 We offer two dimension reduction methods: umap and tsne. And we offer two separate visualization functions.
 
-```{r, warning = FALSE}
+```{r umap, warning = FALSE}
 sce = dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce)
 ```
 
-```{r}
+```{r tsne}
 sce = dimension_reduction(sce, method="tsne")
 hippo_tsne_plot(sce)
 ```
@@ -103,7 +102,7 @@ hippo_tsne_plot(sce)
 
 This function shows how the zero-inflation decreases as HIPPO proceeds in the clustering. This function has arguments called switch_to_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
 
-```{r, fig.width = 5, fig.height = 5}
+```{r featureselection, fig.width = 5, fig.height = 5}
 ref = data.frame(hgnc = rowData(sce)$symbol,
                  ensg = rowData(sce)$id)
 head(ref)
@@ -118,7 +117,7 @@ This function also has an option to switch the gene names to HGNC symbols. top.n
 
 The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is equal to 2, the color codes match with the cell groups as separated in the dimension reduction plot. 
 
-```{r}
+```{r diffexp}
 sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 ```
 
