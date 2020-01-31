@@ -529,7 +529,7 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
     rowdata$z = rowdata$meandiff/rowdata$sd
     rowdata = rowdata[order(rowdata$z, decreasing=TRUE), ]
     rowdata$genes = as.character(rowdata$genes)
-    newcount = t(log(cbind(count[rowdata$genes[1:top.n], cellgroup1],
+    newcount = Matrix::t(log(cbind(count[rowdata$genes[1:top.n], cellgroup1],
                            count[rowdata$genes[1:top.n], cellgroup2])+1))
     topgenes = rowdata$genes[1:top.n]
     if(switch_to_hgnc){
