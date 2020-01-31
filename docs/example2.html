@@ -327,7 +327,7 @@ div.section {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2020-01-22
+<strong>Last updated:</strong> 2020-01-31
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -418,10 +418,10 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree3531e4b053947044296239ba485475125898c919targetblank3531e4ba"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/3531e4b053947044296239ba485475125898c919" target="_blank">3531e4b</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree6fb0e1274725aafd78d3ce17c0db3f08507c3704targetblank6fb0e12a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/tk382/HIPPO/tree/6fb0e1274725aafd78d3ce17c0db3f08507c3704" target="_blank">6fb0e12</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree3531e4b053947044296239ba485475125898c919targetblank3531e4ba" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomtk382HIPPOtree6fb0e1274725aafd78d3ce17c0db3f08507c3704targetblank6fb0e12a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -431,13 +431,12 @@ Ignored files:
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    R/.Rhistory
+    Ignored:    analysis/figure/
 
 Untracked files:
+    Untracked:  HIPPO_0.1.0.tar.gz
     Untracked:  make_sce_zhengmix4eq.R
     Untracked:  sce_full_Zhengmix4eq.rds
-
-Unstaged changes:
-    Modified:   R/hippo.R
 
 </code></pre>
 <p>
@@ -476,6 +475,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/7f76bf4e1ebe5920211debffc2af916ba09762b1/analysis/example2.Rmd" target="_blank">7f76bf4</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-31
+</td>
+<td>
+Matrix error in hippo and remove irrelevant comment in example2
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/e6ce1d842403701edaca3e53e480c071ddf917d6/analysis/example2.Rmd" target="_blank">e6ce1d8</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-30
+</td>
+<td>
+workflowr::wflow_publish(“analysis/example2.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/tk382/HIPPO/323564eacc07aeb843cb260da31fc240330fd63c/docs/example2.html" target="_blank">323564e</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -594,128 +644,40 @@ rowdata =  read.table(&quot;/Volumes/tae/Work/SC/data/10X_68K/filtered_matrix/hg
 coldata = data.table::setDF(data.table::fread(&quot;/Volumes/tae/Work/SC/data/10X_68K/filtered_matrix/hg19/barocdes_annotation.tsv&quot;)) # this shows barcode information
 rownames(X) = rowdata$V1
 colnames(X) = coldata$barcodes</code></pre>
-<p>My local laptop cannot handle such a large matrix, so I will reduce the number of cells by random sampling.</p>
+<p>HIPPO also works with a sparse matrix object (dgCMatrix from Matrix package) as well, but the visualization package UMAP and Rtsne does not work with it well as of now.</p>
+<p>To expedite the process, I sampled 10,000 cells from 68,000 cells.</p>
 <pre class="r"><code>set.seed(20200117)
-cells = sample(1:ncol(X), size = 3000)
+cells = sample(1:ncol(X), size = 10000)
 X = X[, cells]
-coldata = coldata[cells, ]</code></pre>
+coldata = coldata[cells, ]
+rm(cells)</code></pre>
 <p>Then create the SingleCellExperiment object.</p>
-<pre class="r"><code>sce = SingleCellExperiment(assays = list(counts = as.matrix(X)),
+<pre class="r"><code>sce = SingleCellExperiment(assays = list(counts = X),
                            rowData = rowdata,
-                           colData = coldata)
-
-rm(X, rowdata, coldata); gc()</code></pre>
-<pre><code>            used  (Mb) gc trigger (Mb) limit (Mb)  max used   (Mb)
-Ncells   5399675 288.4   10091050  539         NA   6429567  343.4
-Vcells 107969105 823.8  216522220 1652      16384 177199263 1352.0</code></pre>
+                           colData = coldata)</code></pre>
 </div>
 <div id="diagnostic-plot" class="section level2">
 <h2>Diagnostic Plot</h2>
+<p>This shows how noisy our initial data is.</p>
 <pre class="r"><code>hippo_diagnostic_plot(sce)</code></pre>
-<p><img src="figure/example2.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
-Past versions of unnamed-chunk-4-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-4-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-4-1.png" target="_blank">75f668f</a>
-</td>
-<td>
-tk382
-</td>
-<td>
-2020-01-17
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<p><img src="figure/example2.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="feature-selection-and-hierarchical-clustering" class="section level2">
 <h2>Feature Selection and Hierarchical Clustering</h2>
-<pre class="r"><code>set.seed(20191031)
-sce = hippo(sce, K = 6, z_threshold = 1.5, outlier_proportion = 0.005)</code></pre>
+<p>This step performs the feature selection and hierarchical clustering.</p>
+<pre class="r"><code>sce = hippo(sce, K = 7, z_threshold = 1.5, outlier_proportion = 0.005)</code></pre>
 <pre><code>[1] &quot;K = 2..&quot;
 [1] &quot;K = 3..&quot;
 [1] &quot;K = 4..&quot;
 [1] &quot;K = 5..&quot;
-[1] &quot;K = 6..&quot;</code></pre>
+[1] &quot;K = 6..&quot;
+[1] &quot;K = 7..&quot;</code></pre>
 </div>
-<div id="dimension-reduction-for-each-round-of-hippo" class="section level2">
-<h2>Dimension Reduction for Each Round of HIPPO</h2>
-<pre class="r"><code>sce = dimension_reduction(sce, method=&quot;umap&quot;)
-hippo_umap_plot(sce)</code></pre>
-<p><img src="figure/example2.Rmd/unnamed-chunk-6-1.png" width="480" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
-Past versions of unnamed-chunk-6-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-6-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/tk382/HIPPO/blob/8809a3d163a5bb6985a6655b5e6008d6e13054e7/docs/figure/example2.Rmd/unnamed-chunk-6-1.png" target="_blank">8809a3d</a>
-</td>
-<td>
-tk382
-</td>
-<td>
-2020-01-22
-</td>
-</tr>
-<tr>
-<td>
-<a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-6-1.png" target="_blank">75f668f</a>
-</td>
-<td>
-tk382
-</td>
-<td>
-2020-01-17
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<pre class="r"><code>sce = dimension_reduction(sce, method=&quot;tsne&quot;)
-hippo_tsne_plot(sce)</code></pre>
+<div id="visualize-the-selected-features-at-each-round" class="section level2">
+<h2>Visualize the selected features at each round</h2>
+<pre class="r"><code>ref = data.frame(hgnc = rowData(sce)$V2,
+                 ensg = rowData(sce)$V1)
+zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)</code></pre>
 <p><img src="figure/example2.Rmd/unnamed-chunk-7-1.png" width="576" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
@@ -739,6 +701,28 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/6fb0e1274725aafd78d3ce17c0db3f08507c3704/docs/figure/example2.Rmd/unnamed-chunk-7-1.png" target="_blank">6fb0e12</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-31
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/323564eacc07aeb843cb260da31fc240330fd63c/docs/figure/example2.Rmd/unnamed-chunk-7-1.png" target="_blank">323564e</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/tk382/HIPPO/blob/8809a3d163a5bb6985a6655b5e6008d6e13054e7/docs/figure/example2.Rmd/unnamed-chunk-7-1.png" target="_blank">8809a3d</a>
@@ -766,9 +750,9 @@ tk382
 </div>
 </div>
 </div>
-<div id="visualize-the-selected-features-at-each-round" class="section level2">
-<h2>Visualize the selected features at each round</h2>
-<pre class="r"><code>zero_proportion_plot(sce)</code></pre>
+<div id="differential-expression-example" class="section level2">
+<h2>Differential Expression Example</h2>
+<pre class="r"><code>sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)</code></pre>
 <p><img src="figure/example2.Rmd/unnamed-chunk-8-1.png" width="576" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-1">
@@ -792,6 +776,28 @@ Date
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/6fb0e1274725aafd78d3ce17c0db3f08507c3704/docs/figure/example2.Rmd/unnamed-chunk-8-1.png" target="_blank">6fb0e12</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-31
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/tk382/HIPPO/blob/323564eacc07aeb843cb260da31fc240330fd63c/docs/figure/example2.Rmd/unnamed-chunk-8-1.png" target="_blank">323564e</a>
+</td>
+<td>
+tk382
+</td>
+<td>
+2020-01-22
+</td>
+</tr>
 <tr>
 <td>
 <a href="https://github.com/tk382/HIPPO/blob/8809a3d163a5bb6985a6655b5e6008d6e13054e7/docs/figure/example2.Rmd/unnamed-chunk-8-1.png" target="_blank">8809a3d</a>
@@ -818,191 +824,30 @@ tk382
 </table>
 </div>
 </div>
-<p><img src="figure/example2.Rmd/unnamed-chunk-8-2.png" width="576" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-2">
-Past versions of unnamed-chunk-8-2.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-8-2" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/tk382/HIPPO/blob/8809a3d163a5bb6985a6655b5e6008d6e13054e7/docs/figure/example2.Rmd/unnamed-chunk-8-2.png" target="_blank">8809a3d</a>
-</td>
-<td>
-tk382
-</td>
-<td>
-2020-01-22
-</td>
-</tr>
-<tr>
-<td>
-<a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-8-2.png" target="_blank">75f668f</a>
-</td>
-<td>
-tk382
-</td>
-<td>
-2020-01-17
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div id="differential-expression-example" class="section level2">
-<h2>Differential Expression Example</h2>
-<pre class="r"><code>ref = data.frame(hgnc = rowData(sce)$V2,
-                 ensg = rowData(sce)$V1)
-head(ref)</code></pre>
-<pre><code>          hgnc            ensg
-1   MIR1302-10 ENSG00000243485
-2      FAM138A ENSG00000237613
-3        OR4F5 ENSG00000186092
-4 RP11-34P13.7 ENSG00000238009
-5 RP11-34P13.8 ENSG00000239945
-6   AL627309.1 ENSG00000237683</code></pre>
-<pre class="r"><code>sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)</code></pre>
-<p><img src="figure/example2.Rmd/unnamed-chunk-9-1.png" width="576" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-9-1">
-Past versions of unnamed-chunk-9-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-9-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/tk382/HIPPO/blob/8809a3d163a5bb6985a6655b5e6008d6e13054e7/docs/figure/example2.Rmd/unnamed-chunk-9-1.png" target="_blank">8809a3d</a>
-</td>
-<td>
-tk382
-</td>
-<td>
-2020-01-22
-</td>
-</tr>
-<tr>
-<td>
-<a href="https://github.com/tk382/HIPPO/blob/75f668f46d4bed083afa1a218e723965db5a8c31/docs/figure/example2.Rmd/unnamed-chunk-9-1.png" target="_blank">75f668f</a>
-</td>
-<td>
-tk382
-</td>
-<td>
-2020-01-17
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<pre class="r"><code>head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes</code></pre>
-<pre><code>               genes  meandiff        sd        z     hgnc
-1412 ENSG00000087086 26.433033 0.3766971 70.17053      FTL
-811  ENSG00000167996 19.176096 0.3222346 59.50975     FTH1
-425  ENSG00000019582 12.147147 0.2515863 48.28223     CD74
-1257 ENSG00000101439  8.741141 0.1977649 44.19965     CST3
-478  ENSG00000204287  8.507868 0.2024042 42.03404  HLA-DRA
-480  ENSG00000196126  7.643243 0.1910941 39.99728 HLA-DRB1</code></pre>
-<pre class="r"><code>head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells</code></pre>
-<pre><code>               genes meandiff         sd        z hgnc
-153  ENSG00000115523 2.673250 0.04849780 55.12106 GNLY
-1130 ENSG00000105374 2.073494 0.04521215 45.86142 NKG7
-936  ENSG00000161570 2.213549 0.05142511 43.04413 CCL5
-884  ENSG00000008517 2.121804 0.05221637 40.63485 IL32
-689  ENSG00000198851 1.070603 0.03336386 32.08869 CD3E
-690  ENSG00000167286 1.380599 0.04354102 31.70801 CD3D</code></pre>
-<pre class="r"><code>head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells</code></pre>
-<pre><code>              genes  meandiff         sd        z  hgnc
-330 ENSG00000227507  4.246589 0.05832592 72.80791   LTB
-797 ENSG00000167526 12.628950 0.20384160 61.95472 RPL13
-764 ENSG00000140988 10.844160 0.20152392 53.81078  RPS2
-188 ENSG00000144713  6.660212 0.13700637 48.61242 RPL32
-478 ENSG00000137154  8.373744 0.17540230 47.74022  RPS6
-18  ENSG00000142676  6.366841 0.13830197 46.03579 RPL11</code></pre>
-</div>
-<div id="session-info" class="section level2">
-<h2>Session Info</h2>
-<pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>R version 3.6.1 (2019-07-05)
-Platform: x86_64-apple-darwin15.6.0 (64-bit)
-Running under: macOS Sierra 10.12.6
-
-Matrix products: default
-BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
-LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
-
-locale:
-[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
-
-attached base packages:
-[1] parallel  stats4    stats     graphics  grDevices utils     datasets 
-[8] methods   base     
-
-other attached packages:
- [1] Matrix_1.2-17               SingleCellExperiment_1.8.0 
- [3] SummarizedExperiment_1.16.1 DelayedArray_0.12.1        
- [5] BiocParallel_1.20.1         matrixStats_0.55.0         
- [7] Biobase_2.46.0              GenomicRanges_1.38.0       
- [9] GenomeInfoDb_1.22.0         IRanges_2.20.1             
-[11] S4Vectors_0.24.1            BiocGenerics_0.32.0        
-[13] HIPPO_0.1.0                
-
-loaded via a namespace (and not attached):
- [1] Rcpp_1.0.2             lattice_0.20-38        assertthat_0.2.1      
- [4] rprojroot_1.3-2        digest_0.6.21          RSpectra_0.15-0       
- [7] R6_2.4.0               plyr_1.8.4             backports_1.1.5       
-[10] evaluate_0.14          ggplot2_3.2.1          pillar_1.4.2          
-[13] zlibbioc_1.32.0        rlang_0.4.1            lazyeval_0.2.2        
-[16] data.table_1.12.6      irlba_2.3.3            whisker_0.4           
-[19] reticulate_1.13        rmarkdown_2.0          labeling_0.3          
-[22] Rtsne_0.15             stringr_1.4.0          RCurl_1.95-4.12       
-[25] munsell_0.5.0          umap_0.2.3.1           compiler_3.6.1        
-[28] httpuv_1.5.2           xfun_0.11              pkgconfig_2.0.3       
-[31] askpass_1.1            htmltools_0.4.0        openssl_1.4.1         
-[34] tidyselect_0.2.5       tibble_2.1.3           gridExtra_2.3         
-[37] GenomeInfoDbData_1.2.2 workflowr_1.5.0        crayon_1.3.4          
-[40] dplyr_0.8.3            later_1.0.0            bitops_1.0-6          
-[43] grid_3.6.1             jsonlite_1.6           gtable_0.3.0          
-[46] git2r_0.26.1           magrittr_1.5           scales_1.0.0          
-[49] stringi_1.4.3          XVector_0.26.0         reshape2_1.4.3        
-[52] fs_1.3.1               promises_1.1.0         tools_3.6.1           
-[55] glue_1.3.1             purrr_0.3.3            yaml_2.2.0            
-[58] colorspace_1.4-1       knitr_1.26            </code></pre>
+<pre class="r"><code>head(sce@int_metadata$hippo$diffexp$result_table[[1]])</code></pre>
+<pre><code>            genes  meandiff        sd         z     hgnc
+1 ENSG00000087086 24.418789 0.2026009 120.52656      FTL
+2 ENSG00000167996 17.947127 0.1743106 102.96061     FTH1
+3 ENSG00000019582 11.701227 0.1382068  84.66461     CD74
+4 ENSG00000101439  8.677931 0.1095546  79.21099     CST3
+5 ENSG00000204287  8.388013 0.1120801  74.83947  HLA-DRA
+6 ENSG00000196126  7.500041 0.1053995  71.15823 HLA-DRB1</code></pre>
+<pre class="r"><code>head(sce@int_metadata$hippo$diffexp$result_table[[2]])</code></pre>
+<pre><code>            genes  meandiff         sd         z  hgnc
+1 ENSG00000227507  4.248654 0.03162331 134.35197   LTB
+2 ENSG00000167526 12.674643 0.10782083 117.55282 RPL13
+3 ENSG00000140988 10.803393 0.10731299 100.67181  RPS2
+4 ENSG00000144713  6.569609 0.07240089  90.73934 RPL32
+5 ENSG00000137154  8.130273 0.09333585  87.10773  RPS6
+6 ENSG00000142676  6.284986 0.07328654  85.75907 RPL11</code></pre>
+<pre class="r"><code>head(sce@int_metadata$hippo$diffexp$result_table[[3]])</code></pre>
+<pre><code>            genes  meandiff         sd        z   hgnc
+1 ENSG00000008517 2.1099913 0.02557734 82.49455   IL32
+2 ENSG00000198851 1.1756362 0.01800683 65.28834   CD3E
+3 ENSG00000167286 1.4416552 0.02213200 65.13894   CD3D
+4 ENSG00000179144 1.3500114 0.02253260 59.91369 GIMAP7
+5 ENSG00000173762 0.7975143 0.01585160 50.31127    CD7
+6 ENSG00000166710 7.1010735 0.16801923 42.26346    B2M</code></pre>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -1027,35 +872,33 @@ attached base packages:
 [8] methods   base     
 
 other attached packages:
- [1] Matrix_1.2-17               SingleCellExperiment_1.8.0 
- [3] SummarizedExperiment_1.16.1 DelayedArray_0.12.1        
- [5] BiocParallel_1.20.1         matrixStats_0.55.0         
- [7] Biobase_2.46.0              GenomicRanges_1.38.0       
- [9] GenomeInfoDb_1.22.0         IRanges_2.20.1             
-[11] S4Vectors_0.24.1            BiocGenerics_0.32.0        
-[13] HIPPO_0.1.0                
+ [1] Matrix_1.2-17               magrittr_1.5               
+ [3] SingleCellExperiment_1.8.0  SummarizedExperiment_1.16.1
+ [5] DelayedArray_0.12.1         BiocParallel_1.20.1        
+ [7] matrixStats_0.55.0          Biobase_2.46.0             
+ [9] GenomicRanges_1.38.0        GenomeInfoDb_1.22.0        
+[11] IRanges_2.20.1              S4Vectors_0.24.1           
+[13] BiocGenerics_0.32.0         HIPPO_0.1.0                
 
 loaded via a namespace (and not attached):
- [1] Rcpp_1.0.2             lattice_0.20-38        assertthat_0.2.1      
- [4] rprojroot_1.3-2        digest_0.6.21          RSpectra_0.15-0       
- [7] R6_2.4.0               plyr_1.8.4             backports_1.1.5       
-[10] evaluate_0.14          ggplot2_3.2.1          pillar_1.4.2          
-[13] zlibbioc_1.32.0        rlang_0.4.1            lazyeval_0.2.2        
-[16] data.table_1.12.6      irlba_2.3.3            whisker_0.4           
-[19] reticulate_1.13        rmarkdown_2.0          labeling_0.3          
-[22] Rtsne_0.15             stringr_1.4.0          RCurl_1.95-4.12       
-[25] munsell_0.5.0          umap_0.2.3.1           compiler_3.6.1        
-[28] httpuv_1.5.2           xfun_0.11              pkgconfig_2.0.3       
-[31] askpass_1.1            htmltools_0.4.0        openssl_1.4.1         
-[34] tidyselect_0.2.5       tibble_2.1.3           gridExtra_2.3         
-[37] GenomeInfoDbData_1.2.2 workflowr_1.5.0        crayon_1.3.4          
-[40] dplyr_0.8.3            later_1.0.0            bitops_1.0-6          
-[43] grid_3.6.1             jsonlite_1.6           gtable_0.3.0          
-[46] git2r_0.26.1           magrittr_1.5           scales_1.0.0          
-[49] stringi_1.4.3          XVector_0.26.0         reshape2_1.4.3        
-[52] fs_1.3.1               promises_1.1.0         tools_3.6.1           
-[55] glue_1.3.1             purrr_0.3.3            yaml_2.2.0            
-[58] colorspace_1.4-1       knitr_1.26            </code></pre>
+ [1] tidyselect_0.2.5       xfun_0.11              purrr_0.3.3           
+ [4] reshape2_1.4.3         lattice_0.20-38        colorspace_1.4-1      
+ [7] htmltools_0.4.0        yaml_2.2.0             rlang_0.4.3           
+[10] later_1.0.0            pillar_1.4.3           glue_1.3.1            
+[13] GenomeInfoDbData_1.2.2 lifecycle_0.1.0        plyr_1.8.5            
+[16] zlibbioc_1.32.0        stringr_1.4.0          munsell_0.5.0         
+[19] gtable_0.3.0           workflowr_1.5.0        evaluate_0.14         
+[22] labeling_0.3           knitr_1.26             httpuv_1.5.2          
+[25] irlba_2.3.3            Rcpp_1.0.3             promises_1.1.0        
+[28] scales_1.1.0           backports_1.1.5        XVector_0.26.0        
+[31] farver_2.0.3           fs_1.3.1               gridExtra_2.3         
+[34] ggplot2_3.2.1          digest_0.6.23          stringi_1.4.5         
+[37] ggrepel_0.8.1          dplyr_0.8.3            grid_3.6.1            
+[40] rprojroot_1.3-2        tools_3.6.1            bitops_1.0-6          
+[43] lazyeval_0.2.2         RCurl_1.95-4.12        tibble_2.1.3          
+[46] crayon_1.3.4           whisker_0.4            pkgconfig_2.0.3       
+[49] data.table_1.12.6      assertthat_0.2.1       rmarkdown_2.0         
+[52] R6_2.4.1               git2r_0.26.1           compiler_3.6.1        </code></pre>
 </div>
 </div>
 
