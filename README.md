@@ -1,6 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-HIPPO <img src="https://github.com/tk382/HIPPO/blob/master/readme/hippo_image.png" width="40" height="40">
+HIPPO
 =====
 
 Single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity
@@ -13,7 +13,7 @@ These instructions will get you a copy of the project up and running on your loc
 Prerequisites
 -------------
 
-HIPPO works on the SingleCellExperiment object. You can download the library like the following.
+HIPPO works on the SingleCellExperiment object. You can install the library like the following.
 
 ``` r
 if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -177,4 +177,4 @@ Acknowledgments
 
 -   [Mengjie Chen](http://www.mengjiechen.com) provided guidance in methodology development.
 -   [Yong Peng](https://github.com/bigdataage) contributed in packaging the code to meet the Bioconductor requirements.
--   The hippo icon is from [here](https://www.needpix.com/photo/178308/hippo-head-cartoon-cute-grey-zoo-wildlife).
+-   The hippo icon is from [here](https://www.needpix.com/photo/178308/hippo-head-cartoon-cute-grey-zoo-wildlife)

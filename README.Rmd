@@ -27,7 +27,7 @@ Single cell UMI analysis tool that focuses on zero-inflation to detect biologica
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ##Prerequisites
-HIPPO works on the SingleCellExperiment object. You can download the library like the following.
+HIPPO works on the SingleCellExperiment object. You can install the library like the following.
 
 ```{r, eval=FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE))
