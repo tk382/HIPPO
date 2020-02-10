@@ -21,7 +21,6 @@ compute t-SNE or umap of each round of HIPPO
 }
 \examples{
 library(SingleCellExperiment)
-library(HIPPO)
 X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
 X[X\%in\%c(1,2)] = 0
 rownames(X) = paste0('gene',1:1000)

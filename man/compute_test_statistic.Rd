@@ -17,7 +17,6 @@ Conduct feature selection by computing test statistics for each gene
 }
 \examples{
 library(SingleCellExperiment)
-library(HIPPO)
 X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
 rownames(X) = paste0('gene',1:100)
 colnames(X) = paste0('cell',1:10)
