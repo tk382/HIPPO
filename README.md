@@ -1,7 +1,7 @@
 
 [![Travis-CI Build Status](https://travis-ci.com/tk382/HIPPO.svg?branch=master)](https://travis-ci.org/tk382/HIPPO)
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-HIPPO [](https://github.com/tk382/HIPPO/blob/master/hippo_image.png| width=30)
+HIPPO
 =====
 
 Single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity
