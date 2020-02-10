@@ -54,7 +54,6 @@ zinb_prob_zero = function(lambda, theta, pi){
 #' @return data frame with one row for each gene.
 #' @examples
 #' library(SingleCellExperiment)
-#' library(HIPPO)
 #' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
 #' rownames(X) = paste0('gene',1:100)
 #' colnames(X) = paste0('cell',1:10)
@@ -84,7 +83,6 @@ preprocess_heterogeneous = function(X){
 #' @return data frame with one row for each gene.
 #' @examples
 #' library(SingleCellExperiment)
-#' library(HIPPO)
 #' X = matrix(rpois(2000, 10), nrow = 100) # create random count matrix from poisson(10)
 #' rownames(X) = paste0('gene',1:100)
 #' colnames(X) = paste0('cell',1:20)
@@ -147,7 +145,6 @@ preprocess_homogeneous = function(sce, label, normalize = FALSE){
 #' @return a diagnostic plot that shows genes with zero inflation
 #' @example
 #' library(SingleCellExperiment)
-#' library(HIPPO)
 #' X = matrix(rpois(2000, 10), nrow = 100) # create random count matrix from poisson(10)
 #' rownames(X) = paste0('gene',1:100)
 #' colnames(X) = paste0('cell',1:20)
@@ -185,7 +182,6 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE, zvalue_thresh = 10)
 #' @return data frame with added columns with test results
 #' @examples
 #' library(SingleCellExperiment)
-#' library(HIPPO)
 #' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
 #' rownames(X) = paste0('gene',1:100)
 #' colnames(X) = paste0('cell',1:10)
@@ -237,7 +233,6 @@ one_level_clustering = function(subX, z_threshold){
 #' @return a list of clustering result for each level of k=1, 2, ... K.
 #' @examples
 #' library(SingleCellExperiment)
-#' library(HIPPO)
 #' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
 #' X[X%in%c(1,2)] = 0
 #' rownames(X) = paste0('gene',1:1000)
@@ -293,7 +288,6 @@ hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
 #' @return a ggplot object that shows the zero proportions for each round
 #' @examples
 #' library(SingleCellExperiment)
-#' library(HIPPO)
 #' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
 #' X[X%in%c(1,2)] = 0
 #' rownames(X) = paste0('gene',1:1000)
@@ -363,7 +357,6 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE, ref = NA){
 #' @return a data frame of dimension reduction result for each k in 1, ..., K
 #' @examples
 #' library(SingleCellExperiment)
-#' library(HIPPO)
 #' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
 #' X[X%in%c(1,2)] = 0
 #' rownames(X) = paste0('gene',1:1000)
@@ -421,7 +414,6 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30)
 #' @return ggplot object for umap in each round
 #' @examples
 #' library(SingleCellExperiment)
-#' library(HIPPO)
 #' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
 #' X[X%in%c(1,2)] = 0
 #' rownames(X) = paste0('gene',1:1000)
@@ -454,7 +446,6 @@ hippo_umap_plot = function(sce){
 #' @return ggplot object for t-SNE in each round
 #' @examples
 #' library(SingleCellExperiment)
-#' library(HIPPO)
 #' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
 #' X[X%in%c(1,2)] = 0
 #' rownames(X) = paste0('gene',1:1000)
@@ -491,7 +482,6 @@ hippo_tsne_plot = function(sce){
 #' @return list of differential expression result
 #' @examples
 #' library(SingleCellExperiment)
-#' library(HIPPO)
 #' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
 #' X[X%in%c(1,2)] = 0
 #' rownames(X) = paste0('gene',1:1000)
