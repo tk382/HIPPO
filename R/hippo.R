@@ -92,7 +92,7 @@ preprocess_heterogeneous = function(X){
 #' df = preprocess_homogeneous(sce, label = label) #get gene information
 #' @export
 preprocess_homogeneous = function(sce, label, normalize = FALSE){
-  if(class(sce)=="SingleCellExperiment"){
+  if(is(sce, "SingleCellExperiment")){
     X = sce@assays@data$counts
   }else{
     stop("input must be a SingleCellExperiment object")
@@ -241,9 +241,9 @@ one_level_clustering = function(subX, z_threshold){
 #' sce = hippo(sce, K = 3)
 #' @export
 hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
-  if(class(sce)=="SingleCellExperiment"){
+  if(is(sce, "SingleCellExperiment")){
     X = sce@assays@data$counts
-  }else if (class(sce)=="matrix"){
+  }else if (is(sce, "matrix")){
     sce = SingleCellExperiment::SingleCellExperiment(assays = list(counts = sce))
     X = sce@assays@data$counts
   }else{
