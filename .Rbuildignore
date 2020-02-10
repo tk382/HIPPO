@@ -1,6 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\_workflowr\.yml$
+^draft\.pdf
 ^docs$
 ^analysis$
 ^readme$
@@ -13,3 +14,6 @@
 ^.*\.so$
 ^\.Rprofile$
 ^\.travis\.yml$
+^ensg\_hgnc\_reference\.txt
+^make\_sce\_zhengmix4eq\.R
+^README\_files$
