@@ -173,6 +173,19 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE, zvalue_thresh = 10)
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
 }
 
+
+#' Conduct feature selection by computing test statistics for each gene
+#'
+#' @param df preprocessed data fraom from sce
+#' @return df with new columns
+#' @example
+#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
+#' rownames(X) = paste0('gene',1:100)
+#' colnames(X) = paste0('cell',1:10)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' df = preprocess_heterogeneous(X) #get gene information
+#' df = compute_test_statistic(df)
+#' @export
 compute_test_statistic = function(df){
   ind = which(df$gene_mean==0)
   if(length(ind)>0){
@@ -547,4 +560,22 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
   sce@int_metadata$hippo$diffexp$plot = g
   return(sce)
+}
+
+#' HIPPO's differential expression
+#'
+#' @param sce SingleCellExperiment object with hippo
+#' @return hippo object
+#' @examples
+#' library(SingleCellExperiment)
+#' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+#' X[X%in%c(1,2)] = 0
+#' rownames(X) = paste0('gene',1:1000)
+#' colnames(X) = paste0('cell',1:50)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' sce = hippo(sce, K = 3)
+#' hip = get_hippo_object(sce)
+#' @export
+get_hippo_object = function(sce){
+  return(sce@sce@int_metadata$hippo)
 }

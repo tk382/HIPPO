@@ -1,5 +1,5 @@
 ---
-title: "Example1: Zhengmix4eq"
+title: "Feature Selection and Hierarchical Clustering of cells in Zhengmix4eq"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Example analysis}
@@ -15,6 +15,14 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.height = 4)
 library(HIPPO)
 library(SingleCellExperiment)
+```
+
+## Installing the Package
+
+HIPPO is under review for Bioconductor and CRAN submission. You can download the developer version as below. Please allow up to 5 minutes to completely compile the vignette.
+
+```{r}
+devtools::install_github("tk382/HIPPO", build_vignettes = TRUE)
 ```
 
 ## Read the data
