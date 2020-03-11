@@ -67,7 +67,7 @@ preprocess_heterogeneous = function(X){
                   zero_proportion = Matrix::rowMeans(X==0),
                   gene_var = gene_var)
   df$samplesize = ncol(X)
-  df = compute_test_statistic(df)
+  # df = compute_test_statistic(df)
   return(df)
 }
 
@@ -130,7 +130,7 @@ preprocess_homogeneous = function(sce, label, normalize = FALSE){
     df[df$celltype == i, "samplesize"] = samplesize[i]
   }
   rownames(df) = c()
-  df = compute_test_statistic(df)
+  # df = compute_test_statistic(df)
   return(df)
 }
 
