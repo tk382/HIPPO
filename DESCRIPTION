@@ -2,15 +2,20 @@ Package: HIPPO
 Type: Package
 Title: Heterogeneity-Induced Pre-Processing tOol
 Version: 0.99.3
-Author: Tae Kim
-Maintainer: Tae Kim <tk382@uchicago.edu>
+Authors@R: c(
+  person(given = 'Tae', family = 'Kim', email = 'tk382@uchicago.edu', role = c('aut', 'cre')),
+  person(given = 'Mengjie', family = 'Chen', email = 'mengjiechen@uchicago.edu', role = 'aut'),
+  person(given = 'Yong', family = 'Peng', email = 'yongpeng@uchicago.edu', role = 'contb')
+  )
 Description: For scRNA-seq data, it selects features and clusters the cells simultaneously for single-cell UMI data. It has a novel feature selection method using the zero inflation instead of gene variance, and computationally faster than other existing methods since it only relies on PCA+Kmeans rather than graph-clustering or consensus clustering. 
 License: GPL (>=2)
 Encoding: UTF-8
 LazyData: true
-Depends: R (>= 4.0)
+Depends: R (>= 4.0.0)
 Suggests: knitr, rmarkdown 
 VignetteBuilder: knitr
+URL: https://github.com/tk382/HIPPO, https://tk382.github.io/HIPPO
+BugReports: https://github.com/tk382/HIPPO/issues
 Imports:
     ggplot2,
     graphics,
