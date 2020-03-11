@@ -12,6 +12,7 @@ export(preprocess_heterogeneous)
 export(preprocess_homogeneous)
 export(zero_proportion_plot)
 export(zinb_prob_zero)
+export(compute_test_statistic)
 importFrom(ggplot2, aes, ylab, xlab, scale_fill_discrete, ggtitle,
            theme, geom_boxplot, ggplot, element_text, geom_tile,
            element_blank, guides, guide_legend)
@@ -26,4 +27,3 @@ importFrom(magrittr,"%>%")
 importFrom(Matrix, readMM)
 importFrom(SingleCellExperiment, rowData, SingleCellExperiment)
 importFrom(ggrepel, geom_label_repel)
-import(DelayedArray)

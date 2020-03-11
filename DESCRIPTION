@@ -1,7 +1,7 @@
 Package: HIPPO
 Type: Package
 Title: Heterogeneity-Induced Pre-Processing tOol
-Version: 0.99.4
+Version: 0.99.3
 Authors@R: c(
   person(given = 'Tae', family = 'Kim', email = 'tk382@uchicago.edu', role = c('aut', 'cre')),
   person(given = 'Mengjie', family = 'Chen', email = 'mengjiechen@uchicago.edu', role = 'aut'),
@@ -11,13 +11,12 @@ Description: For scRNA-seq data, it selects features and clusters the cells simu
 License: GPL (>=2)
 Encoding: UTF-8
 LazyData: true
-Depends: R (>= 3.6.1)
+Depends: R (>= 4.0.0)
 Suggests: knitr, rmarkdown 
 VignetteBuilder: knitr
 URL: https://github.com/tk382/HIPPO, https://tk382.github.io/HIPPO
 BugReports: https://github.com/tk382/HIPPO/issues
 Imports:
-    DelayedArray,
     ggplot2,
     graphics,
     stats,
