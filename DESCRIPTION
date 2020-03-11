@@ -17,6 +17,7 @@ VignetteBuilder: knitr
 URL: https://github.com/tk382/HIPPO, https://tk382.github.io/HIPPO
 BugReports: https://github.com/tk382/HIPPO/issues
 Imports:
+    DelayedArray,
     ggplot2,
     graphics,
     stats,
