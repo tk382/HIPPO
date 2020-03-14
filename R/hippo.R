@@ -293,7 +293,10 @@ hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
 #' sce = hippo(sce, K = 3)
 #' zero_proportion_plot(sce)
 #' @export
-zero_proportion_plot = function(sce, switch_to_hgnc = FALSE, ref = NA){
+zero_proportion_plot = function(sce,
+                                switch_to_hgnc = FALSE,
+                                ref = NA,
+                                topn = 5){
   hippo_object = sce@int_metadata$hippo
   plist = list()
   dflist = list()
@@ -306,7 +309,7 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE, ref = NA){
     df$K = i
     dflist[[i-1]] = df
     topz = df[df$gene_mean < 10,]
-    topz = topz[order(topz$zvalue, decreasing = TRUE)[1:5], ]
+    topz = topz[order(topz$zvalue, decreasing = TRUE)[1:topn], ]
     topzlist[[i-1]] = topz
   }
   df = do.call(rbind, dflist)

@@ -79,7 +79,7 @@ This function shows how the zero-inflation decreases as HIPPO proceeds in the cl
 ref = data.frame(hgnc = rowData(sce)$symbol,
                  ensg = rowData(sce)$id)
 head(ref)
-zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)
+zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref, topn = 1)
 ```
 
 ## Differential Expression Example
