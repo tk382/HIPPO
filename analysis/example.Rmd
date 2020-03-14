@@ -106,6 +106,3 @@ head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells
 head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells
 ```
 
-
-
-
