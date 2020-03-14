@@ -296,7 +296,7 @@ hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
 zero_proportion_plot = function(sce,
                                 switch_to_hgnc = FALSE,
                                 ref = NA,
-                                topn = 5){
+                                top.n = 5){
   hippo_object = sce@int_metadata$hippo
   plist = list()
   dflist = list()
@@ -309,7 +309,7 @@ zero_proportion_plot = function(sce,
     df$K = i
     dflist[[i-1]] = df
     topz = df[df$gene_mean < 10,]
-    topz = topz[order(topz$zvalue, decreasing = TRUE)[1:topn], ]
+    topz = topz[order(topz$zvalue, decreasing = TRUE)[1:top.n], ]
     topzlist[[i-1]] = topz
   }
   df = do.call(rbind, dflist)
@@ -328,24 +328,20 @@ zero_proportion_plot = function(sce,
       ggplot2::xlim(c(0,10))+
       ggrepel::geom_label_repel(data = topz,
                                 ggplot2::aes(label = .data$hgnc), size = 3) +
-      ggplot2::theme(legend.position = "none") +
       ggplot2::theme_bw() +
+      ggplot2::theme(legend.position = "none") +
       ggplot2::ylab("zero proportion") +
-      ggplot2::xlab("gene mean") +
-      ggplot2::theme(legend.title = ggplot2::element_blank()) +
-      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1), shape = 19))
+      ggplot2::xlab("gene mean")
   }else{
     g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
       ggplot2::geom_point(size = 0.4, alpha = 0.5) +
       ggplot2::facet_wrap(~.data$K) +
       ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
       ggplot2::xlim(c(0,10))+
-      ggplot2::theme(legend.position = "none") +
       ggplot2::theme_bw() +
+      ggplot2::theme(legend.position = "none") +
       ggplot2::ylab("zero proportion") +
-      ggplot2::xlab("gene mean") +
-      ggplot2::theme(legend.title = ggplot2::element_blank()) +
-      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1), shape = 19))
+      ggplot2::xlab("gene mean")
   }
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
 }
@@ -369,9 +365,10 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30)
   hippo_object = sce@int_metadata$hippo
   dflist = list()
   K = ncol(hippo_object$labelmatrix)
-  sce@int_metadata$hippo$umap = NA
-  sce@int_metadata$hippo$tsne = NA
+
+
   if (method=="umap"){
+    sce@int_metadata$hippo$umap = NA
     um = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]], ])+1))
     um = as.data.frame(um$layout)
     umdf = data.frame()
@@ -389,6 +386,7 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30)
     sce@int_metadata$hippo$umap = umdf
     return(sce)
   }else if(method == "tsne"){
+    sce@int_metadata$hippo$tsne = NA
     tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]], ])+1), perplexity = perplexity)
     tsnedf = data.frame()
     for (i in 2:K){
@@ -423,7 +421,8 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30)
 #' sce = dimension_reduction(sce, method="umap")
 #' hippo_umap_plot(sce)
 #' @export
-hippo_umap_plot = function(sce){
+hippo_umap_plot = function(sce,
+                           leg = c('none', 'right', 'left', 'top', 'bottom')){
   umdf = sce@int_metadata$hippo$umap
   if(length(umdf)>0){
     g = ggplot2::ggplot(umdf, ggplot2::aes(x = .data$umap1, y= .data$umap2, col = .data$label)) +
@@ -432,7 +431,8 @@ hippo_umap_plot = function(sce){
       ggplot2::theme_bw() +
       ggplot2::ylab("umap2") +
       ggplot2::xlab("umap1")+
-      ggplot2::theme(legend.title = ggplot2::element_blank())+
+      ggplot2::theme(legend.title = ggplot2::element_blank(),
+                     legend.position = leg)+
       ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1)))
     gridExtra::grid.arrange(g, nrow=1, ncol=1)
   }else{
@@ -455,7 +455,8 @@ hippo_umap_plot = function(sce){
 #' sce = dimension_reduction(sce, method = "tsne", perplexity = 2)
 #' hippo_tsne_plot(sce)
 #' @export
-hippo_tsne_plot = function(sce){
+hippo_tsne_plot = function(sce,
+                           leg = c('none', 'right', 'left', 'top', 'bottom')){
   tsnedf = sce@int_metadata$hippo$tsne
   if(length(tsnedf)>0){
     g = ggplot2::ggplot(tsnedf, ggplot2::aes(x = .data$tsne1, y=.data$tsne2, col=.data$label)) +
@@ -464,7 +465,8 @@ hippo_tsne_plot = function(sce){
       ggplot2::theme_bw() +
       ggplot2::ylab("tsne2") +
       ggplot2::xlab("tsne1")+
-      ggplot2::theme(legend.title = ggplot2::element_blank())+
+      ggplot2::theme(legend.title = ggplot2::element_blank(),
+                     legend.position = leg)+
       ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1)))
     gridExtra::grid.arrange(g, nrow=1, ncol=1)
   }else{
@@ -548,7 +550,7 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
   g = ggplot2::ggplot(finalnewcount, ggplot2::aes(x = .data$gene, y = .data$logcount, col = .data$celltype)) +
     ggplot2::facet_wrap(~round, scales="free") +
     ggplot2::geom_boxplot(outlier.size = 0.2) +
-    ggplot2::theme_classic() +
+    ggplot2::theme_bw() +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle=45, hjust=1),
           panel.border = ggplot2::element_blank(),
           panel.background = ggplot2::element_blank(),
@@ -557,7 +559,8 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
           panel.grid.minor = ggplot2::element_blank(),
           axis.line = ggplot2::element_line(colour = "black"),
           strip.background = ggplot2::element_blank(),
-          legend.title = ggplot2::element_blank()) +
+          legend.title = ggplot2::element_blank(),
+          legend.position = 'none') +
     ggplot2::ylab("log(count+1)") +
     ggplot2::xlab("")
   gridExtra::grid.arrange(g, nrow=1, ncol=1)

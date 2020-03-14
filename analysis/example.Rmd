@@ -63,12 +63,12 @@ We offer two dimension reduction methods: umap and tsne. And we offer two separa
 
 ```{r, warning = FALSE}
 sce = dimension_reduction(sce, method="umap")
-hippo_umap_plot(sce)
+hippo_umap_plot(sce, leg='none')
 ```
 
 ```{r}
 sce = dimension_reduction(sce, method="tsne")
-hippo_tsne_plot(sce)
+hippo_tsne_plot(sce, leg = 'none')
 ```
 
 ## Visualize the selected features at each round
@@ -79,7 +79,7 @@ This function shows how the zero-inflation decreases as HIPPO proceeds in the cl
 ref = data.frame(hgnc = rowData(sce)$symbol,
                  ensg = rowData(sce)$id)
 head(ref)
-zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref, topn = 1)
+zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref, top.n = 1)
 ```
 
 ## Differential Expression Example
