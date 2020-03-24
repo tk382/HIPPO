@@ -1,6 +1,7 @@
 RowVar <- function(x) {
   Matrix::rowSums((x - Matrix::rowMeans(x))^2)/(dim(x)[2] - 1)
 }
+
 #' Expected zero proportion under Poisson
 #'
 #' @param lambda numeric vector of means of Poisson
@@ -27,6 +28,8 @@ nb_prob_zero = function(lambda, theta){
     return((1/(lambda * theta + 1))^(1/theta))
   }
 }
+
+
 #' Expected zero proportion under Negative Binomial
 #'
 #' @param lambda gene mean
@@ -67,7 +70,7 @@ preprocess_heterogeneous = function(X){
                   zero_proportion = Matrix::rowMeans(X==0),
                   gene_var = gene_var)
   df$samplesize = ncol(X)
-  # df = compute_test_statistic(df)
+  df = compute_test_statistic(df)
   return(df)
 }
 
@@ -87,15 +90,11 @@ preprocess_heterogeneous = function(X){
 #' label = as.factor(label)
 #' df = preprocess_homogeneous(sce, label = label) #get gene information
 #' @export
-preprocess_homogeneous = function(sce, label, normalize = FALSE){
+preprocess_homogeneous = function(sce, label){
   if(is(sce, "SingleCellExperiment")){
     X = sce@assays@data$counts
   }else{
     stop("input must be a SingleCellExperiment object")
-  }
-  sf = median(Matrix::colSums(X))
-  if(normalize){
-    X = apply(X, 2, function(x) x/sum(x)*sf)
   }
   labelnames = as.character(unique(label))
   zero_proportion = matrix(NA, nrow(X), length(labelnames))
