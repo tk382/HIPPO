@@ -2,6 +2,25 @@ RowVar <- function(x) {
   Matrix::rowSums((x - Matrix::rowMeans(x))^2)/(dim(x)[2] - 1)
 }
 
+compute_test_statistic = function(df){
+  ind = which(df$gene_mean==0)
+  if(length(ind)>0){
+    df = df[-ind,]
+  }
+  ind = grep("^MT-", df$gene)
+  if(length(ind) > 0){
+    df = df[-grep("^MT-", df$gene), ]
+  }
+  df = df %>% dplyr::mutate(expected_pi= pmin(2*.data$samplesize/(2*.data$samplesize-1) * exp(-.data$gene_mean), 1 - 1e-10)) %>%
+    dplyr::mutate(se = sqrt(.data$expected_pi * (1-.data$expected_pi) / (.data$samplesize-1.25))) %>%
+    dplyr::mutate(minus_logp = -pnorm(.data$zero_proportion, .data$expected_pi, .data$se, log.p = TRUE, lower.tail=FALSE)) %>%
+    dplyr::mutate(minus_logp = pmin(.data$minus_logp, 500)) %>%
+    dplyr::mutate(zvalue = -qnorm(exp(-.data$minus_logp)))
+  df$gene = as.character(df$gene)
+  return(df)
+}
+
+
 #' Expected zero proportion under Poisson
 #'
 #' @param lambda numeric vector of means of Poisson
@@ -129,7 +148,6 @@ preprocess_homogeneous = function(sce, label){
     df[df$celltype == i, "samplesize"] = samplesize[i]
   }
   rownames(df) = c()
-  # df = compute_test_statistic(df)
   return(df)
 }
 
@@ -151,57 +169,28 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE, zvalue_thresh = 10)
   df = preprocess_heterogeneous(sce@assays@data$counts)
   df = compute_test_statistic(df)
   subset = df[which(df$zvalue > zvalue_thresh), ]
-  if(show_outliers){
-    g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion)) +
+  g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean,
+                                         y = .data$zero_proportion)) +
       ggplot2::geom_point(size = 0.4, alpha = 0.5) +
-      ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
-      ggplot2::xlim(c(0,10)) +
-      ggplot2::theme_bw() +
-      ggplot2::ylab("zero proportion") +
-      ggplot2::xlab("gene mean") +
-      ggplot2::geom_point(data = subset, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion), shape = 21, col = 'red')
-  }else{
-    g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion)) +
-      ggplot2::geom_point(size = 0.4, alpha = 0.5) +
-      ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
+      ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean,
+                                      y = exp(-.data$gene_mean)),
+                         col = 'black') +
       ggplot2::xlim(c(0,10)) +
       ggplot2::theme_bw() +
       ggplot2::ylab("zero proportion") +
       ggplot2::xlab("gene mean")
+  if(show_outliers){
+    g  = g + ggplot2::geom_point(data = subset,
+                                 ggplot2::aes(x = .data$gene_mean,
+                                              y = .data$zero_proportion),
+                                  shape = 21, col = 'red')
   }
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
 }
 
 
-#' Conduct feature selection by computing test statistics for each gene
-#'
-#' @param df preprocessed data fraom from sce
-#' @return df with new columns
-#' @example
-#' X = matrix(rpois(1000, 10), nrow = 100) # create random count matrix from poisson(10)
-#' rownames(X) = paste0('gene',1:100)
-#' colnames(X) = paste0('cell',1:10)
-#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-#' df = preprocess_heterogeneous(X) #get gene information
-#' df = compute_test_statistic(df)
-#' @export
-compute_test_statistic = function(df){
-  ind = which(df$gene_mean==0)
-  if(length(ind)>0){
-    df = df[-ind,]
-  }
-  ind = grep("^MT-", df$gene)
-  if(length(ind) > 0){
-    df = df[-grep("^MT-", df$gene), ]
-  }
-  df = df %>% dplyr::mutate(expected_pi= pmin(2*.data$samplesize/(2*.data$samplesize-1) * exp(-.data$gene_mean), 1 - 1e-10)) %>%
-    dplyr::mutate(se = sqrt(.data$expected_pi * (1-.data$expected_pi) / (.data$samplesize-1.25))) %>%
-    dplyr::mutate(minus_logp = -pnorm(.data$zero_proportion, .data$expected_pi, .data$se, log.p = TRUE, lower.tail=FALSE)) %>%
-    dplyr::mutate(minus_logp = pmin(.data$minus_logp, 500)) %>%
-    dplyr::mutate(zvalue = -qnorm(exp(-.data$minus_logp)))
-  df$gene = as.character(df$gene)
-  return(df)
-}
+
+
 
 #' Clustering of one-step
 #' @param subX a matrix that is gene by cell that needs clustering
