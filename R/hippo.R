@@ -1,3 +1,5 @@
+
+
 RowVar <- function(x) {
   Matrix::rowSums((x - Matrix::rowMeans(x))^2)/(dim(x)[2] - 1)
 }
@@ -18,6 +20,39 @@ compute_test_statistic = function(df){
     dplyr::mutate(zvalue = -qnorm(exp(-.data$minus_logp)))
   df$gene = as.character(df$gene)
   return(df)
+}
+
+one_level_clustering = function(subX, z_threshold){
+  subdf = preprocess_heterogeneous(subX)
+  subdf = compute_test_statistic(subdf)
+  features = subdf[subdf$zvalue>z_threshold,]
+  if(length(features)<10){
+    return(list(features = NA, pcs = NA, km = NA))
+  }
+  if(nrow(features)<10){
+    return(list(features = NA, pcs = NA, km = NA,
+                unscaled_pcs = NA, subdf = NA))
+  }
+  pcs = tryCatch(
+    expr = {irlba::irlba(log(subX[features$gene, ]+1),
+                         min(9, nrow(features)-1,ncol(subX)-1))$v},
+    error = function(e){NA},
+    warning = function(w){NA}
+  )
+  if(is.na(pcs[1])){
+    return(list(features = NA, pcs = NA, km = NA,
+                unscaled_pcs = NA, subdf = NA))
+  }else{
+    unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features$gene,]))+1),
+                                     n = min(9,nrow(features)-1,ncol(subX)-1),
+                                     scale.=FALSE, center=FALSE)$x
+    km = kmeans(pcs, 2, nstart = 10, iter.max = 50)
+  }
+  return(list(features = features,
+              pcs = pcs,
+              km = km,
+              unscaled_pcs = unscaledpc,
+              subdf = subdf))
 }
 
 
@@ -188,46 +223,20 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE, zvalue_thresh = 10)
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
 }
 
-
-
-
-
-#' Clustering of one-step
-#' @param subX a matrix that is gene by cell that needs clustering
-#' @param z_threshold z-value threshold for feature selection
-#' @return a list of clustering result with relevant features, PCA reslut, and kmeans result
-one_level_clustering = function(subX, z_threshold){
-  subdf = preprocess_heterogeneous(subX)
-  subdf = compute_test_statistic(subdf)
-  features = subdf[subdf$zvalue>z_threshold,]
-  if(length(features)<10){
-    return(list(features = NA, pcs = NA, km = NA))
+#' Access hippo object from SingleCellExperiment object.
+#'
+#' @param sce SingleCellExperiment object
+get_hippo = function(sce){
+  hippo = sce@int_metadata$hippo
+  if (!is.na(hippo)){
+    return(hippo)
   }
-  if(nrow(features)<10){
-    return(list(features = NA, pcs = NA, km = NA,
-                unscaled_pcs = NA, subdf = NA))
+  else{
+    stop("hippo object does not exist")
   }
-  pcs = tryCatch(
-    expr = {irlba::irlba(log(subX[features$gene, ]+1),
-                         min(9, nrow(features)-1,ncol(subX)-1))$v},
-    error = function(e){NA},
-    warning = function(w){NA}
-  )
-  if(is.na(pcs[1])){
-    return(list(features = NA, pcs = NA, km = NA,
-                unscaled_pcs = NA, subdf = NA))
-  }else{
-    unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features$gene,]))+1),
-                                     n = min(9,nrow(features)-1,ncol(subX)-1),
-                                     scale.=FALSE, center=FALSE)$x
-    km = kmeans(pcs, 2, nstart = 10, iter.max = 50)
-  }
-  return(list(features = features,
-              pcs = pcs,
-              km = km,
-              unscaled_pcs = unscaledpc,
-              subdf = subdf))
 }
+
+
 
 #' HIPPO's hierarchical clustering
 #'
@@ -246,48 +255,63 @@ one_level_clustering = function(subX, z_threshold){
 #' sce = hippo(sce, K = 3)
 #' @export
 hippo = function(sce,
-                 K=10,
+                 K=30,
                  z_threshold = 3,
                  outlier_proportion = 0.01){
-  if(is(sce, "SingleCellExperiment")){
-    X = sce@assays@data$counts
-  }else if (is(sce, "matrix")){
+  if(class(sce)=="SingleCellExperiment"){
+    X = sce@assays$data$counts
+  }else if (class(sce)=="matrix"){
     sce = SingleCellExperiment::SingleCellExperiment(assays = list(counts = sce))
-    X = sce@assays@data$counts
+    X = sce@assays#data$counts
   }else{
     stop("input must be either matrix or SingleCellExperiment object")
   }
-  if(outlier_proportion >= 1 | outlier_proportion <= 0){
+  if(outlier_proportion > 1 | outlier_proportion < 0){
     stop("Outlier_proportion must be a number between 0 and 1. Default is 5%")
   }
+  param = list(z_threshold = z_threshold,
+               outlier_proportion = outlier_proportion,
+               maxK = K)
   outlier_number = nrow(X) * outlier_proportion
   labelmatrix = matrix(NA, ncol(X), K); labelmatrix[,1] = 1
-  eachlevel = list();   subX = X
-  subXind = 1:ncol(X); withinss = rep(0, K)
-  oldk = 1
-  features = list();   featuredata = list()
+  eachlevel = list(); subX = X
+  subXind = 1:ncol(X); withinss = rep(0, K); oldk = 1
+  features = list(); featuredata = list()
   for (k in 2:K){
     thisk = one_level_clustering(subX, z_threshold)
-    if(length(thisk$features) < outlier_number){
+    if(nrow(thisk$features) < outlier_number){
       print("not enough important features left; terminating the procedure")
       labelmatrix = labelmatrix[,1:(k-1)]
       break
     }
-    print(paste0("K = ", k, ".."))
+    if(is.na(thisk$features$gene[1])){
+      print("not enough important features left; terminating the procedure")
+      labelmatrix = labelmatrix[,1:(k-1)]
+      break
+    }
+    if(verbose){print(paste0("K = ", k, ".."))}
     labelmatrix[,k] = labelmatrix[,k-1]
     labelmatrix[subXind[thisk$km$cluster==2], k] = k
     withinss[oldk] = sum(apply(thisk$unscaled_pcs[thisk$km$cluster==1, ], 1, var)^2)
     withinss[k] = sum(apply(thisk$unscaled_pcs[thisk$km$cluster==2, ], 1, var)^2)
     oldk = which.max(withinss[1:k])
-    subX = X[thisk$features, which(labelmatrix[,k]==oldk)]
+    if(sum(labelmatrix[,k]==oldk)<5){
+      print("too few cells in one cluster; terminating the procedure")
+      break
+    }
+    subX = X[thisk$features$gene, which(labelmatrix[,k]==oldk)]
     subXind = which(labelmatrix[,k]==oldk)
+    thisk$features$subsetK = oldk; thisk$features$K = k
     features[[k-1]] = thisk$features
-    featuredata[[k-1]] = thisk$subdf
   }
-  sce@int_metadata$hippo = list(X = X, features = features, labelmatrix = labelmatrix,
-                                z_threshold = z_threshold, outlier_proportion = outlier_proportion)
+  sce@int_metadata$hippo = list(X = X, features = features,
+                                labelmatrix = labelmatrix,
+                                z_threshold = z_threshold,
+                                outlier_proportion = outlier_proportion,
+                                param = param)
   return(sce)
 }
+
 
 #' visualize each round of hippo through zero proportion plot
 #' @param sce SingleCellExperiment object with hippo element in it
@@ -296,6 +320,7 @@ hippo = function(sce,
 #' @return a ggplot object that shows the zero proportions for each round
 #' @examples
 #' library(SingleCellExperiment)
+#' library(HIPPO)
 #' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
 #' X[X%in%c(1,2)] = 0
 #' rownames(X) = paste0('gene',1:1000)
@@ -304,56 +329,105 @@ hippo = function(sce,
 #' sce = hippo(sce, K = 3)
 #' zero_proportion_plot(sce)
 #' @export
-zero_proportion_plot = function(sce,
-                                switch_to_hgnc = FALSE,
+zero_proportion_plot = function(sce, switch_to_hgnc = FALSE,
                                 ref = NA,
-                                top.n = 5){
-  hippo_object = sce@int_metadata$hippo
-  plist = list()
-  dflist = list()
-  topzlist = list()
-  K = ncol(hippo_object$labelmatrix)
-  for (i in 2:K){
-    df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,i])
-    df = compute_test_statistic(df)
-    df$selected_feature = df$gene %in% hippo_object$features[[i-1]]
-    df$K = i
-    dflist[[i-1]] = df
-    topz = df[df$gene_mean < 10,]
-    topz = topz[order(topz$zvalue, decreasing = TRUE)[1:top.n], ]
-    topzlist[[i-1]] = topz
-  }
-  df = do.call(rbind, dflist)
-  df = df[sample(nrow(df)), ]
-  topz = do.call(rbind, topzlist)
-  if(switch_to_hgnc){
-    topz$hgnc = ref$hgnc[match(topz$gene, ref$ensg)]
-    # topz = topz %>% mutate(hgnc = ref$hgnc[match(topz$gene, ref$ensg)])
-  }
-  df$celltype = as.factor(as.numeric(df$celltype))
-  if(switch_to_hgnc){
-    g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
-      ggplot2::geom_point(size = 0.4, alpha = 0.5) +
-      ggplot2::facet_wrap(~.data$K) +
-      ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
-      ggplot2::xlim(c(0,10))+
-      ggrepel::geom_label_repel(data = topz,
-                                ggplot2::aes(label = .data$hgnc), size = 3) +
-      ggplot2::theme_bw() +
-      ggplot2::theme(legend.position = "none") +
-      ggplot2::ylab("zero proportion") +
-      ggplot2::xlab("gene mean")
+                                k =NA,
+                                title = "",
+                                topn = 5){
+  df = do.call(rbind, sce@int_metadata$hippo$features)
+  topz = df %>% dplyr::group_by(K) %>%
+    dplyr::arrange(desc(zvalue)) %>%
+    dplyr::slice(seq_len(5))
+  featurelength = as.numeric(table(df$K))
+  df$featurecount = featurelength[df$K-1]
+  if (is.na(k[1])){
+    k = 2:ncol(sce@int_metadata$hippo$labelmatrix)
   }else{
-    g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion, col = .data$celltype)) +
-      ggplot2::geom_point(size = 0.4, alpha = 0.5) +
-      ggplot2::facet_wrap(~.data$K) +
-      ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean, y = exp(-.data$gene_mean)), col = 'black') +
-      ggplot2::xlim(c(0,10))+
-      ggplot2::theme_bw() +
-      ggplot2::theme(legend.position = "none") +
-      ggplot2::ylab("zero proportion") +
-      ggplot2::xlab("gene mean")
+    df = df[df$K %in% k,]; topz = topz[topz$K %in% k,]
   }
+  g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean,
+                                       y = .data$zero_proportion)) +
+    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+    ggplot2::facet_wrap(~.data$K, ncol = 4) +
+    ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean,
+                                    y = exp(-.data$gene_mean)),
+                       col = 'black') +
+    ggplot2::xlim(c(0,10))+
+    ggrepel::geom_label_repel(data = topz,
+                              ggplot2::aes(label = .data$gene),
+                              size = 3,
+                              col = 'black') +
+    ggplot2::geom_text(aes(label = paste0(featurecount,"genes"),
+                           x = 8, y=.8),
+                       check_overlap=TRUE,col= 'red',size = 3) +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::theme_bw() +
+    ggplot2::ylab("Zero Proportion of Selected Features") +
+    ggplot2::xlab("Gene Mean") +
+    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1), shape = 19))+
+    theme(axis.text.x = element_text(angle=45, hjust=1),
+          panel.grid = element_blank(),
+          axis.line = element_line(colour = "black"),
+          legend.title = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "none",
+          strip.placement = "inside") +
+    ggtitle(title) +
+    scale_color_manual(values = c("black", "red"))
+  gridExtra::grid.arrange(g, nrow=1, ncol=1)
+}
+
+
+
+#' visualize each round of hippo through zero proportion plot
+#' @param sce SingleCellExperiment object with hippo element in it
+#' @param switch_to_hgnc boolean argument to indicate whether to change the gene names from ENSG IDs to HGNC symbols
+#' @param ref a data frame with hgnc column and ensg column
+#' @return a ggplot object that shows the zero proportions for each round
+#' @examples
+#' library(SingleCellExperiment)
+#' library(HIPPO)
+#' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+#' X[X%in%c(1,2)] = 0
+#' rownames(X) = paste0('gene',1:1000)
+#' colnames(X) = paste0('cell',1:50)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' sce = hippo(sce, K = 3)
+#' zero_proportion_plot(sce)
+#' @export
+zscore_plot = function(sce,
+                       switch_to_hgnc = FALSE,
+                       ref = NA,
+                       k =NA,
+                       samplingrate = 0.5,
+                       title = "",
+                       topn = 5,
+                       seed = 12345){
+  df = do.call(rbind, sce@int_metadata$hippo$features)
+  if (!is.na(k[1])){df = df %>% dplyr::filter(.data$K %in% k)}
+  featuretab = sapply(sce@int_metadata$hippo$features, nrow)
+  names(featuretab) = 2:ncol(sce@int_metadata$hippo$labelmatrix)
+  df$featurecount = featuretab[df$K]
+  df = df[sample(nrow(df)),]
+  g = ggplot2::ggplot(df, ggplot2::aes(x = log(.data$gene_mean),
+                                       y = .data$zvalue))+
+    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+    ggplot2::facet_wrap(~.data$K, ncol = 4) +
+    ggplot2::geom_text(aes(label=paste0(.data$featurecount,'genes'),
+                           x = 5, y = 15), check_overlap = TRUE,size = 2.5,
+                       col = 'black') +
+    ggplot2::theme_bw() +
+    ggplot2::ylab("Z-score") + ggplot2::xlab("Gene Mean") +
+    ggplot2::theme(legend.title = ggplot2::element_blank()) +
+    theme(axis.text.x = element_text(angle=45, hjust=1),
+          panel.grid = element_blank(),
+          axis.line = element_line(colour = "black"),
+          legend.title = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "none",
+          strip.placement = "inside") +
+    ggtitle(title) +
+    scale_color_manual(values = c("black", "red"))
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
 }
 
@@ -372,15 +446,15 @@ zero_proportion_plot = function(sce,
 #' sce = hippo(sce, K = 3)
 #' sce = dimension_reduction(sce, method = "tsne", perplexity = 2)
 #' @export
-dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30){
+dimension_reduction = function(sce, method = c("umap", "tsne"),
+                               perplexity = 30,
+                               featurelevel = 1){
   hippo_object = sce@int_metadata$hippo
   dflist = list()
   K = ncol(hippo_object$labelmatrix)
-
-
   if (method=="umap"){
     sce@int_metadata$hippo$umap = NA
-    um = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]], ])+1))
+    um = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]]$gene, ])+1))
     um = as.data.frame(um$layout)
     umdf = data.frame()
     for (i in 2:K){
@@ -388,9 +462,7 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30)
       df$selected_feature = df$gene %in% hippo_object$features[[i-1]]
       df$K = i
       dflist[[i]] = df
-      umdf = rbind(umdf, data.frame(umap1 = um$V1,
-                                    umap2 = um$V2,
-                                    K = i,
+      umdf = rbind(umdf, data.frame(umap1 = um$V1, umap2 = um$V2, K = i,
                                     label = hippo_object$labelmatrix[,i]))
     }
     umdf$label = as.factor(umdf$label)
@@ -398,7 +470,9 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30)
     return(sce)
   }else if(method == "tsne"){
     sce@int_metadata$hippo$tsne = NA
-    tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]], ])+1), perplexity = perplexity)
+    tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]]$gene, ])+1),
+                        perplexity = perplexity,
+                        check_duplicates=FALSE)
     tsnedf = data.frame()
     for (i in 2:K){
       df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,i])
@@ -416,7 +490,6 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30)
   }
 }
 
-
 #' visualize each round of hippo through UMAP
 #'
 #' @param sce SingleCellExperiment object with hippo and UMAP result in it
@@ -432,24 +505,31 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30)
 #' sce = dimension_reduction(sce, method="umap")
 #' hippo_umap_plot(sce)
 #' @export
-hippo_umap_plot = function(sce,
-                           leg = c('none', 'right', 'left', 'top', 'bottom')){
+hippo_umap_plot = function(sce, k = NA){
+  if (is.na(k[1])){
+    k = seq(1, ncol(sce@int_metadata$hippo$labelmatrix))
+  }
   umdf = sce@int_metadata$hippo$umap
+  umdf = umdf %>% dplyr::filter(K %in% k)
   if(length(umdf)>0){
     g = ggplot2::ggplot(umdf, ggplot2::aes(x = .data$umap1, y= .data$umap2, col = .data$label)) +
-      ggplot2::facet_wrap(~.data$K) +
+      ggplot2::facet_wrap(~.data$K, ncol = 4) +
       ggplot2::geom_point(size = 0.4, alpha = 0.5) +
       ggplot2::theme_bw() +
       ggplot2::ylab("umap2") +
       ggplot2::xlab("umap1")+
-      ggplot2::theme(legend.title = ggplot2::element_blank(),
-                     legend.position = leg)+
+      theme(axis.text.x = element_text(angle=0, hjust=1),
+            panel.grid = element_blank(),
+            axis.line = element_line(colour = "black"),
+            legend.title = element_blank(),
+            axis.ticks = element_blank(),
+            legend.position = "none",
+            strip.placement = "inside") +
       ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1)))
     gridExtra::grid.arrange(g, nrow=1, ncol=1)
   }else{
     stop("use dimension_reduction to compute umap first")
   }
-  # return(g)
 }
 
 #' visualize each round of hippo through t-SNE
@@ -466,25 +546,84 @@ hippo_umap_plot = function(sce,
 #' sce = dimension_reduction(sce, method = "tsne", perplexity = 2)
 #' hippo_tsne_plot(sce)
 #' @export
-hippo_tsne_plot = function(sce,
-                           leg = c('none', 'right', 'left', 'top', 'bottom')){
+hippo_tsne_plot = function(sce, k = NA, title = ""){
+  if (is.na(k[1])){
+    k = seq(1, ncol(sce@int_metadata$hippo$labelmatrix))
+  }
   tsnedf = sce@int_metadata$hippo$tsne
+  tsnedf = tsnedf %>% dplyr::filter(K %in% k)
   if(length(tsnedf)>0){
     g = ggplot2::ggplot(tsnedf, ggplot2::aes(x = .data$tsne1, y=.data$tsne2, col=.data$label)) +
-      ggplot2::facet_wrap(~.data$K) +
+      ggplot2::facet_wrap(~.data$K, ncol = 4) +
       ggplot2::geom_point(size=0.4, alpha = 0.5) +
       ggplot2::theme_bw() +
       ggplot2::ylab("tsne2") +
       ggplot2::xlab("tsne1")+
-      ggplot2::theme(legend.title = ggplot2::element_blank(),
-                     legend.position = leg)+
-      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1)))
+      ggplot2::theme(legend.title = ggplot2::element_blank())+
+      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1))) +
+      xlab("TSNE1")+
+      ylab("TSNE2") +
+      theme(axis.text.x = element_text(angle=0, hjust=1),
+            panel.grid = element_blank(),
+            axis.line = element_line(colour = "black"),
+            legend.title = element_blank(),
+            axis.ticks = element_blank(),
+            legend.position = "none",
+            strip.placement = "inside") +
+      ggtitle(title)
     gridExtra::grid.arrange(g, nrow=1, ncol=1)
   }else{
     stop("use dimension_reduction to compute tsne first")
   }
-  # return(g)
 }
+
+#' visualize each round of hippo through t-SNE
+#' @param sce SincleCellExperiment object with hippo and t-SNE result in it
+#' @return ggplot object for t-SNE in each round
+#' @examples
+#' library(SingleCellExperiment)
+#' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+#' X[X%in%c(1,2)] = 0
+#' rownames(X) = paste0('gene',1:1000)
+#' colnames(X) = paste0('cell',1:50)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' sce = hippo(sce, K = 3)
+#' sce = dimension_reduction(sce, method = "tsne", perplexity = 2)
+#' hippo_pca_plot(sce)
+#' @export
+hippo_pca_plot = function(sce, k = NA){
+  if (is.na(k[1])){
+    k = seq(1, ncol(sce@int_metadata$hippo$labelmatrix))
+  }
+  pc = irlba::irlba(log(sce@assays$data$counts[sce@int_metadata$hippo$features[[1]], ]+1),
+                    v = 2)$v
+  pcadf = data.frame()
+  for (kk in k){
+    pcadf = rbind(pcadf, data.frame(PC1 = pc[,1],
+                                    PC2 = pc[,2],
+                                    K=kk,
+                                    label = sce@int_metadata$hippo$labelmatrix[,kk]))
+  }
+  pcadf$label = as.factor(pcadf$label)
+  pcadf$K = as.factor(pcadf$K)
+  g = ggplot2::ggplot(pcadf, ggplot2::aes(x = .data$PC1, y=.data$PC2, col=.data$label)) +
+    ggplot2::facet_wrap(~.data$K, ncol = 4) +
+    ggplot2::geom_point(size=0.4, alpha = 0.2) +
+    ggplot2::theme_bw() +
+    ggplot2::ylab("PC2") +
+    ggplot2::xlab("PC1")+
+    ggplot2::theme(legend.title = ggplot2::element_blank())+
+    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1))) +
+    theme(axis.text.x = element_text(angle=0, hjust=1),
+          panel.grid = element_blank(),
+          axis.line = element_line(colour = "black"),
+          legend.title = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "none",
+          strip.placement = "inside")
+  gridExtra::grid.arrange(g, nrow=1, ncol=1)
+}
+
 
 #' HIPPO's differential expression
 #'
@@ -503,44 +642,45 @@ hippo_tsne_plot = function(sce,
 #' sce = hippo(sce, K = 3)
 #' sce = diffexp(sce)
 #' @export
-diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
+diffexp = function(sce,
+                   top.n = 5,
+                   switch_to_hgnc=FALSE,
+                   ref = NA,
+                   k = NA){
   if(switch_to_hgnc & length(ref)<2){
     stop("A reference must be provided in order to match ENSG ids to HGNC symbols")
   }
   hippo_object = sce@int_metadata$hippo
-  K = ncol(hippo_object$labelmatrix)
-  featureind = list()
-  cellind = list()
-  plist = list()
+  param = hippo_object$param
+  if (is.na(k[1])){k = seq(2, param$maxK)}
+  featureind = cellind = plist = result = list()
   featureind[[1]] = 1:nrow(hippo_object$X)
   cellind[[1]] = 1:ncol(hippo_object$X)
   labelmatrix = hippo_object$labelmatrix
-  result = list()
   count = hippo_object$X
   finalnewcount = data.frame()
-  for (k in 2:K){
-    features = hippo_object$features[[k-1]]
-
-    cellind = which(labelmatrix[,k-1] == labelmatrix[which(labelmatrix[,k-1] != labelmatrix[,k])[1], k-1])
-    types = unique(hippo_object$labelmatrix[cellind, k])
-    cellgroup1 = which(hippo_object$labelmatrix[,k] == types[1])
-    cellgroup2 = which(hippo_object$labelmatrix[,k] == types[2])
-    rowdata = data.frame(genes = features)
-    rowdata$meandiff = Matrix::rowMeans(count[features,cellgroup1]) - Matrix::rowMeans(count[features,cellgroup2])
-    rowdata$sd = sqrt(Matrix::rowMeans(count[features,cellgroup1])/length(cellgroup1) +
-                        Matrix::rowMeans(count[features,cellgroup2])/length(cellgroup2))
+  for (kk in k){
+    features = hippo_object$features[[kk-1]]
+    cellind = which(labelmatrix[,kk-1] ==
+                      labelmatrix[which(
+                        labelmatrix[,kk-1] != labelmatrix[,kk])[1], kk-1])
+    types = unique(hippo_object$labelmatrix[cellind, kk])
+    cellgroup1 = which(hippo_object$labelmatrix[,kk] == types[1])
+    cellgroup2 = which(hippo_object$labelmatrix[,kk] == types[2])
+    rowdata = data.frame(genes = features$gene)
+    rowdata$meandiff = Matrix::rowMeans(count[features$gene,cellgroup1]) - Matrix::rowMeans(count[features$gene,cellgroup2])
+    rowdata$sd = sqrt(Matrix::rowMeans(count[features$gene,
+                                             cellgroup1])/length(cellgroup1) +
+                        Matrix::rowMeans(count[features$gene,
+                                               cellgroup2])/length(cellgroup2))
     rowdata$z = rowdata$meandiff/rowdata$sd
     rowdata = rowdata[order(rowdata$z, decreasing=TRUE), ]
     rowdata$genes = as.character(rowdata$genes)
     newcount = Matrix::t(log(cbind(count[rowdata$genes[1:top.n], cellgroup1],
-                           count[rowdata$genes[1:top.n], cellgroup2])+1))
+                                   count[rowdata$genes[1:top.n], cellgroup2])+1))
     topgenes = rowdata$genes[1:top.n]
     if(switch_to_hgnc){
       features_hgnc = ref$hgnc[match(topgenes, ref$ensg)]
-    }
-    newcount = as.data.frame(as.matrix(newcount))
-    colnames(newcount) = rowdata$genes[1:top.n]
-    if(switch_to_hgnc){
       colnames(newcount) = features_hgnc
       rowdata = rowdata %>%
         mutate(hgnc = ref$hgnc[match(rowdata$genes, ref$ensg)])
@@ -549,50 +689,64 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc=FALSE, ref = NA){
     newcount = reshape2::melt(newcount, id="celltype")
     newcount$celltype = as.factor(newcount$celltype)
     colnames(newcount) = c("celltype", "gene", "logcount")
-    newcount$round = paste0("K = ", k)
+    newcount$round = paste0("K = ", kk)
     finalnewcount = rbind(finalnewcount, newcount)
-
-    # plist[[k-1]] = g
-    result[[k-1]] = rowdata
+    result[[kk-1]] = rowdata
   }
-  # bpl = gridExtra::grid.arrange(grobs = plist, ncol = 2)
   sce@int_metadata$hippo$diffexp$result_table = result
-
-  g = ggplot2::ggplot(finalnewcount, ggplot2::aes(x = .data$gene, y = .data$logcount, col = .data$celltype)) +
-    ggplot2::facet_wrap(~round, scales="free") +
+  g = ggplot2::ggplot(finalnewcount,
+                      ggplot2::aes(x = .data$gene,
+                                   y = exp(.data$logcount)-1,
+                                   col = .data$celltype)) +
+    ggplot2::facet_wrap(~round, scales="free", ncol = 4) +
     ggplot2::geom_boxplot(outlier.size = 0.2) +
-    ggplot2::theme_bw() +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle=45, hjust=1),
-          panel.border = ggplot2::element_blank(),
-          panel.background = ggplot2::element_blank(),
-          panel.grid = ggplot2::element_blank(),
-          panel.grid.major = ggplot2::element_blank(),
-          panel.grid.minor = ggplot2::element_blank(),
-          axis.line = ggplot2::element_line(colour = "black"),
-          strip.background = ggplot2::element_blank(),
-          legend.title = ggplot2::element_blank(),
-          legend.position = 'none') +
-    ggplot2::ylab("log(count+1)") +
-    ggplot2::xlab("")
+                   panel.border = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_blank(),
+                   panel.grid = ggplot2::element_blank(),
+                   axis.line = ggplot2::element_line(colour = "black"),
+                   strip.background = ggplot2::element_blank(),
+                   legend.title = ggplot2::element_blank(),
+                   legend.position = "none") +
+    ggplot2::ylab("UMI count") +
+    ggplot2::xlab("") +
+    ggplot2::scale_y_continuous(trans="log1p",
+                                breaks = c(0,10,100,1000))
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
   sce@int_metadata$hippo$diffexp$plot = g
   return(sce)
 }
 
-#' HIPPO's differential expression
-#'
-#' @param sce SingleCellExperiment object with hippo
-#' @return hippo object
-#' @examples
-#' library(SingleCellExperiment)
-#' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
-#' X[X%in%c(1,2)] = 0
-#' rownames(X) = paste0('gene',1:1000)
-#' colnames(X) = paste0('cell',1:50)
-#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-#' sce = hippo(sce, K = 3)
-#' hip = get_hippo_object(sce)
-#' @export
-get_hippo_object = function(sce){
-  return(sce@sce@int_metadata$hippo)
+hippo_feature_heatmap = function(sce,
+                                 top.n = 50,
+                                 kk=2){
+  hippo_object = sce@int_metadata$hippo
+  labelmatrix = as.data.frame(hippo_object$labelmatrix)
+  labelmatrix$barcode = colnames(hippo_object$X)
+  bigX = data.frame()
+  feat = hippo_object$features[[kk-1]]
+  feat = feat %>% dplyr::arrange(desc(zvalue))
+  feat = feat[1:(top.n), ]
+  lab = sce@int_metadata$hippo$labelmatrix[,kk]
+  tmp = log(hippo_object$X[feat$gene,]+1)
+  tmp = as.data.frame(tmp)
+  tmp$gene = feat$gene
+  X = melt(tmp, id = c('gene'))
+  X$label = labelmatrix[match(X$variable, labelmatrix$barcode),kk]
+  X$K = kk-1
+  g = ggplot(X, aes(x = variable, y = gene, fill = value)) +
+    facet_grid(~label, scales = "free_x") +
+    geom_tile() +
+    scale_fill_gradient2(high = 'darkred', low = 'white') +
+    theme_minimal(base_size = 8)+
+    theme(axis.text.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.ticks = element_blank(),
+          legend.title=element_blank(),
+          strip.placement= "inside",
+          legend.position = "none",
+          panel.grid = element_blank())  +
+    xlab("") + ylab("")
+  gridExtra::grid.arrange(g, nrow=1, ncol=1)
 }
+
