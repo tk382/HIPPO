@@ -26,7 +26,7 @@ one_level_clustering = function(subX, z_threshold){
   subdf = preprocess_heterogeneous(subX)
   subdf = compute_test_statistic(subdf)
   features = subdf[subdf$zvalue>z_threshold,]
-  if(length(features)<10){
+  if(nrow(features)<10){
     return(list(features = NA, pcs = NA, km = NA))
   }
   if(nrow(features)<10){
@@ -257,12 +257,13 @@ get_hippo = function(sce){
 hippo = function(sce,
                  K=30,
                  z_threshold = 3,
-                 outlier_proportion = 0.01){
+                 outlier_proportion = 0.01,
+                 verbose=TRUE){
   if(class(sce)=="SingleCellExperiment"){
-    X = sce@assays$data$counts
+    X = sce@assays@data$counts
   }else if (class(sce)=="matrix"){
     sce = SingleCellExperiment::SingleCellExperiment(assays = list(counts = sce))
-    X = sce@assays#data$counts
+    X = sce@assays@data$counts
   }else{
     stop("input must be either matrix or SingleCellExperiment object")
   }
@@ -340,6 +341,25 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE,
     dplyr::slice(seq_len(5))
   featurelength = as.numeric(table(df$K))
   df$featurecount = featurelength[df$K-1]
+  ensg_to_hgnc = function(ensg){
+    # require(biomaRt)
+    # mart <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
+    # maps <- getBM(attributes=c('hgnc_symbol', 'ensembl_gene_id'),
+    #               filters = 'ensembl_gene_id',
+    #               values = ensg,
+    #               mart = mart)
+    maps = read.table("~/Work/SC/data/Annotations/hgnc_ensembl.txt", header=TRUE, stringsAsFactors = FALSE)
+    maps2 = data.frame(ensg = ensg,
+                       hgnc = maps$hgnc[match(ensg, maps$ensembl)])
+    maps2$ensg = as.character(maps2$ensg)
+    maps2$hgnc = as.character(maps2$hgnc)
+    ind_na = which(is.na(maps2$hgnc))
+    ind_blank = which(maps2$hgnc=="")
+    hgnc = maps2$hgnc
+    hgnc[c(ind_na, ind_blank)] = maps2$ensg[c(ind_na, ind_blank)]
+    return(hgnc)
+  }
+
   if (is.na(k[1])){
     k = 2:ncol(sce@int_metadata$hippo$labelmatrix)
   }else{
@@ -357,7 +377,7 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE,
                               ggplot2::aes(label = .data$gene),
                               size = 3,
                               col = 'black') +
-    ggplot2::geom_text(aes(label = paste0(featurecount,"genes"),
+    ggplot2::geom_text(ggplot2::aes(label = paste0(featurecount,"genes"),
                            x = 8, y=.8),
                        check_overlap=TRUE,col= 'red',size = 3) +
     ggplot2::theme(legend.position = "none") +
@@ -365,15 +385,15 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE,
     ggplot2::ylab("Zero Proportion of Selected Features") +
     ggplot2::xlab("Gene Mean") +
     ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1), shape = 19))+
-    theme(axis.text.x = element_text(angle=45, hjust=1),
-          panel.grid = element_blank(),
-          axis.line = element_line(colour = "black"),
-          legend.title = element_blank(),
-          axis.ticks = element_blank(),
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle=45, hjust=1),
+          panel.grid = ggplot2::element_blank(),
+          axis.line = ggplot2::element_line(colour = "black"),
+          legend.title = ggplot2::element_blank(),
+          axis.ticks = ggplot2::element_blank(),
           legend.position = "none",
           strip.placement = "inside") +
-    ggtitle(title) +
-    scale_color_manual(values = c("black", "red"))
+    ggplot2::ggtitle(title) +
+    ggplot2::scale_color_manual(values = c("black", "red"))
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
 }
 
@@ -518,11 +538,11 @@ hippo_umap_plot = function(sce, k = NA){
       ggplot2::theme_bw() +
       ggplot2::ylab("umap2") +
       ggplot2::xlab("umap1")+
-      theme(axis.text.x = element_text(angle=0, hjust=1),
-            panel.grid = element_blank(),
-            axis.line = element_line(colour = "black"),
-            legend.title = element_blank(),
-            axis.ticks = element_blank(),
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle=0, hjust=1),
+            panel.grid = ggplot2::element_blank(),
+            axis.line = ggplot2::element_line(colour = "black"),
+            legend.title = ggplot2::element_blank(),
+            axis.ticks = ggplot2::element_blank(),
             legend.position = "none",
             strip.placement = "inside") +
       ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1)))
@@ -561,16 +581,15 @@ hippo_tsne_plot = function(sce, k = NA, title = ""){
       ggplot2::xlab("tsne1")+
       ggplot2::theme(legend.title = ggplot2::element_blank())+
       ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1))) +
-      xlab("TSNE1")+
-      ylab("TSNE2") +
-      theme(axis.text.x = element_text(angle=0, hjust=1),
-            panel.grid = element_blank(),
-            axis.line = element_line(colour = "black"),
-            legend.title = element_blank(),
-            axis.ticks = element_blank(),
+      ggplot2::xlab("TSNE1") + ggplot2::ylab("TSNE2") +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle=0, hjust=1),
+            panel.grid = ggplot2::element_blank(),
+            axis.line = ggplot2::element_line(colour = "black"),
+            legend.title = ggplot2::element_blank(),
+            axis.ticks = ggplot2::element_blank(),
             legend.position = "none",
             strip.placement = "inside") +
-      ggtitle(title)
+      ggplot2::ggtitle(title)
     gridExtra::grid.arrange(g, nrow=1, ncol=1)
   }else{
     stop("use dimension_reduction to compute tsne first")
@@ -614,11 +633,11 @@ hippo_pca_plot = function(sce, k = NA){
     ggplot2::xlab("PC1")+
     ggplot2::theme(legend.title = ggplot2::element_blank())+
     ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size=5, alpha = 1))) +
-    theme(axis.text.x = element_text(angle=0, hjust=1),
-          panel.grid = element_blank(),
-          axis.line = element_line(colour = "black"),
-          legend.title = element_blank(),
-          axis.ticks = element_blank(),
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle=0, hjust=1),
+          panel.grid = ggplot2::element_blank(),
+          axis.line = ggplot2::element_line(colour = "black"),
+          legend.title = ggplot2::element_blank(),
+          axis.ticks = ggplot2::element_blank(),
           legend.position = "none",
           strip.placement = "inside")
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
@@ -749,4 +768,19 @@ hippo_feature_heatmap = function(sce,
     xlab("") + ylab("")
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
 }
+
+
+ensg_to_hgnc = function(ensg){
+  maps = data(hgnc_ensembl)
+  maps2 = data.frame(ensg = ensg,
+                     hgnc = maps$hgnc[match(ensg, maps$ensembl)])
+  maps2$ensg = as.character(maps2$ensg)
+  maps2$hgnc = as.character(maps2$hgnc)
+  ind_na = which(is.na(maps2$hgnc))
+  ind_blank = which(maps2$hgnc=="")
+  hgnc = maps2$hgnc
+  hgnc[c(ind_na, ind_blank)] = maps2$ensg[c(ind_na, ind_blank)]
+  return(hgnc)
+}
+
 

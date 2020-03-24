@@ -94,15 +94,10 @@ The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is
 sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 ```
 
-
-
-
 Each round of differential expression test results are also saved in the list of data frames.
-
 
 ```{r}
 head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes
 head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells
 head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells
 ```
-
