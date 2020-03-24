@@ -199,14 +199,34 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE, zvalue_thresh = 10)
 one_level_clustering = function(subX, z_threshold){
   subdf = preprocess_heterogeneous(subX)
   subdf = compute_test_statistic(subdf)
-  features = subdf$gene[subdf$zvalue>z_threshold]
+  features = subdf[subdf$zvalue>z_threshold,]
   if(length(features)<10){
     return(list(features = NA, pcs = NA, km = NA))
   }
-  pcs = irlba::irlba(log(subX[features, ]+1), 10)$v
-  unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features,]))+1), n = 10, scale.=FALSE, center=FALSE)$x[,1:10]
-  km = kmeans(pcs, 2, nstart = 10, iter.max = 50)
-  return(list(features = features, pcs = pcs, km = km, unscaled_pcs = unscaledpc, subdf = subdf))
+  if(nrow(features)<10){
+    return(list(features = NA, pcs = NA, km = NA,
+                unscaled_pcs = NA, subdf = NA))
+  }
+  pcs = tryCatch(
+    expr = {irlba::irlba(log(subX[features$gene, ]+1),
+                         min(9, nrow(features)-1,ncol(subX)-1))$v},
+    error = function(e){NA},
+    warning = function(w){NA}
+  )
+  if(is.na(pcs[1])){
+    return(list(features = NA, pcs = NA, km = NA,
+                unscaled_pcs = NA, subdf = NA))
+  }else{
+    unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features$gene,]))+1),
+                                     n = min(9,nrow(features)-1,ncol(subX)-1),
+                                     scale.=FALSE, center=FALSE)$x
+    km = kmeans(pcs, 2, nstart = 10, iter.max = 50)
+  }
+  return(list(features = features,
+              pcs = pcs,
+              km = km,
+              unscaled_pcs = unscaledpc,
+              subdf = subdf))
 }
 
 #' HIPPO's hierarchical clustering
@@ -225,7 +245,10 @@ one_level_clustering = function(subX, z_threshold){
 #' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
 #' sce = hippo(sce, K = 3)
 #' @export
-hippo = function(sce, K=10, z_threshold = 3, outlier_proportion = 0.01){
+hippo = function(sce,
+                 K=10,
+                 z_threshold = 3,
+                 outlier_proportion = 0.01){
   if(is(sce, "SingleCellExperiment")){
     X = sce@assays@data$counts
   }else if (is(sce, "matrix")){
