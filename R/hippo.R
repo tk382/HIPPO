@@ -1,6 +1,3 @@
-
-
-
 RowVar <- function(x) {
   Matrix::rowSums((x - Matrix::rowMeans(x))^2)/(ncol(x) - 1)
 }
@@ -215,7 +212,8 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE,
   df = preprocess_heterogeneous(sce@assays@data$counts)
   df = compute_test_statistic(df)
   subset = df[which(df$zvalue > zvalue_thresh), ]
-  g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion)) +
+  g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean,
+                                       y = .data$zero_proportion)) +
     ggplot2::geom_point(size = 0.4, alpha = 0.5) +
     ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean,
                                     y = exp(-.data$gene_mean)),
@@ -430,7 +428,8 @@ zero_proportion_plot = function(sce,
 #' toydata = dimension_reduction(toydata, method="tsne")
 #' hippo_tsne_plot(toydata)
 #' @export
-dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30,
+dimension_reduction = function(sce, method = c("umap", "tsne"),
+                               perplexity = 30,
                                featurelevel = 1) {
   hippo_object = sce@int_metadata$hippo
   dflist = list()

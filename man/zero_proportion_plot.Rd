@@ -10,7 +10,8 @@ zero_proportion_plot(sce, switch_to_hgnc = FALSE, ref = NA, k = NA,
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo element in it}
 
-\item{switch_to_hgnc}{boolean argument to indicate whether to change the gene names from ENSG IDs to HGNC symbols}
+\item{switch_to_hgnc}{boolean argument to indicate whether to change the
+gene names from ENSG IDs to HGNC symbols}
 
 \item{ref}{a data frame with hgnc column and ensg column}
 }

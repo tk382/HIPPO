@@ -11,9 +11,11 @@ diffexp(sce, top.n = 5, switch_to_hgnc = FALSE, ref = NA, k = NA)
 
 \item{top.n}{number of markers to return}
 
-\item{switch_to_hgnc}{if the current gene names are ensemble ids, and would like to switch to hgnc}
+\item{switch_to_hgnc}{if the current gene names are ensemble ids, and would
+like to switch to hgnc}
 
-\item{ref}{a data frame with columns 'hgnc' and 'ensg' to match each other, only required when switch_to_hgnc is set to TRUE}
+\item{ref}{a data frame with columns 'hgnc' and 'ensg' to match each other,
+only required when switch_to_hgnc is set to TRUE}
 }
 \value{
 list of differential expression result
