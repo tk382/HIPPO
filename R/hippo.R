@@ -121,7 +121,7 @@ zinb_prob_zero = function(lambda, theta, pi) {
 #' @return data frame with one row for each gene.
 #' @examples
 #' data(toydata)
-#' preprocess_heterogeneous(toydata@assays@data$counts)
+#' preprocess_heterogeneous(get_data_from_sce(toydata))
 #' @export
 preprocess_heterogeneous = function(X) {
     gene_mean = Matrix::rowMeans(X)
@@ -159,7 +159,7 @@ preprocess_homogeneous = function(sce, label) {
     positive_mean = matrix(NA, nrow(X), length(labelnames))
     gene_var = matrix(NA, nrow(X), length(labelnames))
     samplesize = table(label)
-    for (i in 1:length(labelnames)) {
+    for (i in seq(length(labelnames))) {
         ind = which(label == labelnames[i])
         zero_proportion[, i] = Matrix::rowMeans(X[, ind] == 0)
         gene_mean[, i] = Matrix::rowMeans(X[, ind])
@@ -225,7 +225,9 @@ get_hippo = function(sce) {
         stop("hippo object does not exist")
     }
 }
-
+get_data_from_sce = function(sce){
+  return(sce@assays@data$counts)
+}
 
 
 #' HIPPO's hierarchical clustering
@@ -263,7 +265,7 @@ hippo = function(sce, K = 30, z_threshold = 3, outlier_proportion = 0.01,
     labelmatrix[, 1] = 1
     eachlevel = list()
     subX = X
-    subXind = 1:ncol(X)
+    subXind = seq(ncol(X))
     withinss = rep(0, K)
     oldk = 1
     features = list()
@@ -273,13 +275,13 @@ hippo = function(sce, K = 30, z_threshold = 3, outlier_proportion = 0.01,
         if (is.na(thisk$features$gene[1])) {
             print("not enough important features left; terminating the
             procedure")
-            labelmatrix = labelmatrix[, 1:(k - 1)]
+            labelmatrix = labelmatrix[, seq((k - 1))]
             break
         }
         if (nrow(thisk$features) < outlier_number) {
             print("not enough important features left; terminating the
             procedure")
-            labelmatrix = labelmatrix[, 1:(k - 1)]
+            labelmatrix = labelmatrix[, seq((k - 1))]
             break
         }
         if (verbose) {
@@ -291,7 +293,7 @@ hippo = function(sce, K = 30, z_threshold = 3, outlier_proportion = 0.01,
             1, ], 1, var)^2)
         withinss[k] = sum(apply(thisk$unscaled_pcs[thisk$km$cluster ==
             2, ], 1, var)^2)
-        oldk = which.max(withinss[1:k])
+        oldk = which.max(withinss[seq(k)])
         if (sum(labelmatrix[, k] == oldk) < 5) {
             print("too few cells in one cluster; terminating the procedure")
             break
@@ -529,22 +531,21 @@ hippo_pca_plot = function(sce, k = NA) {
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
 #' diffexp(toydata)
 #' @export
-diffexp = function(sce, top.n = 5, switch_to_hgnc = FALSE, ref = NA,
-    k = NA) {
+diffexp = function(sce,
+                   top.n = 5,
+                   switch_to_hgnc = FALSE,
+                   ref = NA,
+                   k = NA) {
     if (switch_to_hgnc & length(ref) < 2) {
         stop("A reference must be provided in order to match ENSG ids to HGNC symbols")
     }
     hippo_object = sce@int_metadata$hippo
-    if (is.na(k[1])) {
-        k = 2:ncol(hippo_object$labelmatrix)
-    }
+    if (is.na(k[1])) {k = seq(2,ncol(hippo_object$labelmatrix))}
     param = hippo_object$param
-    if (is.na(k[1])) {
-        k = seq(2, param$maxK)
-    }
+    if (is.na(k[1])) {k = seq(2, param$maxK)}
     featureind = cellind = plist = result = list()
-    featureind[[1]] = 1:nrow(hippo_object$X)
-    cellind[[1]] = 1:ncol(hippo_object$X)
+    featureind[[1]] = seq(nrow(hippo_object$X))
+    cellind[[1]] = seq(ncol(hippo_object$X))
     labelmatrix = hippo_object$labelmatrix
     count = hippo_object$X
     finalnewcount = data.frame()
@@ -563,10 +564,10 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc = FALSE, ref = NA,
         rowdata$z = rowdata$meandiff/rowdata$sd
         rowdata = rowdata[order(rowdata$z, decreasing = TRUE), ]
         rowdata$genes = as.character(rowdata$genes)
-        newcount = Matrix::t(log(cbind(count[rowdata$genes[1:top.n],
-            cellgroup1], count[rowdata$genes[1:top.n], cellgroup2]) +
+        newcount = Matrix::t(log(cbind(count[rowdata$genes[seq(top.n)],
+            cellgroup1], count[rowdata$genes[seq(top.n)], cellgroup2]) +
             1))
-        topgenes = rowdata$genes[1:top.n]
+        topgenes = rowdata$genes[seq(top.n)]
         if (switch_to_hgnc) {
             features_hgnc = ref$hgnc[match(topgenes, ref$ensg)]
             colnames(newcount) = features_hgnc
@@ -599,7 +600,17 @@ diffexp = function(sce, top.n = 5, switch_to_hgnc = FALSE, ref = NA,
     return(sce)
 }
 
-
+diffexp_subfunction = function(features, cellgroup1, cellgroup2){
+  rowdata = data.frame(genes = features$gene)
+  rowdata$meandiff = Matrix::rowMeans(count[features$gene, cellgroup1]) -
+    Matrix::rowMeans(count[features$gene, cellgroup2])
+  rowdata$sd = sqrt(Matrix::rowMeans(count[features$gene, cellgroup1])/length(cellgroup1) +
+                      Matrix::rowMeans(count[features$gene, cellgroup2])/length(cellgroup2))
+  rowdata$z = rowdata$meandiff/rowdata$sd
+  rowdata = rowdata[order(rowdata$z, decreasing = TRUE), ]
+  rowdata$genes = as.character(rowdata$genes)
+  return(rowdata)
+}
 
 #' HIPPO's feature heatmap
 #'
@@ -624,7 +635,7 @@ hippo_feature_heatmap = function(sce, switch_to_hgnc = FALSE, ref = NA,
     bigX = data.frame()
     feat = hippo_object$features[[kk - 1]]
     feat = feat %>% dplyr::arrange(desc(zvalue))
-    feat = feat[1:(top.n), ]
+    feat = feat[seq(top.n), ]
     lab = sce@int_metadata$hippo$labelmatrix[, kk]
     tmp = log(hippo_object$X[feat$gene, ] + 1)
     tmp = as.data.frame(tmp)
