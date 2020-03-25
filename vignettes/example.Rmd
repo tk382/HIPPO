@@ -90,7 +90,9 @@ This function shows how the zero-inflation decreases as HIPPO proceeds in the cl
 
 ```{r, fig.width = 6, fig.height = 3}
 data(ensg_hgnc)
-zero_proportion_plot(toydata, switch_to_hgnc = TRUE, ref = ensg_hgnc)
+zero_proportion_plot(toydata, 
+                     switch_to_hgnc = TRUE, 
+                     ref = ensg_hgnc)
 hippo_feature_heatmap(toydata, k = 2, 
                       switch_to_hgnc = TRUE, 
                       ref = ensg_hgnc, 
@@ -110,15 +112,20 @@ This function also has an option to switch the gene names to HGNC symbols. top.n
 The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is equal to 2, the color codes match with the cell groups as separated in the dimension reduction plot. 
 
 ```{r}
-toydata = diffexp(toydata, top.n = 5, switch_to_hgnc = TRUE, 
+toydata = diffexp(toydata, 
+                  top.n = 5, 
+                  switch_to_hgnc = TRUE, 
                   ref = ensg_hgnc)
 ```
 
 Each round of differential expression test results are also saved in the list of data frames.
 
 ```{r}
-hippo_object = get_hippo(toydata)
-head(hippo_object$diffexp$result_table[[1]])
-head(hippo_object$diffexp$result_table[[2]])
+head(get_hippo_diffexp(toydata, 1))
+head(get_hippo_diffexp(toydata, 2))
 ```
 
+
+```{r}
+sessionInfo()
+```
