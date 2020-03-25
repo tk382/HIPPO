@@ -11,8 +11,7 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE,
   fig.width = 6,
-  fig.height = 4
-)
+  fig.height = 2)
 library(HIPPO)
 library(SingleCellExperiment)
 library(magrittr)
@@ -86,7 +85,11 @@ outlier_proportion is the number of outlier genes to allow. The default is 0.01 
 
 ```{r hippo, warning = FALSE}
 set.seed(20191031)
-sce = hippo(sce, K = 10, z_threshold = 2, outlier_proportion = 0.01)
+sce = hippo(sce, 
+            K = 4, 
+            z_threshold = 2, 
+            outlier_proportion = 0.01,
+            verbose=TRUE)
 ```
 
 ## Dimension Reduction for Each Round of HIPPO
@@ -95,7 +98,7 @@ We offer two dimension reduction methods: umap and tsne. And we offer two separa
 
 ```{r umap, warning = FALSE}
 sce = dimension_reduction(sce, method="umap")
-hippo_umap_plot(sce)
+hippo_umap_plot(sce, k = 1:4)
 ```
 
 ```{r tsne}
@@ -107,7 +110,7 @@ hippo_tsne_plot(sce)
 
 This function shows how the zero-inflation decreases as HIPPO proceeds in the clustering. This function has arguments called switch_to_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
 
-```{r featureselection, fig.width = 5, fig.height = 5}
+```{r featureselection}
 data(ensg_hgnc)
 zero_proportion_plot(sce, 
                      switch_to_hgnc = TRUE, 
@@ -140,8 +143,8 @@ sce = diffexp(sce,
 Each round of differential expression test results are also saved in the list of data frames.
 
 ```{r}
-head(get_hippo_diffexp(toydata, 1))
-head(get_hippo_diffexp(toydata, 2))
+head(get_hippo_diffexp(sce, 1))
+head(get_hippo_diffexp(sce, 2))
 ```
 
 

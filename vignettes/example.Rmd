@@ -65,9 +65,8 @@ outlier_proportion is the number of outlier genes to allow. The default is 0.01 
 
 ```{r, warning = FALSE}
 set.seed(20200321)
-toydata = hippo(toydata, 
-            K = 10, 
-            z_threshold = 1)
+toydata = hippo(toydata, K = 10, 
+                z_threshold = 2, outlier_proportion = 0.00001)
 ```
 
 ## Dimension Reduction for Each Round of HIPPO
@@ -93,10 +92,6 @@ data(ensg_hgnc)
 zero_proportion_plot(toydata, 
                      switch_to_hgnc = TRUE, 
                      ref = ensg_hgnc)
-hippo_feature_heatmap(toydata, k = 2, 
-                      switch_to_hgnc = TRUE, 
-                      ref = ensg_hgnc, 
-                      top.n = 20)
 hippo_feature_heatmap(toydata, k = 3, 
                       switch_to_hgnc = TRUE, 
                       ref = ensg_hgnc, 
@@ -122,7 +117,6 @@ Each round of differential expression test results are also saved in the list of
 
 ```{r}
 head(get_hippo_diffexp(toydata, 1))
-head(get_hippo_diffexp(toydata, 2))
 ```
 
 

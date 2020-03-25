@@ -127,7 +127,7 @@ zinb_prob_zero = function(lambda, theta, pi) {
 #' @return data frame with one row for each gene.
 #' @examples
 #' data(toydata)
-#' preprocess_heterogeneous(get_data_from_sce(toydata))
+#' df = preprocess_heterogeneous(get_data_from_sce(toydata))
 #' @export
 preprocess_heterogeneous = function(X) {
   gene_mean = Matrix::rowMeans(X)
@@ -152,7 +152,7 @@ preprocess_heterogeneous = function(X) {
 #' @return data frame with one row for each gene.
 #' @examples
 #' data(toydata)
-#' preprocess_homogeneous(toydata, colData(toydata)$phenoid)
+#' df = preprocess_homogeneous(toydata, colData(toydata)$phenoid)
 #' @export
 preprocess_homogeneous = function(sce, label) {
   if (is(sce, "SingleCellExperiment")) {
@@ -302,8 +302,7 @@ hippo = function(sce, K = 30,
   for (k in 2:K) {
     thisk = one_level_clustering(subX, z_threshold)
     if (is.na(thisk$features$gene[1])) {
-      print("not enough important features left; terminating the
-            procedure")
+      print("not enough important features left; terminate the procedure")
       labelmatrix = labelmatrix[, seq((k - 1))]
       break
     }
@@ -617,7 +616,7 @@ hippo_pca_plot = function(sce, k = NA) {
 #' data(toydata)
 #' set.seed(20200321)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-#' diffexp(toydata)
+#' result = diffexp(toydata)
 #' @export
 diffexp = function(sce,
                    top.n = 5,
@@ -786,6 +785,6 @@ ensg_to_hgnc = function(ensg) {
 #' result1 = get_hippo_diffexp(1)
 #' @export
 get_hippo_diffexp = function(sce, k){
-  hippo_object = get_hippo(toydata)
+  hippo_object = get_hippo(sce)
   return(hippo_object$diffexp$result_table[[k]])
 }

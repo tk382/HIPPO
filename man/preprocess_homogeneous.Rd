@@ -22,5 +22,5 @@ Preprocess UMI data with inferred or known labels
 }
 \examples{
 data(toydata)
-preprocess_homogeneous(toydata, colData(toydata)$phenoid)
+df = preprocess_homogeneous(toydata, colData(toydata)$phenoid)
 }

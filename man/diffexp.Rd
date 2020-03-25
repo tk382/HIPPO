@@ -27,5 +27,5 @@ HIPPO's differential expression
 data(toydata)
 set.seed(20200321)
 toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-diffexp(toydata)
+result = diffexp(toydata)
 }

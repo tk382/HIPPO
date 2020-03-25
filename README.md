@@ -1,6 +1,4 @@
 
-[![Travis-CI Build Status](https://travis-ci.com/tk382/HIPPO.svg?branch=master)](https://travis-ci.org/tk382/HIPPO)
-[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 HIPPO
 =====
@@ -32,19 +30,21 @@ HIPPO is under review for Bioconductor and CRAN submission. You can download the
 devtools::install_github("tk382/HIPPO", build_vignettes = TRUE)
 ```
 
-Example Analysis
-================
-
 Read the data
 -------------
 
-The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set.
+The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set. Alternatively, a toydata is created by subsetting from this data.
 
 ``` r
 sce <- readRDS(url("https://github.com/tk382/HIPPO/raw/master/sce_Zhengmix4eq.rds","rb"))
 ```
 
-Alternatively, you can start from a matrix object.
+``` r
+data(toydata)
+sce = toydata
+```
+
+You can start from a matrix object and create SingleCellExperiment object.
 
 ``` r
 # X = readRDS("../zhengmix4eq_counts.rds")
@@ -57,7 +57,9 @@ Diagnostic Plot
 This plot shows the zero inflation compared to the expected Poisson line. If most genes don't align with the black line, it shows that there is cell heterogeneity driving the zero inflation.
 
 ``` r
-hippo_diagnostic_plot(sce, show_outliers = TRUE, zvalue_thresh = 15)
+hippo_diagnostic_plot(sce, 
+                      show_outliers = TRUE, 
+                      zvalue_thresh = 15)
 ```
 
 ![](README_files/figure-markdown_github/diagnostic-1.png)
@@ -77,12 +79,14 @@ outlier\_proportion is the number of outlier genes to allow. The default is 0.01
 
 ``` r
 set.seed(20191031)
-sce = hippo(sce, K = 10, z_threshold = 2, outlier_proportion = 0.01)
+sce = hippo(sce, 
+            K = 4, 
+            z_threshold = 2, 
+            outlier_proportion = 0.01,
+            verbose=TRUE)
 #> [1] "K = 2.."
 #> [1] "K = 3.."
 #> [1] "K = 4.."
-#> [1] "K = 5.."
-#> [1] "not enough important features left; terminating the procedure"
 ```
 
 Dimension Reduction for Each Round of HIPPO
@@ -92,7 +96,7 @@ We offer two dimension reduction methods: umap and tsne. And we offer two separa
 
 ``` r
 sce = dimension_reduction(sce, method="umap")
-hippo_umap_plot(sce)
+hippo_umap_plot(sce, k = 1:4)
 ```
 
 ![](README_files/figure-markdown_github/umap-1.png)
@@ -110,20 +114,31 @@ Visualize the selected features at each round
 This function shows how the zero-inflation decreases as HIPPO proceeds in the clustering. This function has arguments called switch\_to\_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
 
 ``` r
-ref = data.frame(hgnc = rowData(sce)$symbol,
-                 ensg = rowData(sce)$id)
-head(ref)
-#>            hgnc            ensg
-#> 1    AL627309.1 ENSG00000237683
-#> 2 RP11-206L10.2 ENSG00000228327
-#> 3 RP11-206L10.9 ENSG00000237491
-#> 4     LINC00115 ENSG00000225880
-#> 5        FAM41C ENSG00000230368
-#> 6        SAMD11 ENSG00000187634
-zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)
+data(ensg_hgnc)
+zero_proportion_plot(sce, 
+                     switch_to_hgnc = TRUE, 
+                     ref = ensg_hgnc)
 ```
 
 ![](README_files/figure-markdown_github/featureselection-1.png)
+
+``` r
+hippo_feature_heatmap(sce, k = 2, 
+                      switch_to_hgnc = TRUE, 
+                      ref = ensg_hgnc, 
+                      top.n = 20)
+```
+
+![](README_files/figure-markdown_github/featureselection-2.png)
+
+``` r
+hippo_feature_heatmap(sce, k = 3, 
+                      switch_to_hgnc = TRUE, 
+                      ref = ensg_hgnc, 
+                      top.n = 20)
+```
+
+![](README_files/figure-markdown_github/featureselection-3.png)
 
 Differential Expression Example
 -------------------------------
@@ -135,7 +150,10 @@ This function also has an option to switch the gene names to HGNC symbols. top.n
 The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is equal to 2, the color codes match with the cell groups as separated in the dimension reduction plot.
 
 ``` r
-sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
+sce = diffexp(sce, 
+                  top.n = 5, 
+                  switch_to_hgnc = TRUE, 
+                  ref = ensg_hgnc)
 ```
 
 ![](README_files/figure-markdown_github/diffexp-1.png)
@@ -143,39 +161,20 @@ sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 Each round of differential expression test results are also saved in the list of data frames.
 
 ``` r
-head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes
-#>             genes  meandiff         sd         z     hgnc
-#> 1 ENSG00000019582 11.146811 0.09138445 121.97711     CD74
-#> 2 ENSG00000163220  4.086147 0.04656788  87.74604   S100A9
-#> 3 ENSG00000143546  3.825106 0.04478527  85.40990   S100A8
-#> 4 ENSG00000204287  5.081744 0.06486717  78.34077  HLA-DRA
-#> 5 ENSG00000196126  4.565034 0.05980462  76.33246 HLA-DRB1
-#> 6 ENSG00000087086  7.400703 0.09739490  75.98656      FTL
-head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells
-#>             genes  meandiff         sd        z hgnc
-#> 1 ENSG00000008517 2.6307385 0.03623181 72.60854 IL32
-#> 2 ENSG00000167286 1.6506986 0.02870021 57.51522 CD3D
-#> 3 ENSG00000198851 1.5618762 0.02791737 55.94640 CD3E
-#> 4 ENSG00000139193 0.8038922 0.02002858 40.13726 CD27
-#> 5 ENSG00000172116 0.7450100 0.01928112 38.63936 CD8B
-#> 6 ENSG00000227507 3.5283579 0.10424241 33.84763  LTB
-head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells
-#>             genes meandiff        sd        z  hgnc
-#> 1 ENSG00000109475 7.180592 0.1288168 55.74265 RPL34
-#> 2 ENSG00000177954 9.368816 0.1688232 55.49483 RPS27
-#> 3 ENSG00000144713 9.576198 0.1727974 55.41864 RPL32
-#> 4 ENSG00000112306 8.694732 0.1600532 54.32402 RPS12
-#> 5 ENSG00000071082 7.166027 0.1321860 54.21170 RPL31
-#> 6 ENSG00000177600 8.177438 0.1521632 53.74123 RPLP2
+head(get_hippo_diffexp(sce, 1))
+#>               genes  meandiff         sd         z
+#> 288 ENSG00000019582 15.019675 0.09017091 166.56896
+#> 326 ENSG00000204287  8.076252 0.06412014 125.95499
+#> 328 ENSG00000196126  6.663794 0.05905990 112.83109
+#> 340 ENSG00000223865  4.920349 0.05078864  96.87894
+#> 73  ENSG00000163220  4.122195 0.04564481  90.31026
+#> 75  ENSG00000143546  3.827656 0.04388558  87.21899
+head(get_hippo_diffexp(sce, 2))
+#>               genes meandiff        sd        z
+#> 74  ENSG00000109475 7.173621 0.1288282 55.68364
+#> 25  ENSG00000177954 9.353901 0.1688552 55.39598
+#> 56  ENSG00000144713 9.563209 0.1727884 55.34636
+#> 116 ENSG00000112306 8.680749 0.1600465 54.23892
+#> 46  ENSG00000071082 7.158033 0.1321781 54.15444
+#> 173 ENSG00000177600 8.166465 0.1521661 53.66808
 ```
-
-Authors
--------
-
--   [Tae Kim](https://github.com/tk382)
-
-Acknowledgments
----------------
-
--   [Mengjie Chen](http://www.mengjiechen.com) provided guidance in methodology development.
--   The hippo icon is from [here](https://www.needpix.com/photo/178308/hippo-head-cartoon-cute-grey-zoo-wildlife)

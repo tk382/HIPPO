@@ -19,5 +19,5 @@ information about each gene
 }
 \examples{
 data(toydata)
-preprocess_heterogeneous(get_data_from_sce(toydata))
+df = preprocess_heterogeneous(get_data_from_sce(toydata))
 }
