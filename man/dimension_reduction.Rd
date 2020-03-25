@@ -4,7 +4,8 @@
 \alias{dimension_reduction}
 \title{compute t-SNE or umap of each round of HIPPO}
 \usage{
-dimension_reduction(sce, method = c("umap", "tsne"), perplexity = 30)
+dimension_reduction(sce, method = c("umap", "tsne"), perplexity = 30,
+  featurelevel = 1)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo object in it.}

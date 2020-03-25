@@ -2,18 +2,18 @@
 % Please edit documentation in R/hippo.R
 \name{one_level_clustering}
 \alias{one_level_clustering}
-\title{Clustering of one-step}
+\title{Each round of clustering (sub-function)}
 \usage{
 one_level_clustering(subX, z_threshold)
 }
 \arguments{
-\item{subX}{a matrix that is gene by cell that needs clustering}
+\item{subX}{data matrix}
 
-\item{z_threshold}{z-value threshold for feature selection}
+\item{z_threshold}{threshold for feature selection}
 }
 \value{
-a list of clustering result with relevant features, PCA reslut, and kmeans result
+kmeans result
 }
 \description{
-Clustering of one-step
+Each round of clustering (sub-function)
 }

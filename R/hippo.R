@@ -239,6 +239,7 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE, zvalue_thresh = 10)
 #' Access hippo object from SingleCellExperiment object.
 #'
 #' @param sce SingleCellExperiment object
+#' @export
 get_hippo = function(sce){
   if ("hippo" %in% names(sce@int_metadata)){
     return(sce@int_metadata$hippo)

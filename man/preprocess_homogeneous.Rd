@@ -4,7 +4,7 @@
 \alias{preprocess_homogeneous}
 \title{Preprocess UMI data with inferred or known labels}
 \usage{
-preprocess_homogeneous(sce, label, normalize = FALSE)
+preprocess_homogeneous(sce, label)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with counts data}
