@@ -736,6 +736,25 @@ diffexp = function(sce,
   return(sce)
 }
 
+
+
+#' HIPPO's feature heatmap
+#'
+#' @param sce SingleCellExperiment object with hippo
+#' @param top.n number of markers to return
+#' @param switch_to_hgnc if the current gene names are ensemble ids, and would like to switch to hgnc
+#' @param ref a data frame with columns "hgnc" and "ensg" to match each other, only required when switch_to_hgnc is set to TRUE
+#' @return list of differential expression result
+#' @examples
+#' library(SingleCellExperiment)
+#' X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
+#' X[X%in%c(1,2)] = 0
+#' rownames(X) = paste0('gene',1:1000)
+#' colnames(X) = paste0('cell',1:50)
+#' sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
+#' sce = hippo(sce, K = 3)
+#' sce = diffexp(sce)
+#' @export
 hippo_feature_heatmap = function(sce,
                                  switch_to_hgnc = FALSE,
                                  ref = NA,

@@ -68,7 +68,7 @@ outlier_proportion is the number of outlier genes to allow. The default is 0.01 
 set.seed(20191031)
 sce = hippo(toydata, 
             K = 10, 
-            z_threshold = 0.3, 
+            z_threshold = 1, 
             outlier_proportion = 0.01)
 ```
 
@@ -95,7 +95,8 @@ ref = data.frame(hgnc = rowData(sce)$symbol,
                  ensg = rowData(sce)$id)
 head(ref)
 zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)
-hippo_feature_heatmap(sce, top.n = 20)
+hippo_feature_heatmap(sce, k = 2, top.n = 20)
+hippo_feature_heatmap(sce, k = 3, top.n = 20)
 ```
 
 ## Differential Expression Example
@@ -111,7 +112,6 @@ sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 ```
 
 Each round of differential expression test results are also saved in the list of data frames.
-
 
 ```{r}
 hippo_object = get_hippo(sce)
