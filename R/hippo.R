@@ -217,6 +217,7 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE, zvalue_thresh = 10)
 #' data(toydata)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
 #' hippo_object = get_hippo(toydata)
+#' @return hippo object embedded in SingleCellExperiment object
 #' @export
 get_hippo = function(sce) {
     if ("hippo" %in% names(sce@int_metadata)) {
