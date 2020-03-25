@@ -512,13 +512,18 @@ hippo_pca_plot = function(sce, k = NA) {
                                      y = .data$PC2,
                                      col = .data$label)) +
       ggplot2::facet_wrap(~.data$K, ncol = 4) +
-        ggplot2::geom_point(size = 0.5, alpha = 0.8) + ggplot2::theme_bw() +
-        ggplot2::ylab("PC2") + ggplot2::xlab("PC1") + ggplot2::theme(legend.title = ggplot2::element_blank()) +
-        ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 5,
-            alpha = 1))) + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0,
-        hjust = 1), panel.grid = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"),
-        legend.title = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank(),
-        legend.position = "none", strip.placement = "inside")
+      ggplot2::geom_point(size = 0.5, alpha = 0.8) +
+      ggplot2::theme_bw() +
+      ggplot2::ylab("PC2") + ggplot2::xlab("PC1") +
+      ggplot2::theme(legend.title = ggplot2::element_blank()) +
+      ggplot2::guides(colour =
+                        ggplot2::guide_legend(override.aes = list(size = 5,
+                                                                  alpha = 1))) +
+      ggplot2::theme(panel.grid = ggplot2::element_blank(),
+                     axis.line = ggplot2::element_line(colour = "black"),
+                     legend.title = ggplot2::element_blank(),
+                     axis.ticks = ggplot2::element_blank(),
+                     legend.position = "none", strip.placement = "inside")
     gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
 }
 
@@ -541,37 +546,34 @@ diffexp = function(sce,
                    ref = NA,
                    k = NA) {
     if (switch_to_hgnc & length(ref) < 2) {
-        stop("A reference must be provided in order to match ENSG ids to HGNC symbols")
+        stop("A reference must be provided in order to match
+             ENSG ids to HGNC symbols")
     }
     hippo_object = sce@int_metadata$hippo
     if (is.na(k[1])) {k = seq(2,ncol(hippo_object$labelmatrix))}
     param = hippo_object$param
-    if (is.na(k[1])) {k = seq(2, param$maxK)}
-    featureind = cellind = plist = result = list()
+    featureind = cellind = result = list()
     featureind[[1]] = seq(nrow(hippo_object$X))
     cellind[[1]] = seq(ncol(hippo_object$X))
     labelmatrix = hippo_object$labelmatrix
     count = hippo_object$X
     finalnewcount = data.frame()
+    ind = 1
     for (kk in k) {
-        features = hippo_object$features[[kk - 1]]
-        cellind = which(labelmatrix[, kk - 1] == labelmatrix[which(labelmatrix[,
-            kk - 1] != labelmatrix[, kk])[1], kk - 1])
+        features = hippo_object$features[[ind]]
+        cellind = which(labelmatrix[, kk - 1] ==
+                          labelmatrix[which(labelmatrix[,kk - 1] != labelmatrix[, kk])[1], kk - 1])
         types = unique(hippo_object$labelmatrix[cellind, kk])
         cellgroup1 = which(hippo_object$labelmatrix[, kk] == types[1])
         cellgroup2 = which(hippo_object$labelmatrix[, kk] == types[2])
-        rowdata = diffexp_subfunction(features, cellgroup1, cellgroup2)
-        newcount = Matrix::t(log(cbind(count[rowdata$genes[seq(top.n)],
-            cellgroup1], count[rowdata$genes[seq(top.n)], cellgroup2]) +
-            1))
+        rowdata = diffexp_subfunction(count,features, cellgroup1, cellgroup2)
         topgenes = rowdata$genes[seq(top.n)]
+        tmpx = cbind(count[rowdata$genes[seq(top.n)],cellgroup1],
+                     count[rowdata$genes[seq(top.n)], cellgroup2])
+        newcount = as.data.frame(Matrix::t(log(tmpx+1))[,topgenes])
         if (switch_to_hgnc) {
-            features_hgnc = ref$hgnc[match(topgenes, ref$ensg)]
-            colnames(newcount) = features_hgnc
-            rowdata = rowdata %>%
-              dplyr::mutate(hgnc = ref$hgnc[match(rowdata$genes,ref$ensg)])
+            colnames(newcount) = ref$hgnc[match(colnames(newcount), ref$ensg)]
         }
-        newcount = as.data.frame(newcount)
         newcount$celltype = c(rep(types[1], length(cellgroup1)),
                               rep(types[2],length(cellgroup2)))
         newcount = reshape2::melt(newcount, id = "celltype")
@@ -579,31 +581,32 @@ diffexp = function(sce,
         colnames(newcount) = c("celltype", "gene", "logcount")
         newcount$round = paste0("K = ", kk)
         finalnewcount = rbind(finalnewcount, newcount)
-        result[[kk - 1]] = rowdata
+        result[[ind]] = rowdata
+        ind = ind + 1
     }
     sce@int_metadata$hippo$diffexp$result_table = result
     g = ggplot2::ggplot(finalnewcount,
                         ggplot2::aes(x = .data$gene,
                                      y = exp(.data$logcount) - 1,
                                      col = .data$celltype)) +
-      ggplot2::facet_wrap(~round,
-        scales = "free", ncol = 4) + ggplot2::geom_boxplot(outlier.size = 0.2) +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
-            hjust = 1), panel.border = ggplot2::element_blank(),
-            panel.background = ggplot2::element_blank(),
-            panel.grid = ggplot2::element_blank(),
-            axis.line = ggplot2::element_line(colour = "black"),
-            strip.background = ggplot2::element_blank(),
-            legend.title = ggplot2::element_blank(),
-            legend.position = "none") + ggplot2::ylab("UMI count") +
-        ggplot2::xlab("") + ggplot2::scale_y_continuous(trans = "log1p",
-        breaks = c(0, 10, 100, 1000))
+      ggplot2::facet_wrap(~round,scales = "free", ncol = 4) +
+      ggplot2::geom_boxplot(outlier.size = 0.2) +
+      ggplot2::theme_classic()+
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle=45,hjust=1),
+                     panel.border = ggplot2::element_blank(),
+                     panel.background = ggplot2::element_blank(),
+                     axis.line = ggplot2::element_line(colour = "black"),
+                     strip.background = ggplot2::element_blank(),
+                     legend.title = ggplot2::element_blank(),
+                     legend.position = "none") +
+      ggplot2::ylab("UMI count") + ggplot2::xlab("") +
+      ggplot2::scale_y_continuous(trans = "log1p",breaks = c(0, 10, 100, 1000))
     gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
     sce@int_metadata$hippo$diffexp$plot = g
     return(sce)
 }
 
-diffexp_subfunction = function(features, cellgroup1, cellgroup2){
+diffexp_subfunction = function(count, features, cellgroup1, cellgroup2){
   rowdata = data.frame(genes = features$gene)
   rowdata$meandiff = Matrix::rowMeans(count[features$gene, cellgroup1]) -
     Matrix::rowMeans(count[features$gene, cellgroup2])
