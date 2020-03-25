@@ -42,17 +42,20 @@ HIPPO is under review for Bioconductor and CRAN submission. You can download the
 devtools::install_github("tk382/HIPPO", build_vignettes = TRUE)
 ```
 
-# Example Analysis
-
 ## Read the data
 
-The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set. 
+The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use Zhengmix4eq data set. Alternatively, a toydata is created by subsetting from this data.
 
 ```{r readdata}
 sce <- readRDS(url("https://github.com/tk382/HIPPO/raw/master/sce_Zhengmix4eq.rds","rb"))
 ```
 
-Alternatively, you can start from a matrix object.
+```{r, eval = FALSE}
+data(toydata)
+sce = toydata
+```
+
+You can start from a matrix object and create SingleCellExperiment object.
 
 ```{r readdata2, eval = FALSE}
 # X = readRDS("../zhengmix4eq_counts.rds")
@@ -64,7 +67,9 @@ Alternatively, you can start from a matrix object.
 This plot shows the zero inflation compared to the expected Poisson line. If most genes don't align with the black line, it shows that there is cell heterogeneity driving the zero inflation.
 
 ```{r diagnostic, warning = FALSE}
-hippo_diagnostic_plot(sce, show_outliers = TRUE, zvalue_thresh = 15)
+hippo_diagnostic_plot(sce, 
+                      show_outliers = TRUE, 
+                      zvalue_thresh = 15)
 ```
 
 ## Feature Selection and Hierarchical Clustering
@@ -103,10 +108,18 @@ hippo_tsne_plot(sce)
 This function shows how the zero-inflation decreases as HIPPO proceeds in the clustering. This function has arguments called switch_to_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
 
 ```{r featureselection, fig.width = 5, fig.height = 5}
-ref = data.frame(hgnc = rowData(sce)$symbol,
-                 ensg = rowData(sce)$id)
-head(ref)
-zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)
+data(ensg_hgnc)
+zero_proportion_plot(sce, 
+                     switch_to_hgnc = TRUE, 
+                     ref = ensg_hgnc)
+hippo_feature_heatmap(sce, k = 2, 
+                      switch_to_hgnc = TRUE, 
+                      ref = ensg_hgnc, 
+                      top.n = 20)
+hippo_feature_heatmap(sce, k = 3, 
+                      switch_to_hgnc = TRUE, 
+                      ref = ensg_hgnc, 
+                      top.n = 20)
 ```
 
 ## Differential Expression Example
@@ -118,24 +131,17 @@ This function also has an option to switch the gene names to HGNC symbols. top.n
 The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is equal to 2, the color codes match with the cell groups as separated in the dimension reduction plot. 
 
 ```{r diffexp}
-sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
+sce = diffexp(sce, 
+                  top.n = 5, 
+                  switch_to_hgnc = TRUE, 
+                  ref = ensg_hgnc)
 ```
 
 Each round of differential expression test results are also saved in the list of data frames.
 
 ```{r}
-head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes
-head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells
-head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells
+head(get_hippo_diffexp(toydata, 1))
+head(get_hippo_diffexp(toydata, 2))
 ```
 
 
-## Authors
-
-* [Tae Kim](https://github.com/tk382)
-
-## Acknowledgments
-
-* [Mengjie Chen](http://www.mengjiechen.com) provided guidance in methodology development.
-* [Yong Peng](https://github.com/bigdataage) contributed in packaging the code to meet the Bioconductor requirements.
-* The hippo icon is from [here](https://www.needpix.com/photo/178308/hippo-head-cartoon-cute-grey-zoo-wildlife)
