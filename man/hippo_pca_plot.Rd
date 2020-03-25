@@ -13,7 +13,7 @@ hippo_pca_plot(sce, k = NA)
 ggplot for pca in each round
 }
 \description{
-visualize each round of hippo through t-SNE
+visualize each round of hippo through PCA
 }
 \examples{
 data(toydata)
