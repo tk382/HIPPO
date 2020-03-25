@@ -22,15 +22,28 @@ compute_test_statistic = function(df){
   return(df)
 }
 
+#' Each round of clustering (sub-function)
+#'
+#' @param subX data matrix
+#' @param z_threshold threshold for feature selection
+#' @return kmeans result
+#' @export
 one_level_clustering = function(subX, z_threshold){
   subdf = preprocess_heterogeneous(subX)
   subdf = compute_test_statistic(subdf)
   features = subdf[subdf$zvalue>z_threshold,]
+  nullfeatures = data.frame(matrix(ncol = 11, nrow = 0))
+  colnames(nullfeatures) = c('gene',
+                            'gene_mean', 'zero_proportion',
+                            'gene_var', 'samplesize',
+                            'expected_pi', 'se', 'minus_logp', 'zvalue',
+                            'subsetK', 'K')
   if(nrow(features)<10){
-    return(list(features = NA, pcs = NA, km = NA))
+    return(list(features = nullfeatures,
+                pcs = NA, km = NA))
   }
   if(nrow(features)<10){
-    return(list(features = NA, pcs = NA, km = NA,
+    return(list(features = nullfeatures, pcs = NA, km = NA,
                 unscaled_pcs = NA, subdf = NA))
   }
   pcs = tryCatch(
@@ -40,7 +53,7 @@ one_level_clustering = function(subX, z_threshold){
     warning = function(w){NA}
   )
   if(is.na(pcs[1])){
-    return(list(features = NA, pcs = NA, km = NA,
+    return(list(features = nullfeatures, pcs = NA, km = NA,
                 unscaled_pcs = NA, subdf = NA))
   }else{
     unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features$gene,]))+1),
@@ -227,9 +240,8 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE, zvalue_thresh = 10)
 #'
 #' @param sce SingleCellExperiment object
 get_hippo = function(sce){
-  hippo = sce@int_metadata$hippo
-  if (!is.na(hippo)){
-    return(hippo)
+  if ("hippo" %in% names(sce@int_metadata)){
+    return(sce@int_metadata$hippo)
   }
   else{
     stop("hippo object does not exist")
@@ -280,12 +292,12 @@ hippo = function(sce,
   features = list(); featuredata = list()
   for (k in 2:K){
     thisk = one_level_clustering(subX, z_threshold)
-    if(nrow(thisk$features) < outlier_number){
+    if(is.na(thisk$features$gene[1])){
       print("not enough important features left; terminating the procedure")
       labelmatrix = labelmatrix[,1:(k-1)]
       break
     }
-    if(is.na(thisk$features$gene[1])){
+    if(nrow(thisk$features) < outlier_number){
       print("not enough important features left; terminating the procedure")
       labelmatrix = labelmatrix[,1:(k-1)]
       break
@@ -670,6 +682,9 @@ diffexp = function(sce,
     stop("A reference must be provided in order to match ENSG ids to HGNC symbols")
   }
   hippo_object = sce@int_metadata$hippo
+  if(is.na(k[1])){
+    k = 2:ncol(hippo_object$labelmatrix)
+  }
   param = hippo_object$param
   if (is.na(k[1])){k = seq(2, param$maxK)}
   featureind = cellind = plist = result = list()
@@ -702,9 +717,11 @@ diffexp = function(sce,
       features_hgnc = ref$hgnc[match(topgenes, ref$ensg)]
       colnames(newcount) = features_hgnc
       rowdata = rowdata %>%
-        mutate(hgnc = ref$hgnc[match(rowdata$genes, ref$ensg)])
+        dplyr::mutate(hgnc = ref$hgnc[match(rowdata$genes, ref$ensg)])
     }
-    newcount$celltype = c(rep(types[1], length(cellgroup1)), rep(types[2], length(cellgroup2)))
+    newcount = as.data.frame(newcount)
+    newcount$celltype = c(rep(types[1], length(cellgroup1)),
+                          rep(types[2], length(cellgroup2)))
     newcount = reshape2::melt(newcount, id="celltype")
     newcount$celltype = as.factor(newcount$celltype)
     colnames(newcount) = c("celltype", "gene", "logcount")
