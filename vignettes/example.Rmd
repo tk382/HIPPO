@@ -14,7 +14,6 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.width = 6,
                       fig.height = 4)
 library(HIPPO)
-library(magrittr)
 library(SingleCellExperiment)
 ```
 
@@ -65,11 +64,10 @@ z_threshold is the feature selection criterion. For each round of hierarchical c
 outlier_proportion is the number of outlier genes to allow. The default is 0.01 (1%) which means the clustering procedure will automatically stop if there are less than 1% of genes remain as important features. With the example data set, the default choice has empirically worked well.
 
 ```{r, warning = FALSE}
-set.seed(20191031)
+set.seed(20200321)
 toydata = hippo(toydata, 
             K = 10, 
-            z_threshold = 1, 
-            outlier_proportion = 0.01)
+            z_threshold = 1)
 ```
 
 ## Dimension Reduction for Each Round of HIPPO
@@ -92,7 +90,7 @@ This function shows how the zero-inflation decreases as HIPPO proceeds in the cl
 
 ```{r, fig.width = 6, fig.height = 3}
 data(ensg_hgnc)
-zero_proportion_plot(toydata, switch_to_hgnc = TRUE, ref = ref)
+zero_proportion_plot(toydata, switch_to_hgnc = TRUE, ref = ensg_hgnc)
 hippo_feature_heatmap(toydata, k = 2, 
                       switch_to_hgnc = TRUE, 
                       ref = ensg_hgnc, 
