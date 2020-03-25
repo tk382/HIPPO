@@ -17,5 +17,5 @@ Preprocess UMI data without cell label so that each row contains information abo
 }
 \examples{
 data(toydata)
-preprocess_heterogeneous(toydata@assays@data$counts)
+preprocess_heterogeneous(get_data_from_sce(toydata))
 }
