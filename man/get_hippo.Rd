@@ -9,6 +9,9 @@ get_hippo(sce)
 \arguments{
 \item{sce}{SingleCellExperiment object}
 }
+\value{
+hippo object embedded in SingleCellExperiment object
+}
 \description{
 Access hippo object from SingleCellExperiment object.
 }
