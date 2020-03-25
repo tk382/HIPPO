@@ -17,5 +17,5 @@ Access data from SCE object
 }
 \examples{
 data(toydata)
-get_data_from_sce(toydata)
+X = get_data_from_sce(toydata)
 }

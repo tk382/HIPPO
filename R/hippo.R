@@ -246,7 +246,7 @@ get_hippo = function(sce) {
 #' @param sce SingleCellExperiment object
 #' @examples
 #' data(toydata)
-#' get_data_from_sce(toydata)
+#' X = get_data_from_sce(toydata)
 #' @return count matrix
 #' @export
 get_data_from_sce = function(sce){
@@ -781,7 +781,7 @@ ensg_to_hgnc = function(ensg) {
 #' set.seed(20200321)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
 #' toydata = diffexp(toydata)
-#' get_hippo_diffexp(1)
+#' result1 = get_hippo_diffexp(1)
 #' @export
 get_hippo_diffexp = function(sce, k){
   hippo_object = get_hippo(toydata)
