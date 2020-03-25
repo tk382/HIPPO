@@ -43,8 +43,8 @@ one_level_clustering = function(subX, z_threshold) {
   features = subdf[subdf$zvalue > z_threshold, ]
   nullfeatures = data.frame(matrix(ncol = 11, nrow = 0))
   colnames(nullfeatures) = c("gene", "gene_mean", "zero_proportion",
-                             "gene_var", "samplesize", "expected_pi", "se", "minus_logp",
-                             "zvalue", "subsetK", "K")
+                             "gene_var", "samplesize", "expected_pi", "se",
+                             "minus_logp","zvalue", "subsetK", "K")
   if (nrow(features) < 10) {
     return(list(features = nullfeatures, pcs = NA, km = NA))
   }
@@ -65,8 +65,9 @@ one_level_clustering = function(subX, z_threshold) {
                 unscaled_pcs = NA,
                 subdf = NA))
   } else {
-    unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features$gene,
-                                                         ])) + 1), n = min(9, nrow(features) - 1, ncol(subX) - 1),
+    unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features$gene,])) + 1),
+                                     n = min(9, nrow(features) - 1,
+                                             ncol(subX) - 1),
                                      scale. = FALSE, center = FALSE)$x
     km = kmeans(pcs, 2, nstart = 10, iter.max = 50)
   }
@@ -141,7 +142,8 @@ preprocess_heterogeneous = function(X) {
   gene_var = rep(NA, nrow(X))
   gene_var[where] = RowVar(X[where, ])
   df = data.frame(gene = rownames(X), gene_mean = Matrix::rowMeans(X),
-                  zero_proportion = Matrix::rowMeans(X == 0), gene_var = gene_var)
+                  zero_proportion = Matrix::rowMeans(X == 0),
+                  gene_var = gene_var)
   df$samplesize = ncol(X)
   df = compute_test_statistic(df)
   return(df)
@@ -214,13 +216,17 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE,
   df = compute_test_statistic(df)
   subset = df[which(df$zvalue > zvalue_thresh), ]
   g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean, y = .data$zero_proportion)) +
-    ggplot2::geom_point(size = 0.4, alpha = 0.5) + ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean,
-                                                                                   y = exp(-.data$gene_mean)), col = "black") + ggplot2::xlim(c(0,
-                                                                                                                                                10)) + ggplot2::theme_bw() + ggplot2::ylab("zero proportion") +
+    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+    ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean,
+                                    y = exp(-.data$gene_mean)),
+                       col = "black") + ggplot2::xlim(c(0, 10)) +
+    ggplot2::theme_bw() + ggplot2::ylab("zero proportion") +
     ggplot2::xlab("gene mean")
   if (show_outliers) {
-    g = g + ggplot2::geom_point(data = subset, ggplot2::aes(x = .data$gene_mean,
-                                                            y = .data$zero_proportion), shape = 21, col = "red")
+    g = g + ggplot2::geom_point(data = subset,
+                                ggplot2::aes(x = .data$gene_mean,
+                                             y = .data$zero_proportion),
+                                shape = 21, col = "red")
   }
   gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
 }
@@ -274,7 +280,7 @@ hippo = function(sce, K = 30,
   if (is(sce, "SingleCellExperiment")) {
     X = sce@assays@data$counts
   } else if (is(sce, "matrix")) {
-    sce = SingleCellExperiment::SingleCellExperiment(assays = list(counts = sce))
+    sce = SingleCellExperiment::SingleCellExperiment(assays=list(counts = sce))
     X = sce@assays@data$counts
   } else {
     stop("input must be either matrix or SingleCellExperiment object")
@@ -334,16 +340,18 @@ hippo = function(sce, K = 30,
     thisk$features$K = k
     features[[k - 1]] = thisk$features
   }
-  sce@int_metadata$hippo = list(X = X, features = features, labelmatrix = labelmatrix,
-                                z_threshold = z_threshold, outlier_proportion = outlier_proportion,
-                                param = param)
+  sce@int_metadata$hippo = list(X = X,
+                                features = features,labelmatrix = labelmatrix,
+                                z_threshold = z_threshold, param = param,
+                                outlier_proportion = outlier_proportion)
   return(sce)
 }
 
 
 #' visualize each round of hippo through zero proportion plot
 #' @param sce SingleCellExperiment object with hippo element in it
-#' @param switch_to_hgnc boolean argument to indicate whether to change the gene names from ENSG IDs to HGNC symbols
+#' @param switch_to_hgnc boolean argument to indicate whether to change the gene
+#'  names from ENSG IDs to HGNC symbols
 #' @param ref a data frame with hgnc column and ensg column
 #' @examples
 #' data(toydata)
@@ -440,8 +448,8 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30,
                                                                   1]]
       df$K = i
       dflist[[i]] = df
-      umdf = rbind(umdf, data.frame(umap1 = um$V1, umap2 = um$V2,
-                                    K = i, label = hippo_object$labelmatrix[, i]))
+      umdf = rbind(umdf, data.frame(umap1 = um$V1, umap2 = um$V2,K = i,
+                                    label = hippo_object$labelmatrix[, i]))
     }
     umdf$label = as.factor(umdf$label)
     sce@int_metadata$hippo$umap = umdf
@@ -449,17 +457,17 @@ dimension_reduction = function(sce, method = c("umap", "tsne"), perplexity = 30,
   } else if (method == "tsne") {
     sce@int_metadata$hippo$tsne = NA
     tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
-                                             ]) + 1), perplexity = perplexity, check_duplicates = FALSE)
+                                             ]) + 1), perplexity = perplexity,
+                        check_duplicates = FALSE)
     tsnedf = data.frame()
     for (i in 2:K) {
-      df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,
-                                                                        i])
-      df$selected_feature = df$gene %in% hippo_object$features[[i -
-                                                                  1]]
+      df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,i])
+      df$selected_feature = df$gene %in% hippo_object$features[[i -1]]
       df$K = i
       dflist[[i]] = df
-      tsnedf = rbind(tsnedf, data.frame(tsne1 = tsne$Y[, 1], tsne2 = tsne$Y[,
-                                                                            2], K = i, label = hippo_object$labelmatrix[, i]))
+      tsnedf = rbind(tsnedf, data.frame(tsne1 = tsne$Y[, 1],
+                                        tsne2 = tsne$Y[,2], K = i,
+                                        label = hippo_object$labelmatrix[, i]))
     }
     tsnedf$label = as.factor(tsnedf$label)
     sce@int_metadata$hippo$tsne = tsnedf
@@ -485,15 +493,21 @@ hippo_umap_plot = function(sce, k = NA) {
   umdf = sce@int_metadata$hippo$umap
   umdf = umdf %>% dplyr::filter(K %in% k)
   if (length(umdf) > 0) {
-    g = ggplot2::ggplot(umdf, ggplot2::aes(x = .data$umap1, y = .data$umap2,
-                                           col = .data$label)) + ggplot2::facet_wrap(~.data$K, ncol = 4) +
+    g = ggplot2::ggplot(umdf,
+                        ggplot2::aes(x = .data$umap1,y = .data$umap2,
+                                     col = .data$label)) +
+      ggplot2::facet_wrap(~.data$K, ncol = 4) +
       ggplot2::geom_point(size = 0.4, alpha = 0.5) + ggplot2::theme_bw() +
-      ggplot2::ylab("umap2") + ggplot2::xlab("umap1") + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0,
-                                                                                                           hjust = 1), panel.grid = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"),
-                                                                       legend.title = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank(),
-                                                                       legend.position = "none", strip.placement = "inside") +
-      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 5,
-                                                                         alpha = 1)))
+      ggplot2::ylab("umap2") + ggplot2::xlab("umap1") +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0,hjust = 1),
+                     panel.grid = ggplot2::element_blank(),
+                     axis.line = ggplot2::element_line(colour = "black"),
+                     legend.title = ggplot2::element_blank(),
+                     axis.ticks = ggplot2::element_blank(),
+                     legend.position = "none", strip.placement = "inside") +
+      ggplot2::guides(colour =
+                        ggplot2::guide_legend(override.aes = list(size = 5,
+                                                                  alpha = 1)))
     gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
   } else {
     stop("use dimension_reduction to compute umap first")
@@ -517,15 +531,22 @@ hippo_tsne_plot = function(sce, k = NA, title = "") {
   tsnedf = sce@int_metadata$hippo$tsne
   tsnedf = tsnedf %>% dplyr::filter(K %in% k)
   if (length(tsnedf) > 0) {
-    g = ggplot2::ggplot(tsnedf, ggplot2::aes(x = .data$tsne1, y = .data$tsne2,
-                                             col = .data$label)) + ggplot2::facet_wrap(~.data$K, ncol = 4) +
+    g = ggplot2::ggplot(tsnedf,
+                        ggplot2::aes(x = .data$tsne1, y = .data$tsne2,
+                                     col = .data$label)) +
+      ggplot2::facet_wrap(~.data$K, ncol = 4) +
       ggplot2::geom_point(size = 0.4, alpha = 0.5) + ggplot2::theme_bw() +
-      ggplot2::ylab("tsne2") + ggplot2::xlab("tsne1") + ggplot2::theme(legend.title = ggplot2::element_blank()) +
-      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 5,
-                                                                         alpha = 1))) + ggplot2::xlab("TSNE1") + ggplot2::ylab("TSNE2") +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0,
-                                                         hjust = 1), panel.grid = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"),
-                     legend.title = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank(),
+      ggplot2::ylab("tsne2") + ggplot2::xlab("tsne1") +
+      ggplot2::theme(legend.title = ggplot2::element_blank()) +
+      ggplot2::guides(colour =
+                        ggplot2::guide_legend(override.aes = list(size = 5,
+                                                                  alpha = 1))) +
+      ggplot2::xlab("TSNE1") + ggplot2::ylab("TSNE2") +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0,hjust = 1),
+                     panel.grid = ggplot2::element_blank(),
+                     axis.line = ggplot2::element_line(colour = "black"),
+                     legend.title = ggplot2::element_blank(),
+                     axis.ticks = ggplot2::element_blank(),
                      legend.position = "none", strip.placement = "inside") +
       ggplot2::ggtitle(title)
     gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
@@ -552,8 +573,9 @@ hippo_pca_plot = function(sce, k = NA) {
                                ] + 1), v = 2)$v
   pcadf = data.frame()
   for (kk in k) {
-    pcadf = rbind(pcadf, data.frame(PC1 = pc[, 1], PC2 = pc[, 2],
-                                    K = kk, label = sce@int_metadata$hippo$labelmatrix[, kk]))
+    pcadf = rbind(pcadf, data.frame(PC1 = pc[, 1], PC2 = pc[, 2],K = kk,
+                                    label =
+                                      sce@int_metadata$hippo$labelmatrix[, kk]))
   }
   pcadf$label = as.factor(pcadf$label)
   pcadf$K = as.factor(pcadf$K)
@@ -582,8 +604,10 @@ hippo_pca_plot = function(sce, k = NA) {
 #'
 #' @param sce SingleCellExperiment object with hippo
 #' @param top.n number of markers to return
-#' @param switch_to_hgnc if the current gene names are ensemble ids, and would like to switch to hgnc
-#' @param ref a data frame with columns 'hgnc' and 'ensg' to match each other, only required when switch_to_hgnc is set to TRUE
+#' @param switch_to_hgnc if the current gene names are ensemble ids, and would
+#' like to switch to hgnc
+#' @param ref a data frame with columns 'hgnc' and 'ensg' to match each other,
+#' only required when switch_to_hgnc is set to TRUE
 #' @return list of differential expression result
 #' @examples
 #' data(toydata)
@@ -612,7 +636,8 @@ diffexp = function(sce,
   for (kk in k) {
     features = hippo_object$features[[ind]]
     cellind = which(labelmatrix[, kk - 1] ==
-                      labelmatrix[which(labelmatrix[,kk - 1] != labelmatrix[, kk])[1], kk - 1])
+                      labelmatrix[which(labelmatrix[,kk - 1] !=
+                                          labelmatrix[, kk])[1], kk - 1])
     types = unique(hippo_object$labelmatrix[cellind, kk])
     cellgroup1 = which(hippo_object$labelmatrix[, kk] == types[1])
     cellgroup2 = which(hippo_object$labelmatrix[, kk] == types[2])
@@ -658,10 +683,11 @@ diffexp = function(sce,
 
 diffexp_subfunction = function(count, features, cellgroup1, cellgroup2){
   rowdata = data.frame(genes = features$gene)
-  rowdata$meandiff = Matrix::rowMeans(count[features$gene, cellgroup1]) -
-    Matrix::rowMeans(count[features$gene, cellgroup2])
-  rowdata$sd = sqrt(Matrix::rowMeans(count[features$gene, cellgroup1])/length(cellgroup1) +
-                      Matrix::rowMeans(count[features$gene, cellgroup2])/length(cellgroup2))
+  tmpcount1 = count[features$gene, cellgroup1]
+  tmpcount2 = count[features$gene, cellgroup2]
+  rowdata$meandiff = Matrix::rowMeans(tmpcount1) - Matrix::rowMeans(tmpcount2)
+  rowdata$sd = sqrt(Matrix::rowMeans(tmpcount1)/length(cellgroup1) +
+                      Matrix::rowMeans(tmpcount2)/length(cellgroup2))
   rowdata$z = rowdata$meandiff/rowdata$sd
   rowdata = rowdata[order(rowdata$z, decreasing = TRUE), ]
   rowdata$genes = as.character(rowdata$genes)
@@ -672,18 +698,21 @@ diffexp_subfunction = function(count, features, cellgroup1, cellgroup2){
 #'
 #' @param sce SingleCellExperiment object with hippo
 #' @param top.n number of markers to return
-#' @param switch_to_hgnc if the current gene names are ensemble ids, and would like to switch to hgnc
-#' @param ref a data frame with columns 'hgnc' and 'ensg' to match each other, only required when switch_to_hgnc is set to TRUE
+#' @param switch_to_hgnc if the current gene names are ensemble ids, and would
+#' like to switch to hgnc
+#' @param ref a data frame with columns 'hgnc' and 'ensg' to match each other,
+#' only required when switch_to_hgnc is set to TRUE
 #' @return list of differential expression result
 #' @examples
 #' data(toydata)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-#' hippo_feature_heatmap(toydata, k = 2,switch_to_hgnc = TRUE,ref = ensg_hgnc,top.n = 20)
+#' hippo_feature_heatmap(toydata, k = 2,switch_to_hgnc = TRUE,ref = ensg_hgnc,
+#' top.n = 20)
 #' @export
 hippo_feature_heatmap = function(sce, switch_to_hgnc = FALSE, ref = NA,
                                  top.n = 50, kk = 2) {
   if (switch_to_hgnc & length(ref) < 2) {
-    stop("A reference must be provided in order to match ENSG ids to HGNC symbols")
+    stop("A reference must be provided to match ENSG ids to HGNC symbols")
   }
   hippo_object = sce@int_metadata$hippo
   labelmatrix = as.data.frame(hippo_object$labelmatrix)
@@ -705,13 +734,19 @@ hippo_feature_heatmap = function(sce, switch_to_hgnc = FALSE, ref = NA,
   X$label = labelmatrix[match(X$variable, labelmatrix$barcode), kk]
   X$K = kk - 1
   X$value = as.numeric(X$value)
-  g = ggplot2::ggplot(X, ggplot2::aes(x = .data$variable, y = .data$hgnc,
-                                      fill = .data$value)) + ggplot2::facet_grid(~.data$label, scales = "free_x") +
-    ggplot2::geom_tile() + ggplot2::scale_fill_gradient2(high = "darkred",
-                                                         low = "white") + ggplot2::theme(axis.text.x = ggplot2::element_blank(),
-                                                                                         axis.title.x = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank(),
-                                                                                         legend.title = ggplot2::element_blank(), strip.placement = "inside",
-                                                                                         legend.position = "none", panel.grid = ggplot2::element_blank()) +
+  g = ggplot2::ggplot(X,
+                      ggplot2::aes(x = .data$variable, y = .data$hgnc,
+                                   fill = .data$value)) +
+    ggplot2::facet_grid(~.data$label, scales = "free_x") +
+    ggplot2::geom_tile() +
+    ggplot2::scale_fill_gradient2(high = "darkred",low = "white") +
+    ggplot2::theme(axis.text.x = ggplot2::element_blank(),
+                   axis.title.x = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank(),
+                   legend.title = ggplot2::element_blank(),
+                   strip.placement = "inside",
+                   legend.position = "none",
+                   panel.grid = ggplot2::element_blank()) +
     ggplot2::xlab("") + ggplot2::ylab("")
   gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
 }
