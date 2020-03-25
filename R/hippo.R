@@ -17,7 +17,8 @@ compute_test_statistic = function(df) {
     dplyr::mutate(expected_pi = pmin(.data$expected_pi1, 1 - 1e-10)) %>%
     dplyr::mutate(const2 = (1-.data$expected_pi)/(.data$samplesize-1.25)) %>%
     dplyr::mutate(se = sqrt(.data$expected_pi*.data$const2)) %>%
-    dplyr::mutate(zvalue = .data$zero_proportion/.data$expected_pi) %>%
+    dplyr::mutate(propdiff = .data$zero_proportion - .data$expected_pi) %>%
+    dplyr::mutate(zvalue = .data$propdiff/.data$se) %>%
     dplyr::mutate(zvalue = pmin(.data$zvalue, 500)) %>%
     dplyr::mutate(minus_logp = -pnorm(.data$zero_proportion,
                                       .data$expected_pi,
