@@ -494,10 +494,11 @@ hippo_tsne_plot = function(sce, k = NA, title = "") {
 #' @export
 hippo_pca_plot = function(sce, k = NA) {
     if (is.na(k[1])) {
-        k = seq(1, ncol(sce@int_metadata$hippo$labelmatrix))
+        k = seq(2, ncol(sce@int_metadata$hippo$labelmatrix))
     }
     hippo_object = sce@int_metadata$hippo
-    pc = irlba::irlba(log(sce@assays$data$counts[hippo_object$features[[1]]$gene,
+    counts = get_data_from_sce(sce)
+    pc = irlba::irlba(log(counts[hippo_object$features[[1]]$gene,
         ] + 1), v = 2)$v
     pcadf = data.frame()
     for (kk in k) {
@@ -506,9 +507,12 @@ hippo_pca_plot = function(sce, k = NA) {
     }
     pcadf$label = as.factor(pcadf$label)
     pcadf$K = as.factor(pcadf$K)
-    g = ggplot2::ggplot(pcadf, ggplot2::aes(x = .data$PC1, y = .data$PC2,
-        col = .data$label)) + ggplot2::facet_wrap(~.data$K, ncol = 4) +
-        ggplot2::geom_point(size = 0.4, alpha = 0.2) + ggplot2::theme_bw() +
+    g = ggplot2::ggplot(pcadf,
+                        ggplot2::aes(x = .data$PC1,
+                                     y = .data$PC2,
+                                     col = .data$label)) +
+      ggplot2::facet_wrap(~.data$K, ncol = 4) +
+        ggplot2::geom_point(size = 0.5, alpha = 0.8) + ggplot2::theme_bw() +
         ggplot2::ylab("PC2") + ggplot2::xlab("PC1") + ggplot2::theme(legend.title = ggplot2::element_blank()) +
         ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 5,
             alpha = 1))) + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0,
@@ -556,14 +560,7 @@ diffexp = function(sce,
         types = unique(hippo_object$labelmatrix[cellind, kk])
         cellgroup1 = which(hippo_object$labelmatrix[, kk] == types[1])
         cellgroup2 = which(hippo_object$labelmatrix[, kk] == types[2])
-        rowdata = data.frame(genes = features$gene)
-        rowdata$meandiff = Matrix::rowMeans(count[features$gene, cellgroup1]) -
-            Matrix::rowMeans(count[features$gene, cellgroup2])
-        rowdata$sd = sqrt(Matrix::rowMeans(count[features$gene, cellgroup1])/length(cellgroup1) +
-            Matrix::rowMeans(count[features$gene, cellgroup2])/length(cellgroup2))
-        rowdata$z = rowdata$meandiff/rowdata$sd
-        rowdata = rowdata[order(rowdata$z, decreasing = TRUE), ]
-        rowdata$genes = as.character(rowdata$genes)
+        rowdata = diffexp_subfunction(features, cellgroup1, cellgroup2)
         newcount = Matrix::t(log(cbind(count[rowdata$genes[seq(top.n)],
             cellgroup1], count[rowdata$genes[seq(top.n)], cellgroup2]) +
             1))
@@ -571,12 +568,12 @@ diffexp = function(sce,
         if (switch_to_hgnc) {
             features_hgnc = ref$hgnc[match(topgenes, ref$ensg)]
             colnames(newcount) = features_hgnc
-            rowdata = rowdata %>% dplyr::mutate(hgnc = ref$hgnc[match(rowdata$genes,
-                ref$ensg)])
+            rowdata = rowdata %>%
+              dplyr::mutate(hgnc = ref$hgnc[match(rowdata$genes,ref$ensg)])
         }
         newcount = as.data.frame(newcount)
-        newcount$celltype = c(rep(types[1], length(cellgroup1)), rep(types[2],
-            length(cellgroup2)))
+        newcount$celltype = c(rep(types[1], length(cellgroup1)),
+                              rep(types[2],length(cellgroup2)))
         newcount = reshape2::melt(newcount, id = "celltype")
         newcount$celltype = as.factor(newcount$celltype)
         colnames(newcount) = c("celltype", "gene", "logcount")
@@ -585,13 +582,19 @@ diffexp = function(sce,
         result[[kk - 1]] = rowdata
     }
     sce@int_metadata$hippo$diffexp$result_table = result
-    g = ggplot2::ggplot(finalnewcount, ggplot2::aes(x = .data$gene,
-        y = exp(.data$logcount) - 1, col = .data$celltype)) + ggplot2::facet_wrap(~round,
+    g = ggplot2::ggplot(finalnewcount,
+                        ggplot2::aes(x = .data$gene,
+                                     y = exp(.data$logcount) - 1,
+                                     col = .data$celltype)) +
+      ggplot2::facet_wrap(~round,
         scales = "free", ncol = 4) + ggplot2::geom_boxplot(outlier.size = 0.2) +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45,
-            hjust = 1), panel.border = ggplot2::element_blank(), panel.background = ggplot2::element_blank(),
-            panel.grid = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"),
-            strip.background = ggplot2::element_blank(), legend.title = ggplot2::element_blank(),
+            hjust = 1), panel.border = ggplot2::element_blank(),
+            panel.background = ggplot2::element_blank(),
+            panel.grid = ggplot2::element_blank(),
+            axis.line = ggplot2::element_line(colour = "black"),
+            strip.background = ggplot2::element_blank(),
+            legend.title = ggplot2::element_blank(),
             legend.position = "none") + ggplot2::ylab("UMI count") +
         ggplot2::xlab("") + ggplot2::scale_y_continuous(trans = "log1p",
         breaks = c(0, 10, 100, 1000))
