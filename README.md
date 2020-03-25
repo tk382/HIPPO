@@ -178,5 +178,4 @@ Acknowledgments
 ---------------
 
 -   [Mengjie Chen](http://www.mengjiechen.com) provided guidance in methodology development.
--   [Yong Peng](https://github.com/bigdataage) contributed in packaging the code to meet the Bioconductor requirements.
 -   The hippo icon is from [here](https://www.needpix.com/photo/178308/hippo-head-cartoon-cute-grey-zoo-wildlife)
