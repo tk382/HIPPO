@@ -12,7 +12,7 @@ hippo_feature_heatmap(sce, switch_to_hgnc = FALSE, ref = NA,
 
 \item{switch_to_hgnc}{if the current gene names are ensemble ids, and would like to switch to hgnc}
 
-\item{ref}{a data frame with columns "hgnc" and "ensg" to match each other, only required when switch_to_hgnc is set to TRUE}
+\item{ref}{a data frame with columns 'hgnc' and 'ensg' to match each other, only required when switch_to_hgnc is set to TRUE}
 
 \item{top.n}{number of markers to return}
 }
@@ -23,12 +23,7 @@ list of differential expression result
 HIPPO's feature heatmap
 }
 \examples{
-library(SingleCellExperiment)
-X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
-X[X\%in\%c(1,2)] = 0
-rownames(X) = paste0('gene',1:1000)
-colnames(X) = paste0('cell',1:50)
-sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-sce = hippo(sce, K = 3)
-sce = diffexp(sce)
+data(toydata)
+toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
+hippo_feature_heatmap(toydata, k = 2,switch_to_hgnc = TRUE,ref = ensg_hgnc,top.n = 20)
 }

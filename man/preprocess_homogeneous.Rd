@@ -11,7 +11,8 @@ preprocess_homogeneous(sce, label)
 
 \item{label}{a numeric or character vector of inferred or known label}
 
-\item{normalize}{boolean whether to normalize each cell to have the same sequencing depth. Default as FALSE}
+\item{normalize}{boolean whether to normalize each cell to have
+the same sequencing depth. Default as FALSE}
 }
 \value{
 data frame with one row for each gene.
@@ -20,12 +21,6 @@ data frame with one row for each gene.
 Preprocess UMI data with inferred or known labels
 }
 \examples{
-library(SingleCellExperiment)
-X = matrix(rpois(2000, 10), nrow = 100) # create random count matrix from poisson(10)
-rownames(X) = paste0('gene',1:100)
-colnames(X) = paste0('cell',1:20)
-sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-label = sample(1:2, size=20, replace = TRUE) # create fake cell type label
-label = as.factor(label)
-df = preprocess_homogeneous(sce, label = label) #get gene information
+data(toydata)
+preprocess_homogeneous(toydata, colData(toydata)$phenoid)
 }

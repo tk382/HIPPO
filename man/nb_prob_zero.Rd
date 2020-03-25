@@ -9,10 +9,12 @@ nb_prob_zero(lambda, theta)
 \arguments{
 \item{lambda}{numeric vector of means of negative binomial}
 
-\item{theta}{numeric vector of the dispersion parameter for negative binomial, 0 if poisson}
+\item{theta}{numeric vector of the dispersion parameter
+for negative binomial, 0 if poisson}
 }
 \value{
-numeric vector of expected zero proportion under Negative Binomial
+numeric vector of expected zero proportion under
+Negative Binomial
 }
 \description{
 Expected zero proportion under Negative Binomial

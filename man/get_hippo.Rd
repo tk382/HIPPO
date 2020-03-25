@@ -12,3 +12,8 @@ get_hippo(sce)
 \description{
 Access hippo object from SingleCellExperiment object.
 }
+\examples{
+data(toydata)
+toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
+hippo_object = get_hippo(toydata)
+}

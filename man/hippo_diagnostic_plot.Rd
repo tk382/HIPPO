@@ -19,3 +19,7 @@ a diagnostic plot that shows genes with zero inflation
 \description{
 Conduct feature selection by computing test statistics for each gene
 }
+\examples{
+data(toydata)
+hippo_diagnostic_plot(toydata, show_outliers=TRUE, zvalue_thresh = 2)
+}

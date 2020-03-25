@@ -10,19 +10,13 @@ hippo_pca_plot(sce, k = NA)
 \item{sce}{SincleCellExperiment object with hippo and t-SNE result in it}
 }
 \value{
-ggplot object for t-SNE in each round
+ggplot for pca in each round
 }
 \description{
 visualize each round of hippo through t-SNE
 }
 \examples{
-library(SingleCellExperiment)
-X = matrix(rpois(50000, 3), nrow = 1000) # create random count matrix from poisson(10)
-X[X\%in\%c(1,2)] = 0
-rownames(X) = paste0('gene',1:1000)
-colnames(X) = paste0('cell',1:50)
-sce = SingleCellExperiment(assays = list(counts = X)) #create SingleCellExperiment object
-sce = hippo(sce, K = 3)
-sce = dimension_reduction(sce, method = "tsne", perplexity = 2)
-hippo_pca_plot(sce)
+data(toydata)
+toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
+hippo_pca_plot(toydata)
 }
