@@ -353,30 +353,13 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE,
     dplyr::slice(seq_len(5))
   featurelength = as.numeric(table(df$K))
   df$featurecount = featurelength[df$K-1]
-  ensg_to_hgnc = function(ensg){
-    # require(biomaRt)
-    # mart <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
-    # maps <- getBM(attributes=c('hgnc_symbol', 'ensembl_gene_id'),
-    #               filters = 'ensembl_gene_id',
-    #               values = ensg,
-    #               mart = mart)
-    maps = read.table("~/Work/SC/data/Annotations/hgnc_ensembl.txt", header=TRUE, stringsAsFactors = FALSE)
-    maps2 = data.frame(ensg = ensg,
-                       hgnc = maps$hgnc[match(ensg, maps$ensembl)])
-    maps2$ensg = as.character(maps2$ensg)
-    maps2$hgnc = as.character(maps2$hgnc)
-    ind_na = which(is.na(maps2$hgnc))
-    ind_blank = which(maps2$hgnc=="")
-    hgnc = maps2$hgnc
-    hgnc[c(ind_na, ind_blank)] = maps2$ensg[c(ind_na, ind_blank)]
-    return(hgnc)
-  }
-
   if (is.na(k[1])){
     k = 2:ncol(sce@int_metadata$hippo$labelmatrix)
   }else{
     df = df[df$K %in% k,]; topz = topz[topz$K %in% k,]
   }
+  topz$hgnc = topz$gene
+  if(switch_to_hgnc){topz$hgnc = ensg_to_hgnc(topz$gene)}
   g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean,
                                        y = .data$zero_proportion)) +
     ggplot2::geom_point(size = 0.4, alpha = 0.5) +
@@ -386,7 +369,7 @@ zero_proportion_plot = function(sce, switch_to_hgnc = FALSE,
                        col = 'black') +
     ggplot2::xlim(c(0,10))+
     ggrepel::geom_label_repel(data = topz,
-                              ggplot2::aes(label = .data$gene),
+                              ggplot2::aes(label = .data$hgnc),
                               size = 3,
                               col = 'black') +
     ggplot2::geom_text(ggplot2::aes(label = paste0(featurecount,"genes"),
@@ -754,8 +737,13 @@ diffexp = function(sce,
 }
 
 hippo_feature_heatmap = function(sce,
+                                 switch_to_hgnc = FALSE,
+                                 ref = NA,
                                  top.n = 50,
                                  kk=2){
+  if(switch_to_hgnc & length(ref)<2){
+    stop("A reference must be provided in order to match ENSG ids to HGNC symbols")
+  }
   hippo_object = sce@int_metadata$hippo
   labelmatrix = as.data.frame(hippo_object$labelmatrix)
   labelmatrix$barcode = colnames(hippo_object$X)
@@ -767,28 +755,33 @@ hippo_feature_heatmap = function(sce,
   tmp = log(hippo_object$X[feat$gene,]+1)
   tmp = as.data.frame(tmp)
   tmp$gene = feat$gene
-  X = melt(tmp, id = c('gene'))
+  tmp$hgnc = tmp$gene
+  if(switch_to_hgnc){tmp$hgnc = ensg_to_hgnc(tmp$gene)}
+  X = reshape2::melt(tmp, id = c('hgnc', 'gene'))
   X$label = labelmatrix[match(X$variable, labelmatrix$barcode),kk]
   X$K = kk-1
-  g = ggplot(X, aes(x = variable, y = gene, fill = value)) +
-    facet_grid(~label, scales = "free_x") +
-    geom_tile() +
-    scale_fill_gradient2(high = 'darkred', low = 'white') +
-    theme_minimal(base_size = 8)+
-    theme(axis.text.x = element_blank(),
-          axis.title.x = element_blank(),
-          axis.ticks = element_blank(),
-          legend.title=element_blank(),
+  X$value = as.numeric(X$value)
+  g = ggplot2::ggplot(X, ggplot2::aes(x = .data$variable,
+                                      y = .data$hgnc,
+                                      fill = .data$value)) +
+    ggplot2::facet_grid(~.data$label, scales = "free_x") +
+    ggplot2::geom_tile() +
+    ggplot2::scale_fill_gradient2(high = 'darkred', low = 'white') +
+    ggplot2::theme(axis.text.x = ggplot2::element_blank(),
+          axis.title.x = ggplot2::element_blank(),
+          axis.ticks = ggplot2::element_blank(),
+          legend.title = ggplot2::element_blank(),
           strip.placement= "inside",
           legend.position = "none",
-          panel.grid = element_blank())  +
-    xlab("") + ylab("")
+          panel.grid = ggplot2::element_blank())  +
+    ggplot2::xlab("") + ggplot2::ylab("")
   gridExtra::grid.arrange(g, nrow=1, ncol=1)
 }
 
 
 ensg_to_hgnc = function(ensg){
-  maps = data(hgnc_ensembl)
+  data(ensg_hgnc)
+  maps = ensg_hgnc
   maps2 = data.frame(ensg = ensg,
                      hgnc = maps$hgnc[match(ensg, maps$ensembl)])
   maps2$ensg = as.character(maps2$ensg)
