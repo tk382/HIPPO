@@ -13,7 +13,8 @@ hippo_feature_heatmap(sce, switch_to_hgnc = FALSE, ref = NA,
 \item{switch_to_hgnc}{if the current gene names are ensemble ids, and would
 like to switch to hgnc}
 
-\item{ref}{a data frame with columns 'hgnc' and 'ensg' to match each other, only required when switch_to_hgnc is set to TRUE}
+\item{ref}{a data frame with columns 'hgnc' and 'ensg' to match each other,
+only required when switch_to_hgnc is set to TRUE}
 
 \item{top.n}{number of markers to return}
 }
@@ -25,6 +26,7 @@ HIPPO's feature heatmap
 }
 \examples{
 data(toydata)
+set.seed(20200321)
 toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
 hippo_feature_heatmap(toydata, k = 2,switch_to_hgnc = TRUE,ref = ensg_hgnc,
 top.n = 20)

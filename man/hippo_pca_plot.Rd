@@ -13,10 +13,11 @@ hippo_pca_plot(sce, k = NA)
 ggplot for pca in each round
 }
 \description{
-visualize each round of hippo through PCA
+visualize each round of hippo through t-SNE
 }
 \examples{
 data(toydata)
-toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-hippo_pca_plot(toydata)
+set.seed(20200321)
+toydata = hippo(toydata, K = 10,z_threshold = 1)
+hippo_pca_plot(toydata, k = 2:3)
 }

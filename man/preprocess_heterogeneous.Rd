@@ -14,7 +14,8 @@ preprocess_heterogeneous(X)
 data frame with one row for each gene.
 }
 \description{
-Preprocess UMI data without cell label so that each row contains information about each gene
+Preprocess UMI data without cell label so that each row contains
+information about each gene
 }
 \examples{
 data(toydata)
