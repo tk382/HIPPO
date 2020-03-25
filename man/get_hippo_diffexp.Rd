@@ -22,5 +22,5 @@ data(toydata)
 set.seed(20200321)
 toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
 toydata = diffexp(toydata)
-result1 = get_hippo_diffexp(1)
+result1 = get_hippo_diffexp(toydata, 1)
 }
