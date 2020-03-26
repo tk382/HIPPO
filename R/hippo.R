@@ -215,8 +215,11 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE,
     ggplot2::geom_point(size = 0.4, alpha = 0.5, na.rm=TRUE) +
     ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean,
                                     y = exp(-.data$gene_mean)),
-                       col = "black") + ggplot2::xlim(c(0, 10)) +
-    ggplot2::theme_bw() + ggplot2::ylab("zero proportion") +
+                       col = "black",
+                       na.rm=TRUE) +
+    ggplot2::xlim(c(0, 10)) +
+    ggplot2::theme_bw() +
+    ggplot2::ylab("zero proportion") +
     ggplot2::xlab("gene mean")
   if (show_outliers) {
     g = g + ggplot2::geom_point(data = subset,
