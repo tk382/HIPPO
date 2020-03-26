@@ -1,4 +1,4 @@
-[![Travis-CI Build Status](https://travis-ci.com/tk382/HIPPO.svg?branch=master)](https://travis-ci.org/tk382/HIPPO)
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 HIPPO
 =====
