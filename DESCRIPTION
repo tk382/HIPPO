@@ -31,4 +31,4 @@ Imports:
     SingleCellExperiment,
     ggrepel
 RoxygenNote: 7.0.2
-biocViews: Sequencing, SingleCell
+biocViews: Sequencing, SingleCell, GeneExpression, DifferentialExpression, Clustering
