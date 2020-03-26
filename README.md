@@ -1,4 +1,4 @@
-[![Travis-CI Build Status](https://travis-ci.com/tk382/HIPPO.svg?branch=master)](https://travis-ci.org/tk382/HIPPO)
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 HIPPO
 =====
@@ -150,7 +150,7 @@ This function also has an option to switch the gene names to HGNC symbols. top.n
 The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is equal to 2, the color codes match with the cell groups as separated in the dimension reduction plot.
 
 ``` r
-sce = diffexp(sce, 
+sce = hippo_diffexp(sce, 
                   top.n = 5, 
                   switch_to_hgnc = TRUE, 
                   ref = ensg_hgnc)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/hippo.R
 \name{get_hippo_diffexp}
 \alias{get_hippo_diffexp}
-\title{Return diffexp object}
+\title{Return hippo_diffexp object}
 \usage{
 get_hippo_diffexp(sce, k = 1)
 }
@@ -15,12 +15,12 @@ get_hippo_diffexp(sce, k = 1)
 data frame of differential expression test
 }
 \description{
-Return diffexp object
+Return hippo_diffexp object
 }
 \examples{
 data(toydata)
 set.seed(20200321)
 toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-toydata = diffexp(toydata)
+toydata = hippo_diffexp(toydata)
 result1 = get_hippo_diffexp(toydata)
 }

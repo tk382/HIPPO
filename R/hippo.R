@@ -621,9 +621,9 @@ hippo_pca_plot = function(sce, k = NA) {
 #' data(toydata)
 #' set.seed(20200321)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-#' result = diffexp(toydata)
+#' result = hippo_diffexp(toydata)
 #' @export
-diffexp = function(sce,
+hippo_diffexp = function(sce,
                    top.n = 5,
                    switch_to_hgnc = FALSE,
                    ref = NA,
@@ -776,7 +776,7 @@ ensg_to_hgnc = function(ensg) {
 
 
 
-#' Return diffexp object
+#' Return hippo_diffexp object
 #'
 #' @param sce SingleCellExperiment object with hippo
 #' @param k round of result of interest
@@ -785,7 +785,7 @@ ensg_to_hgnc = function(ensg) {
 #' data(toydata)
 #' set.seed(20200321)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-#' toydata = diffexp(toydata)
+#' toydata = hippo_diffexp(toydata)
 #' result1 = get_hippo_diffexp(toydata)
 #' @export
 get_hippo_diffexp = function(sce, k=1){
