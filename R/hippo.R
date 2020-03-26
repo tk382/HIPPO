@@ -152,7 +152,8 @@ preprocess_heterogeneous = function(X) {
 #' @return data frame with one row for each gene.
 #' @examples
 #' data(toydata)
-#' df = preprocess_homogeneous(toydata, colData(toydata)$phenoid)
+#' labels = SingleCellExperiment::colData(toydata)$phenoid
+#' df = preprocess_homogeneous(toydata, label = colData(toydata)$phenoid)
 #' @export
 preprocess_homogeneous = function(sce, label) {
   if (is(sce, "SingleCellExperiment")) {
