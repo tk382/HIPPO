@@ -25,6 +25,6 @@ visualize each round of hippo through zero proportion plot
 data(toydata)
 set.seed(20200321)
 toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-data(ensg_to_hgnc)
+data(ensg_hgnc)
 zero_proportion_plot(toydata, switch_to_hgnc = TRUE, ref = ensg_hgnc)
 }
