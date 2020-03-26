@@ -74,12 +74,12 @@ toydata = hippo(toydata, K = 10,
 We offer two dimension reduction methods: umap and tsne. And we offer two separate visualization functions.
 
 ```{r, warning = FALSE}
-toydata = dimension_reduction(toydata, method="umap")
+toydata = hippo_dimension_reduction(toydata, method="umap")
 hippo_umap_plot(toydata)
 ```
 
 ```{r}
-toydata = dimension_reduction(toydata, method="tsne")
+toydata = hippo_dimension_reduction(toydata, method="tsne")
 hippo_tsne_plot(toydata)
 ```
 

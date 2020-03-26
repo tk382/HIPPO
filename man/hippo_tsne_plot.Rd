@@ -20,6 +20,6 @@ visualize each round of hippo through t-SNE
 data(toydata)
 set.seed(20200321)
 toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-toydata = dimension_reduction(toydata, method="tsne")
+toydata = hippo_dimension_reduction(toydata, method="tsne")
 hippo_tsne_plot(toydata)
 }

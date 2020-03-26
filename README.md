@@ -95,14 +95,14 @@ Dimension Reduction for Each Round of HIPPO
 We offer two dimension reduction methods: umap and tsne. And we offer two separate visualization functions.
 
 ``` r
-sce = dimension_reduction(sce, method="umap")
+sce = hippo_dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce, k = 1:4)
 ```
 
 ![](README_files/figure-markdown_github/umap-1.png)
 
 ``` r
-sce = dimension_reduction(sce, method="tsne")
+sce = hippo_dimension_reduction(sce, method="tsne")
 hippo_tsne_plot(sce)
 ```
 

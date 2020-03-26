@@ -113,11 +113,7 @@ nb_prob_zero = function(lambda, theta) {
 #' zinb_prob_zero(3, 1.1, 0.1)
 #' @export
 zinb_prob_zero = function(lambda, theta, pi) {
-  if (theta == 0) {
-    return((1 - pi) * exp(-lambda) + pi)
-  } else {
-    return(pi + (1 - pi) * (1/(lambda * theta + 1))^(1/theta))
-  }
+  return(pi + (1-pi) * nb_prob_zero(lambda, theta))
 }
 
 #' Preprocess UMI data without cell label so that each row contains
@@ -307,22 +303,22 @@ hippo = function(sce, K = 30,
   for (k in 2:K) {
     thisk = one_level_clustering(subX, z_threshold)
     if (is.na(thisk$features$gene[1])) {
-      print("not enough important features left; terminate the procedure")
+      message("not enough important features left; terminate the procedure")
       labelmatrix = labelmatrix[, seq((k - 1))]
       break
     }
     if (nrow(thisk$features) < outlier_number) {
-      print("not enough important features; terminate the procedure")
+      message("not enough important features; terminate the procedure")
       labelmatrix = labelmatrix[, seq((k - 1))]
       break
     }
     if(min(table(thisk$km$cluster)) <= 1){
-      print("only one cell in a cluster: terminate procedure")
+      message("only one cell in a cluster: terminate procedure")
       labelmatrix = labelmatrix[, seq((k - 1))]
       break
     }
     if (verbose) {
-      print(paste0("K = ", k, ".."))
+      message(paste0("K = ", k, ".."))
     }
     labelmatrix[, k] = labelmatrix[, k - 1]
     labelmatrix[subXind[thisk$km$cluster == 2], k] = k
@@ -332,7 +328,7 @@ hippo = function(sce, K = 30,
                                                  2, ], 1, var)^2)
     oldk = which.max(withinss[seq(k)])
     if (sum(labelmatrix[, k] == oldk) < 5) {
-      print("too few cells in one cluster; terminating the procedure")
+      message("too few cells in one cluster; terminating the procedure")
       break
     }
     subX = X[thisk$features$gene, which(labelmatrix[, k] == oldk)]
@@ -431,10 +427,10 @@ zero_proportion_plot = function(sce,
 #' set.seed(20200321)
 #' set.seed(20200321)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-#' toydata = dimension_reduction(toydata, method="tsne")
+#' toydata = hippo_dimension_reduction(toydata, method="tsne")
 #' hippo_tsne_plot(toydata)
 #' @export
-dimension_reduction = function(sce, method = c("umap", "tsne"),
+hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
                                perplexity = 30,
                                featurelevel = 1) {
   hippo_object = sce@int_metadata$hippo
@@ -489,7 +485,7 @@ dimension_reduction = function(sce, method = c("umap", "tsne"),
 #' data(toydata)
 #' set.seed(20200321)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-#' toydata = dimension_reduction(toydata, method="umap")
+#' toydata = hippo_dimension_reduction(toydata, method="umap")
 #' hippo_umap_plot(toydata)
 #' @export
 hippo_umap_plot = function(sce, k = NA) {
@@ -528,7 +524,7 @@ hippo_umap_plot = function(sce, k = NA) {
 #' data(toydata)
 #' set.seed(20200321)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-#' toydata = dimension_reduction(toydata, method="tsne")
+#' toydata = hippo_dimension_reduction(toydata, method="tsne")
 #' hippo_tsne_plot(toydata)
 #' @export
 hippo_tsne_plot = function(sce, k = NA, title = "") {
