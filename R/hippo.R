@@ -4,11 +4,11 @@ RowVar <- function(x) {
 
 compute_test_statistic = function(df) {
   ind = which(df$gene_mean == 0)
-  if (length(ind) > 0) {
+  if (length(ind)) {
     df = df[-ind, ]
   }
   ind = grep("^MT-", df$gene)
-  if (length(ind) > 0) {
+  if (length(ind)) {
     df = df[-grep("^MT-", df$gene), ]
   }
   df = df %>%
@@ -189,7 +189,7 @@ preprocess_homogeneous = function(sce, label) {
   for (i in names(samplesize)) {
     df[df$celltype == i, "samplesize"] = samplesize[i]
   }
-  rownames(df) = c()
+  rownames(df) = NULL
   return(df)
 }
 
@@ -467,12 +467,12 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
   }
   if (method == "umap"){
     sce@int_metadata$hippo$umap = NA
-    colnames(dimreddf) = c("UMAP1", "UMAP2", "K", "label")
+    colnames(dimreddf) = c("umap1", "umap2", "K", "label")
     dimreddf$label = as.factor(dimreddf$label)
     sce@int_metadata$hippo$umap = dimreddf
   }else{
     sce@int_metadata$hippo$tsne = NA
-    colnames(dimreddf) = c("TSNE1", "TSNE2", "K", "label")
+    colnames(dimreddf) = c("tsne1", "tsne2", "K", "label")
     dimreddf$label = as.factor(dimreddf$label)
     sce@int_metadata$hippo$tsne = dimreddf
   }
@@ -497,7 +497,7 @@ hippo_umap_plot = function(sce, k = NA) {
   }
   umdf = sce@int_metadata$hippo$umap
   umdf = umdf %>% dplyr::filter(K %in% k)
-  if (length(umdf) > 0) {
+  if (length(umdf)) {
     g = ggplot2::ggplot(umdf,
                         ggplot2::aes(x = .data$umap1,y = .data$umap2,
                                      col = .data$label)) +
@@ -536,7 +536,7 @@ hippo_tsne_plot = function(sce, k = NA, title = "") {
   }
   tsnedf = sce@int_metadata$hippo$tsne
   tsnedf = tsnedf %>% dplyr::filter(K %in% k)
-  if (length(tsnedf) > 0) {
+  if (length(tsnedf)) {
     g = ggplot2::ggplot(tsnedf,
                         ggplot2::aes(x = .data$tsne1, y = .data$tsne2,
                                      col = .data$label)) +
