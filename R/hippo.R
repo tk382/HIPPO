@@ -712,8 +712,7 @@ diffexp_subfunction = function(count, features, cellgroup1, cellgroup2){
 #' data(toydata)
 #' set.seed(20200321)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-#' hippo_feature_heatmap(toydata, k = 2,switch_to_hgnc = TRUE,ref = ensg_hgnc,
-#' top.n = 20)
+#' hippo_feature_heatmap(toydata)
 #' @export
 hippo_feature_heatmap = function(sce, switch_to_hgnc = FALSE, ref = NA,
                                  top.n = 50, kk = 2) {
@@ -783,9 +782,9 @@ ensg_to_hgnc = function(ensg) {
 #' set.seed(20200321)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
 #' toydata = diffexp(toydata)
-#' result1 = get_hippo_diffexp(toydata, 1)
+#' result1 = get_hippo_diffexp(toydata)
 #' @export
-get_hippo_diffexp = function(sce, k){
+get_hippo_diffexp = function(sce, k=1){
   hippo_object = get_hippo(sce)
   return(hippo_object$diffexp$result_table[[k]])
 }

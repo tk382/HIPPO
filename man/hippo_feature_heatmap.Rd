@@ -28,6 +28,5 @@ HIPPO's feature heatmap
 data(toydata)
 set.seed(20200321)
 toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-hippo_feature_heatmap(toydata, k = 2,switch_to_hgnc = TRUE,ref = ensg_hgnc,
-top.n = 20)
+hippo_feature_heatmap(toydata)
 }

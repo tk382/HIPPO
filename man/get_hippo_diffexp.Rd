@@ -4,7 +4,7 @@
 \alias{get_hippo_diffexp}
 \title{Return diffexp object}
 \usage{
-get_hippo_diffexp(sce, k)
+get_hippo_diffexp(sce, k = 1)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo}
@@ -22,5 +22,5 @@ data(toydata)
 set.seed(20200321)
 toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
 toydata = diffexp(toydata)
-result1 = get_hippo_diffexp(toydata, 1)
+result1 = get_hippo_diffexp(toydata)
 }
