@@ -355,7 +355,7 @@ hippo = function(sce, K = 30,
 #' set.seed(20200321)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
 #' data(ensg_to_hgnc)
-#' zero_proportion_plot(toydata, switch_to_hgnc = TRUE, ref = ensg_to_hgnc)
+#' zero_proportion_plot(toydata, switch_to_hgnc = TRUE, ref = ensg_hgnc)
 #' @return a ggplot object that shows the zero proportions for each round
 #' @export
 zero_proportion_plot = function(sce,
