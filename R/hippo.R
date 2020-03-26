@@ -212,7 +212,7 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE,
   subset = df[which(df$zvalue > zvalue_thresh), ]
   g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean,
                                        y = .data$zero_proportion)) +
-    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+    ggplot2::geom_point(size = 0.4, alpha = 0.5, na.rm=TRUE) +
     ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean,
                                     y = exp(-.data$gene_mean)),
                        col = "black") + ggplot2::xlim(c(0, 10)) +
@@ -222,7 +222,8 @@ hippo_diagnostic_plot = function(sce, show_outliers = FALSE,
     g = g + ggplot2::geom_point(data = subset,
                                 ggplot2::aes(x = .data$gene_mean,
                                              y = .data$zero_proportion),
-                                shape = 21, col = "red")
+                                shape = 21, col = "red",
+                                na.rm=TRUE)
   }
   gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
 }
@@ -354,7 +355,7 @@ hippo = function(sce, K = 30,
 #' data(toydata)
 #' set.seed(20200321)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
-#' data(ensg_to_hgnc)
+#' data(ensg_hgnc)
 #' zero_proportion_plot(toydata, switch_to_hgnc = TRUE, ref = ensg_hgnc)
 #' @return a ggplot object that shows the zero proportions for each round
 #' @export
