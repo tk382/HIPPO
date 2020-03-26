@@ -153,7 +153,7 @@ preprocess_heterogeneous = function(X) {
 #' @examples
 #' data(toydata)
 #' labels = SingleCellExperiment::colData(toydata)$phenoid
-#' df = preprocess_homogeneous(toydata, label = colData(toydata)$phenoid)
+#' df = preprocess_homogeneous(toydata, label = labels)
 #' @export
 preprocess_homogeneous = function(sce, label) {
   if (is(sce, "SingleCellExperiment")) {

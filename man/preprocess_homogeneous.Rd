@@ -23,5 +23,5 @@ Preprocess UMI data with inferred or known labels
 \examples{
 data(toydata)
 labels = SingleCellExperiment::colData(toydata)$phenoid
-df = preprocess_homogeneous(toydata, label = colData(toydata)$phenoid)
+df = preprocess_homogeneous(toydata, label = labels)
 }
