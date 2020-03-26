@@ -65,7 +65,7 @@ You can start from a matrix object and create SingleCellExperiment object.
 
 This plot shows the zero inflation compared to the expected Poisson line. If most genes don't align with the black line, it shows that there is cell heterogeneity driving the zero inflation.
 
-```{r diagnostic, warning = FALSE}
+```{r diagnostic, warning = FALSE, fig.height = 3, fig.width = 3}
 hippo_diagnostic_plot(sce, 
                       show_outliers = TRUE, 
                       zvalue_thresh = 15)
@@ -96,12 +96,12 @@ sce = hippo(sce,
 
 We offer two dimension reduction methods: umap and tsne. And we offer two separate visualization functions.
 
-```{r umap, warning = FALSE}
+```{r umap, warning = FALSE, fig.width = 6, fig.height = 2}
 sce = dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce, k = 1:4)
 ```
 
-```{r tsne}
+```{r tsne, fig.width = 6, fig.height = 2}
 sce = dimension_reduction(sce, method="tsne")
 hippo_tsne_plot(sce)
 ```
@@ -110,7 +110,7 @@ hippo_tsne_plot(sce)
 
 This function shows how the zero-inflation decreases as HIPPO proceeds in the clustering. This function has arguments called switch_to_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(sce). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
 
-```{r featureselection}
+```{r featureselection, fig.height = 3, fig.width = 6}
 data(ensg_hgnc)
 zero_proportion_plot(sce, 
                      switch_to_hgnc = TRUE, 
@@ -133,7 +133,7 @@ This function also has an option to switch the gene names to HGNC symbols. top.n
 
 The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is equal to 2, the color codes match with the cell groups as separated in the dimension reduction plot. 
 
-```{r diffexp}
+```{r diffexp, fig.width = 6, fig.height = 2}
 sce = diffexp(sce, 
                   top.n = 5, 
                   switch_to_hgnc = TRUE, 
