@@ -154,7 +154,10 @@ preprocess_heterogeneous = function(X) {
 preprocess_homogeneous = function(sce, label) {
   if (is(sce, "SingleCellExperiment")) {
     X = sce@assays@data$counts
-  } else {
+  } else if (is(sce, "matrix")){
+    sce = SingleCellExperiment::SingleCellExperiment(assays=list(counts = sce))
+    X = sce@assays@data$counts
+  }else{
     stop("input must be a SingleCellExperiment object")
   }
   labelnames = as.character(unique(label))
@@ -303,23 +306,27 @@ hippo = function(sce, K = 30,
   for (k in 2:K) {
     thisk = one_level_clustering(subX, z_threshold)
     if (is.na(thisk$features$gene[1])) {
-      message("not enough important features left; terminate the procedure")
+      if(verbose){
+        message("not enough important features left; terminate the procedure")
+      }
       labelmatrix = labelmatrix[, seq((k - 1))]
       break
     }
     if (nrow(thisk$features) < outlier_number) {
-      message("not enough important features; terminate the procedure")
+      if(verbose){
+        message("not enough important features; terminate the procedure")
+      }
       labelmatrix = labelmatrix[, seq((k - 1))]
       break
     }
     if(min(table(thisk$km$cluster)) <= 1){
-      message("only one cell in a cluster: terminate procedure")
+      if(verbose){
+        message("only one cell in a cluster: terminate procedure")
+      }
       labelmatrix = labelmatrix[, seq((k - 1))]
       break
     }
-    if (verbose) {
-      message(paste0("K = ", k, ".."))
-    }
+    if (verbose) {message(paste0("K = ", k, ".."))}
     labelmatrix[, k] = labelmatrix[, k - 1]
     labelmatrix[subXind[thisk$km$cluster == 2], k] = k
     withinss[oldk] = sum(apply(thisk$unscaled_pcs[thisk$km$cluster == 1, ],
@@ -328,7 +335,9 @@ hippo = function(sce, K = 30,
                                                  2, ], 1, var)^2)
     oldk = which.max(withinss[seq(k)])
     if (sum(labelmatrix[, k] == oldk) < 5) {
-      message("too few cells in one cluster; terminating the procedure")
+      if(verbose){
+        message("too few cells in one cluster; terminating the procedure")
+      }
       break
     }
     subX = X[thisk$features$gene, which(labelmatrix[, k] == oldk)]
@@ -436,44 +445,38 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
   hippo_object = sce@int_metadata$hippo
   dflist = list()
   K = ncol(hippo_object$labelmatrix)
-  if (method == "umap") {
-    sce@int_metadata$hippo$umap = NA
-    um = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
-                                         ]) + 1))
-    um = as.data.frame(um$layout)
-    umdf = data.frame()
-    for (i in 2:K) {
-      df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,
-                                                                        i])
-      df$selected_feature = df$gene %in% hippo_object$features[[i -
-                                                                  1]]
-      df$K = i
-      dflist[[i]] = df
-      umdf = rbind(umdf, data.frame(umap1 = um$V1, umap2 = um$V2,K = i,
-                                    label = hippo_object$labelmatrix[, i]))
-    }
-    umdf$label = as.factor(umdf$label)
-    sce@int_metadata$hippo$umap = umdf
-    return(sce)
-  } else if (method == "tsne") {
-    sce@int_metadata$hippo$tsne = NA
-    tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
-                                             ]) + 1), perplexity = perplexity,
-                        check_duplicates = FALSE)
-    tsnedf = data.frame()
-    for (i in 2:K) {
-      df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,i])
-      df$selected_feature = df$gene %in% hippo_object$features[[i -1]]
-      df$K = i
-      dflist[[i]] = df
-      tsnedf = rbind(tsnedf, data.frame(tsne1 = tsne$Y[, 1],
-                                        tsne2 = tsne$Y[,2], K = i,
-                                        label = hippo_object$labelmatrix[, i]))
-    }
-    tsnedf$label = as.factor(tsnedf$label)
-    sce@int_metadata$hippo$tsne = tsnedf
-    return(sce)
+  if (method == "umap"){
+    dimred = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
+                                               ]) + 1))$layout
+  }else{
+    dimred = tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
+                                                      ]) + 1), perplexity = perplexity,
+                                 check_duplicates = FALSE)$Y
   }
+  dimred = as.data.frame(dimred)
+  dimreddf = data.frame()
+  for (i in 2:K){
+    df = preprocess_homogeneous(sce, label = hippo_object$labelmatrix[,i])
+    df$selected_feature = df$gene %in% hippo_object$features[[i -1]]
+    df$K = i
+    dflist[[i]] = df
+    dimreddf = rbind(dimreddf,
+                     data.frame(dim1 = dimred$V1, dim2 = dimred$V2,
+                                K = i,
+                                label = hippo_object$labelmatrix[, i]))
+  }
+  if (method == "umap"){
+    sce@int_metadata$hippo$umap = NA
+    colnames(dimreddf) = c("UMAP1", "UMAP2", "K", "label")
+    dimreddf$label = as.factor(dimreddf$label)
+    sce@int_metadata$hippo$umap = dimreddf
+  }else{
+    sce@int_metadata$hippo$tsne = NA
+    colnames(dimreddf) = c("TSNE1", "TSNE2", "K", "label")
+    dimreddf$label = as.factor(dimreddf$label)
+    sce@int_metadata$hippo$tsne = dimreddf
+  }
+  return(sce)
 }
 
 #' visualize each round of hippo through UMAP
