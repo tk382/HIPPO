@@ -10,7 +10,7 @@ Description: For scRNA-seq data, it selects features and clusters the cells simu
 License: GPL (>=2)
 Encoding: UTF-8
 LazyData: true
-Depends: R (>= 3.6.0)
+Depends: R (>= 4.0.0)
 Suggests: knitr, rmarkdown 
 VignetteBuilder: knitr
 URL: https://github.com/tk382/HIPPO, https://tk382.github.io/HIPPO
