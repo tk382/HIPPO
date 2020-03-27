@@ -1,5 +1,5 @@
 ---
-title: "Example2: PBMC68K"
+title: "Example2: Start from Matrix"
 output:
   workflowr::wflow_html:
     toc: false
@@ -75,15 +75,13 @@ sce = hippo(sce, K = 7, z_threshold = 1.5, outlier_proportion = 0.005)
 ref = data.frame(hgnc = rowData(sce)$V2,
                  ensg = rowData(sce)$V1)
 zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)
+hippo_feature_heatmap(sce, switch_to_hgnc = TRUE, ref = ref, top.n = 5, kk=4)
 ```
 
 ## Differential Expression Example
 
 ```{r, fig.width=6, fig.height=4}
 sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
-head(sce@int_metadata$hippo$diffexp$result_table[[1]])
-head(sce@int_metadata$hippo$diffexp$result_table[[2]])
-head(sce@int_metadata$hippo$diffexp$result_table[[3]])
 ```
 
 

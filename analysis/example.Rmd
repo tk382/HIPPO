@@ -1,5 +1,5 @@
 ---
-title: "Example1: Zhengmix4eq"
+title: "Example1: Start from SingleCellExperiment"
 output:
   workflowr::wflow_html:
     toc: false
@@ -62,13 +62,13 @@ sce = hippo(sce, K = 10, z_threshold = 2, outlier_proportion = 0.01)
 We offer two dimension reduction methods: umap and tsne. And we offer two separate visualization functions.
 
 ```{r, warning = FALSE}
-sce = dimension_reduction(sce, method="umap")
-hippo_umap_plot(sce, leg='none')
+sce = hippo_dimension_reduction(sce, method="umap")
+hippo_umap_plot(sce)
 ```
 
 ```{r}
-sce = dimension_reduction(sce, method="tsne")
-hippo_tsne_plot(sce, leg = 'none')
+sce = hippo_dimension_reduction(sce, method="tsne")
+hippo_tsne_plot(sce)
 ```
 
 ## Visualize the selected features at each round
@@ -79,7 +79,8 @@ This function shows how the zero-inflation decreases as HIPPO proceeds in the cl
 ref = data.frame(hgnc = rowData(sce)$symbol,
                  ensg = rowData(sce)$id)
 head(ref)
-zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref, top.n = 1)
+zero_proportion_plot(sce, switch_to_hgnc = TRUE, ref = ref)
+hippo_feature_heatmap(sce, switch_to_hgnc = TRUE, ref = ref, top.n = 5, kk=4)
 ```
 
 ## Differential Expression Example
@@ -91,13 +92,6 @@ This function also has an option to switch the gene names to HGNC symbols. top.n
 The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is equal to 2, the color codes match with the cell groups as separated in the dimension reduction plot. 
 
 ```{r}
-sce = diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
+sce = hippo_diffexp(sce, top.n = 5, switch_to_hgnc = TRUE, ref = ref)
 ```
 
-Each round of differential expression test results are also saved in the list of data frames.
-
-```{r}
-head(sce@int_metadata$hippo$diffexp$result_table[[1]]) #round 1: monocytes
-head(sce@int_metadata$hippo$diffexp$result_table[[2]]) #round 2: B cells
-head(sce@int_metadata$hippo$diffexp$result_table[[3]]) #round 3: regulatory T cells
-```

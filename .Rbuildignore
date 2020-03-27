@@ -12,6 +12,8 @@
 ^\.git$
 ^.*\.o$
 ^.*\.so$
+^.*\.txt$
+^.*\.rds$
 ^\.Rprofile$
 ^\.travis\.yml$
 ^ensg\_hgnc\_reference\.txt
