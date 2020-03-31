@@ -4,8 +4,14 @@
 \alias{zero_proportion_plot}
 \title{visualize each round of hippo through zero proportion plot}
 \usage{
-zero_proportion_plot(sce, switch_to_hgnc = FALSE, ref = NA, k = NA,
-  title = "", topn = 5)
+zero_proportion_plot(
+  sce,
+  switch_to_hgnc = FALSE,
+  ref = NA,
+  k = NA,
+  title = "",
+  topn = 5
+)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo element in it}
@@ -14,6 +20,13 @@ zero_proportion_plot(sce, switch_to_hgnc = FALSE, ref = NA, k = NA,
 names from ENSG IDs to HGNC symbols}
 
 \item{ref}{a data frame with hgnc column and ensg column}
+
+\item{k}{select rounds of clustering that you would like to see result.
+Default is 1 to K}
+
+\item{title}{Title of your plot output}
+
+\item{topn}{number of top genes to show the name}
 }
 \value{
 a ggplot object that shows the zero proportions for each round

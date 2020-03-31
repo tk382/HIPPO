@@ -9,6 +9,9 @@ hippo_umap_plot(sce, k = NA)
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo and
 UMAP result in it}
+
+\item{k}{number of rounds of clustering that you'd like to see result.
+Default is 1 to K}
 }
 \value{
 ggplot object for umap in each round

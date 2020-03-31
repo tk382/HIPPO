@@ -10,9 +10,6 @@ preprocess_homogeneous(sce, label)
 \item{sce}{SingleCellExperiment object with counts data}
 
 \item{label}{a numeric or character vector of inferred or known label}
-
-\item{normalize}{boolean whether to normalize each cell to have
-the same sequencing depth. Default as FALSE}
 }
 \value{
 data frame with one row for each gene.

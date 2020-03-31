@@ -4,8 +4,12 @@
 \alias{hippo_dimension_reduction}
 \title{compute t-SNE or umap of each round of HIPPO}
 \usage{
-hippo_dimension_reduction(sce, method = c("umap", "tsne"),
-  perplexity = 30, featurelevel = 1)
+hippo_dimension_reduction(
+  sce,
+  method = c("umap", "tsne"),
+  perplexity = 30,
+  featurelevel = 1
+)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo object in it.}
@@ -14,6 +18,9 @@ hippo_dimension_reduction(sce, method = c("umap", "tsne"),
 reduction: either 'umap' or 'tsne}
 
 \item{perplexity}{numeric perplexity parameter for Rtsne function}
+
+\item{featurelevel}{the round of clustering that you will extract
+features to reduce the dimension}
 }
 \value{
 a data frame of dimension reduction result for each

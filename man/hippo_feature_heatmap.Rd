@@ -4,8 +4,13 @@
 \alias{hippo_feature_heatmap}
 \title{HIPPO's feature heatmap}
 \usage{
-hippo_feature_heatmap(sce, switch_to_hgnc = FALSE, ref = NA,
-  top.n = 50, kk = 2)
+hippo_feature_heatmap(
+  sce,
+  switch_to_hgnc = FALSE,
+  ref = NA,
+  top.n = 50,
+  kk = 2
+)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo}
@@ -17,6 +22,9 @@ like to switch to hgnc}
 only required when switch_to_hgnc is set to TRUE}
 
 \item{top.n}{number of markers to return}
+
+\item{kk}{integer for the round of clustering that you'd like to see result.
+Default is 2}
 }
 \value{
 list of differential expression result

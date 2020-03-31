@@ -4,8 +4,7 @@
 \alias{hippo}
 \title{HIPPO's hierarchical clustering}
 \usage{
-hippo(sce, K = 30, z_threshold = 3, outlier_proportion = 0.01,
-  verbose = TRUE)
+hippo(sce, K = 30, z_threshold = 3, outlier_proportion = 0.01, verbose = TRUE)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object}
@@ -18,6 +17,8 @@ for selecting the features}
 \item{outlier_proportion}{numeric between 0 and 1, a cut-off
 so that when the proportion of important features reach this
 number, the clustering terminates}
+
+\item{verbose}{if set to TRUE, it shows progress of the algorithm}
 }
 \value{
 a list of clustering result for each level of k=1, 2, ... K.

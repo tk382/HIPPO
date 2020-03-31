@@ -9,7 +9,7 @@ get_hippo_diffexp(sce, k = 1)
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo}
 
-\item{k}{round of result of interest}
+\item{k}{integer round of result of interest}
 }
 \value{
 data frame of differential expression test

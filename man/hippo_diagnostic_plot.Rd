@@ -12,7 +12,7 @@ hippo_diagnostic_plot(sce, show_outliers = FALSE, zvalue_thresh = 10)
 \item{show_outliers}{boolean to indicate whether to circle the outliers
 with given zvalue_thresh}
 
-\item{zvalue_thresh}{a numeric v}
+\item{zvalue_thresh}{a numeric v for defining outliers}
 }
 \value{
 a diagnostic plot that shows genes with zero inflation

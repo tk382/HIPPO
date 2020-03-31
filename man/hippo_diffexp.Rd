@@ -4,8 +4,7 @@
 \alias{hippo_diffexp}
 \title{HIPPO's differential expression}
 \usage{
-hippo_diffexp(sce, top.n = 5, switch_to_hgnc = FALSE, ref = NA,
-  k = NA)
+hippo_diffexp(sce, top.n = 5, switch_to_hgnc = FALSE, ref = NA, k = NA)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo}
@@ -17,6 +16,9 @@ like to switch to hgnc}
 
 \item{ref}{a data frame with columns 'hgnc' and 'ensg' to match each other,
 only required when switch_to_hgnc is set to TRUE}
+
+\item{k}{number of rounds of clustering that you'd like to see result.
+Default is 1 to K}
 }
 \value{
 list of differential expression result

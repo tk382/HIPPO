@@ -9,6 +9,11 @@ hippo_tsne_plot(sce, k = NA, title = "")
 \arguments{
 \item{sce}{SincleCellExperiment object with hippo and t-SNE
 result in it}
+
+\item{k}{number of rounds of clustering that you'd like to see result.
+Default is 1 to K}
+
+\item{title}{title for the ggplot output}
 }
 \value{
 ggplot object for t-SNE in each round

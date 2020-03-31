@@ -143,8 +143,6 @@ preprocess_heterogeneous = function(X) {
 #'
 #' @param sce SingleCellExperiment object with counts data
 #' @param label a numeric or character vector of inferred or known label
-#' @param normalize boolean whether to normalize each cell to have
-#' the same sequencing depth. Default as FALSE
 #' @return data frame with one row for each gene.
 #' @examples
 #' data(toydata)
@@ -198,13 +196,14 @@ preprocess_homogeneous = function(sce, label) {
 #' @param sce SingleCellExperiment object with count matrix
 #' @param show_outliers boolean to indicate whether to circle the outliers
 #' with given zvalue_thresh
-#' @param zvalue_thresh a numeric v
+#' @param zvalue_thresh a numeric v for defining outliers
 #' @examples
 #' data(toydata)
 #' hippo_diagnostic_plot(toydata, show_outliers=TRUE, zvalue_thresh = 2)
 #' @return a diagnostic plot that shows genes with zero inflation
 #' @export
-hippo_diagnostic_plot = function(sce, show_outliers = FALSE,
+hippo_diagnostic_plot = function(sce,
+                                 show_outliers = FALSE,
                                  zvalue_thresh = 10) {
   df = preprocess_heterogeneous(sce@assays@data$counts)
   df = compute_test_statistic(df)
@@ -269,6 +268,7 @@ get_data_from_sce = function(sce){
 #' @param outlier_proportion numeric between 0 and 1, a cut-off
 #' so that when the proportion of important features reach this
 #' number, the clustering terminates
+#' @param verbose if set to TRUE, it shows progress of the algorithm
 #' @examples
 #' data(toydata)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
@@ -359,6 +359,10 @@ hippo = function(sce, K = 30,
 #' @param switch_to_hgnc boolean argument to indicate whether to change the gene
 #'  names from ENSG IDs to HGNC symbols
 #' @param ref a data frame with hgnc column and ensg column
+#' @param k select rounds of clustering that you would like to see result.
+#' Default is 1 to K
+#' @param title Title of your plot output
+#' @param topn number of top genes to show the name
 #' @examples
 #' data(toydata)
 #' set.seed(20200321)
@@ -429,6 +433,8 @@ zero_proportion_plot = function(sce,
 #' @param method a string that determines the method for dimension
 #' reduction: either 'umap' or 'tsne
 #' @param perplexity numeric perplexity parameter for Rtsne function
+#' @param featurelevel the round of clustering that you will extract
+#' features to reduce the dimension
 #' @return a data frame of dimension reduction result for each
 #' k in 1, ..., K
 #' @examples
@@ -483,6 +489,8 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
 #'
 #' @param sce SingleCellExperiment object with hippo and
 #' UMAP result in it
+#' @param k number of rounds of clustering that you'd like to see result.
+#' Default is 1 to K
 #' @return ggplot object for umap in each round
 #' @examples
 #' data(toydata)
@@ -522,6 +530,9 @@ hippo_umap_plot = function(sce, k = NA) {
 #' visualize each round of hippo through t-SNE
 #' @param sce SincleCellExperiment object with hippo and t-SNE
 #' result in it
+#' @param k number of rounds of clustering that you'd like to see result.
+#' Default is 1 to K
+#' @param title title for the ggplot output
 #' @return ggplot object for t-SNE in each round
 #' @examples
 #' data(toydata)
@@ -563,6 +574,8 @@ hippo_tsne_plot = function(sce, k = NA, title = "") {
 
 #' visualize each round of hippo through t-SNE
 #' @param sce SincleCellExperiment object with hippo and t-SNE result in it
+#' @param k number of rounds of clustering that you'd like to see result.
+#' Default is 1 to K
 #' @return ggplot for pca in each round
 #' @examples
 #' data(toydata)
@@ -615,6 +628,8 @@ hippo_pca_plot = function(sce, k = NA) {
 #' like to switch to hgnc
 #' @param ref a data frame with columns 'hgnc' and 'ensg' to match each other,
 #' only required when switch_to_hgnc is set to TRUE
+#' @param k number of rounds of clustering that you'd like to see result.
+#' Default is 1 to K
 #' @return list of differential expression result
 #' @examples
 #' data(toydata)
@@ -710,6 +725,8 @@ diffexp_subfunction = function(count, features, cellgroup1, cellgroup2){
 #' like to switch to hgnc
 #' @param ref a data frame with columns 'hgnc' and 'ensg' to match each other,
 #' only required when switch_to_hgnc is set to TRUE
+#' @param kk integer for the round of clustering that you'd like to see result.
+#' Default is 2
 #' @return list of differential expression result
 #' @examples
 #' data(toydata)
@@ -778,7 +795,7 @@ ensg_to_hgnc = function(ensg) {
 #' Return hippo_diffexp object
 #'
 #' @param sce SingleCellExperiment object with hippo
-#' @param k round of result of interest
+#' @param k integer round of result of interest
 #' @return data frame of differential expression test
 #' @examples
 #' data(toydata)
