@@ -1,7 +1,7 @@
 Package: HIPPO
 Type: Package
 Title: Heterogeneity-Induced Pre-Processing tOol
-Version: 0.99.9
+Version: 0.99.8
 Authors@R: c(
   person(given = 'Tae', family = 'Kim', email = 'tk382@uchicago.edu', role = c('aut', 'cre')),
   person(given = 'Mengjie', family = 'Chen', email = 'mengjiechen@uchicago.edu', role = 'aut')
