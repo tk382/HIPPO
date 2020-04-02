@@ -3,7 +3,7 @@
 HIPPO
 =====
 
-Single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity
+Single cell UMI analysis tool that focuses on zero-inflation to detect biological heterogeneity. A pre-print is available here: [Demystifying "drop-outs" in single cell UMI data](https://www.biorxiv.org/content/10.1101/2020.03.31.018911v1)
 
 Getting Started
 ---------------
