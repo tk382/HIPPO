@@ -8,10 +8,6 @@ Single cell UMI analysis tool that focuses on zero-inflation to detect biologica
 Based on a method in this pre-print:
 [Demystifying "drop-outs" in single cell UMI data](https://www.biorxiv.org/content/10.1101/2020.03.31.018911v1)
 
-Getting Started
----------------
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 Prerequisites
 -------------
@@ -27,7 +23,7 @@ BiocManager::install("SingleCellExperiment")
 Installing
 ----------
 
-HIPPO is under review for Bioconductor and CRAN submission. You can download the developer version as below. Please allow up to 5 minutes to completely compile the vignette.
+HIPPO is under review for Bioconductor submission. You can download the developer version as below. Please allow up to 5 minutes to completely compile the vignette.
 
 ``` r
 devtools::install_github("tk382/HIPPO", build_vignettes = TRUE)
