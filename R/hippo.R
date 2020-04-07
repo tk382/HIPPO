@@ -338,6 +338,7 @@ hippo = function(sce, K = 30,
       if(verbose){
         message("too few cells in one cluster; terminating the procedure")
       }
+      labelmatrix = labelmatrix[, seq(k)]
       break
     }
     subX = X[thisk$features$gene, which(labelmatrix[, k] == oldk)]
