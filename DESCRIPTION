@@ -1,13 +1,14 @@
 Package: HIPPO
 Type: Package
 Title: Heterogeneity-Induced Pre-Processing tOol
-Version: 0.99.14
+Version: 0.99.15
 Authors@R: c(
   person(given = 'Tae', family = 'Kim', email = 'tk382@uchicago.edu', role = c('aut', 'cre')),
   person(given = 'Mengjie', family = 'Chen', email = 'mengjiechen@uchicago.edu', role = 'aut')
   )
 Description: For scRNA-seq data, it selects features and clusters the cells simultaneously for single-cell UMI data. It has a novel feature selection method using the zero inflation instead of gene variance, and computationally faster than other existing methods since it only relies on PCA+Kmeans rather than graph-clustering or consensus clustering. 
 License: GPL (>=2)
+Depends: R (>= 3.6.0)
 Encoding: UTF-8
 LazyData: true
 Suggests: knitr, rmarkdown 
