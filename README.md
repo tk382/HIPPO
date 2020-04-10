@@ -61,7 +61,7 @@ hippo_diagnostic_plot(sce,
                       zvalue_thresh = 15)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/diagnostic-1.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/diagnostic-1.png></a>
 
 Feature Selection and Hierarchical Clustering
 ---------------------------------------------
@@ -98,7 +98,7 @@ sce = hippo_dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce, k = 1:4)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/umap-1.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/umap-1.png></a>
 
 ``` r
 sce = hippo_dimension_reduction(sce, method="tsne")
@@ -119,7 +119,7 @@ zero_proportion_plot(sce,
                      ref = ensg_hgnc)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/featureselection-1.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/featureselection-1.png></a>
 
 ``` r
 hippo_feature_heatmap(sce, k = 2, 
@@ -128,7 +128,7 @@ hippo_feature_heatmap(sce, k = 2,
                       top.n = 20)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/featureselection-2.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/featureselection-2.png></a>
 
 ``` r
 hippo_feature_heatmap(sce, k = 3, 
@@ -137,7 +137,7 @@ hippo_feature_heatmap(sce, k = 3,
                       top.n = 20)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/featureselection-3.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/featureselection-3.png></a>
 
 Differential Expression Example
 -------------------------------
@@ -155,7 +155,7 @@ sce = hippo_diffexp(sce,
                   ref = ensg_hgnc)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/diffexp-1.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/diffexp-1.png></a>
 
 Each round of differential expression test results are also saved in the list of data frames.
 
