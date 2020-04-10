@@ -166,10 +166,18 @@ preprocess_homogeneous = function(sce, label) {
   samplesize = table(label)
   for (i in seq(length(labelnames))) {
     ind = which(label == labelnames[i])
-    zero_proportion[, i] = Matrix::rowMeans(X[, ind] == 0)
-    gene_mean[, i] = Matrix::rowMeans(X[, ind])
-    where = gene_mean[, i] != 0
-    gene_var[where, i] = RowVar(X[where, ind])
+    if(length(ind) >= 2){
+      zero_proportion[, i] = Matrix::rowMeans(X[, ind] == 0)
+      gene_mean[, i] = Matrix::rowMeans(X[, ind])
+      where = gene_mean[, i] != 0
+      gene_var[where, i] = RowVar(X[where, ind])
+    }else{
+      zero_proportion[, i] = mean(X[, ind] == 0)
+      gene_mean[, i] = mean(X[, ind])
+      where = gene_mean[, i] != 0
+      gene_var[where, i] = var(X[where, ind])
+    }
+
   }
   colnames(zero_proportion) = colnames(gene_mean) =
     colnames(gene_var) = labelnames
@@ -274,9 +282,9 @@ get_data_from_sce = function(sce){
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
 #' @return a list of clustering result for each level of k=1, 2, ... K.
 #' @export
-hippo = function(sce, K = 30,
-                 z_threshold = 3,
-                 outlier_proportion = 0.01,
+hippo = function(sce, K = 20,
+                 z_threshold = 2,
+                 outlier_proportion = 0.001,
                  verbose = TRUE) {
   if (is(sce, "SingleCellExperiment")) {
     X = sce@assays@data$counts
@@ -319,22 +327,38 @@ hippo = function(sce, K = 30,
       labelmatrix = labelmatrix[, seq((k - 1))]
       break
     }
-    if(min(table(thisk$km$cluster)) <= 1){
-      if(verbose){
-        message("only one cell in a cluster: terminate procedure")
-      }
-      labelmatrix = labelmatrix[, seq((k - 1))]
-      break
-    }
+    # if(min(table(thisk$km$cluster)) <= 1){
+    #   if(verbose){
+    #     message("only one cell in a cluster: terminate procedure")
+    #   }
+    #   labelmatrix = labelmatrix[, seq((k - 1))]
+    #   break
+    # }
     if (verbose) {message(paste0("K = ", k, ".."))}
     labelmatrix[, k] = labelmatrix[, k - 1]
     labelmatrix[subXind[thisk$km$cluster == 2], k] = k
-    withinss[oldk] = sum(apply(thisk$unscaled_pcs[thisk$km$cluster == 1, ],
-                               1, var)^2)
-    withinss[k] = sum(apply(thisk$unscaled_pcs[thisk$km$cluster ==
-                                                 2, ], 1, var)^2)
-    oldk = which.max(withinss[seq(k)])
-    if (sum(labelmatrix[, k] == oldk) < 5) {
+    oneind = thisk$km$cluster == 1
+    twoind = thisk$km$cluster == 2
+    if(sum(oneind) >= 2){
+      withinss[oldk] = sum(apply(thisk$unscaled_pcs[oneind, ],1, var)^2)
+    }else{
+      withinss[oldk] = var(as.numeric(thisk$unscaled_pcs[oneind,]))^2
+    }
+    if(sum(twoind) >= 2){
+      withinss[k] = sum(apply(thisk$unscaled_pcs[twoind, ], 1, var)^2)
+    }else{
+      withinss[k] = var(as.numeric(thisk$unscaled_pcs[twoind,]))^2
+    }
+
+
+    ind = which(table(thisk$km$cluster) <= 5)
+    if (length(ind) >= 1){
+      valid_indices = seq(k-1)[-ind]
+      oldk = which(withinss == max(withinss[valid_indices]))
+    }else{
+      oldk = which.max(withinss[seq(k-1)])
+    }
+    if (sum(labelmatrix[, k] == oldk) < 2) {
       if(verbose){
         message("too few cells in one cluster; terminating the procedure")
       }
@@ -352,7 +376,7 @@ hippo = function(sce, K = 30,
                                 z_threshold = z_threshold, param = param,
                                 outlier_proportion = outlier_proportion)
   return(sce)
-}
+  }
 
 
 #' visualize each round of hippo through zero proportion plot
@@ -362,8 +386,8 @@ hippo = function(sce, K = 30,
 #' @param ref a data frame with hgnc column and ensg column
 #' @param k select rounds of clustering that you would like to see result.
 #' Default is 1 to K
-#' @param title Title of your plot output
-#' @param topn number of top genes to show the name
+#' @param plottitle Title of your plot output
+#' @param top.n number of top genes to show the name
 #' @examples
 #' data(toydata)
 #' set.seed(20200321)
@@ -376,8 +400,11 @@ zero_proportion_plot = function(sce,
                                 switch_to_hgnc = FALSE,
                                 ref = NA,
                                 k = NA,
-                                title = "",
-                                topn = 5) {
+                                plottitle = "",
+                                top.n = 5,
+                                pointsize = 0.5,
+                                pointalpha = 0.5,
+                                textsize = 3) {
   df = do.call(rbind, sce@int_metadata$hippo$features)
   topz = df %>% dplyr::group_by(K) %>% dplyr::arrange(desc(zvalue)) %>%
     dplyr::slice(seq_len(5))
@@ -396,7 +423,7 @@ zero_proportion_plot = function(sce,
   }
   g = ggplot2::ggplot(df,ggplot2::aes(x = .data$gene_mean,
                                       y = .data$zero_proportion)) +
-    ggplot2::geom_point(size = 0.4, alpha = 0.5) +
+    ggplot2::geom_point(size = pointsize, alpha = pointalpha) +
     ggplot2::facet_wrap(~.data$K, ncol = 4) +
     ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean,
                                     y = exp(-.data$gene_mean)),
@@ -404,11 +431,11 @@ zero_proportion_plot = function(sce,
     ggplot2::xlim(c(0,10)) +
     ggrepel::geom_label_repel(data = topz,
                               ggplot2::aes(label = .data$hgnc),
-                              size = 3, col = "black") +
+                              size = textsize, col = "black") +
     ggplot2::geom_text(ggplot2::aes(label =
                                       paste0(featurecount,"genes"),
                                     x = 8, y = 0.8),
-                       check_overlap = TRUE,col = "red",size = 3) +
+                       check_overlap = TRUE,col = "red",size = textsize) +
     ggplot2::theme(legend.position = "none") + ggplot2::theme_bw() +
     ggplot2::ylab("Zero Proportion of Selected Features") +
     ggplot2::xlab("Gene Mean") +
@@ -422,7 +449,7 @@ zero_proportion_plot = function(sce,
                    legend.title = ggplot2::element_blank(),
                    axis.ticks = ggplot2::element_blank(),
                    legend.position = "none", strip.placement = "inside") +
-    ggplot2::ggtitle(title) +
+    ggplot2::ggtitle(plottitle) +
     ggplot2::scale_color_manual(values = c("black", "red"))
   gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
 }
@@ -447,14 +474,14 @@ zero_proportion_plot = function(sce,
 #' hippo_tsne_plot(toydata)
 #' @export
 hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
-                               perplexity = 30,
-                               featurelevel = 1) {
+                                     perplexity = 30,
+                                     featurelevel = 1) {
   hippo_object = sce@int_metadata$hippo
   dflist = list()
   K = ncol(hippo_object$labelmatrix)
   if (method == "umap"){
     dimred = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
-                                               ]) + 1))$layout
+                                             ]) + 1))$layout
   }else{
     dimred = tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
                                                       ]) + 1), perplexity = perplexity,
@@ -492,6 +519,9 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
 #' UMAP result in it
 #' @param k number of rounds of clustering that you'd like to see result.
 #' Default is 1 to K
+#' @param pointsize size of the point for the plot (default 0.5)
+#' @param pointalpha transparency level of points for the plot (default 0.5)
+#' @param plottitle title of the resulting plot
 #' @return ggplot object for umap in each round
 #' @examples
 #' data(toydata)
@@ -500,7 +530,11 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
 #' toydata = hippo_dimension_reduction(toydata, method="umap")
 #' hippo_umap_plot(toydata)
 #' @export
-hippo_umap_plot = function(sce, k = NA) {
+hippo_umap_plot = function(sce,
+                           k = NA,
+                           pointsize = 0.5,
+                           pointalpha = 0.5,
+                           plottitle = "") {
   if (is.na(k[1])) {
     k = seq(1, ncol(sce@int_metadata$hippo$labelmatrix))
   }
@@ -511,7 +545,9 @@ hippo_umap_plot = function(sce, k = NA) {
                         ggplot2::aes(x = .data$umap1,y = .data$umap2,
                                      col = .data$label)) +
       ggplot2::facet_wrap(~.data$K, ncol = 4) +
-      ggplot2::geom_point(size = 0.4, alpha = 0.5) + ggplot2::theme_bw() +
+      ggplot2::geom_point(size = pointsize,
+                          alpha = pointalpha) +
+      ggplot2::theme_bw() +
       ggplot2::ylab("umap2") + ggplot2::xlab("umap1") +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0,hjust = 1),
                      panel.grid = ggplot2::element_blank(),
@@ -520,8 +556,9 @@ hippo_umap_plot = function(sce, k = NA) {
                      axis.ticks = ggplot2::element_blank(),
                      legend.position = "none", strip.placement = "inside") +
       ggplot2::guides(colour =
-                        ggplot2::guide_legend(override.aes = list(size = 5,
-                                                                  alpha = 1)))
+                        ggplot2::guide_legend(override.aes =
+                                                list(size = 5,alpha = 1))) +
+      ggplot2::ggtitle(plottitle)
     gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
   } else {
     stop("use dimension_reduction to compute umap first")
@@ -533,7 +570,9 @@ hippo_umap_plot = function(sce, k = NA) {
 #' result in it
 #' @param k number of rounds of clustering that you'd like to see result.
 #' Default is 1 to K
-#' @param title title for the ggplot output
+#' @param pointsize size of the point for the plot (default 0.5)
+#' @param pointalpha transparency level of points for the plot (default 0.5)
+#' @param plottitle title for the ggplot output
 #' @return ggplot object for t-SNE in each round
 #' @examples
 #' data(toydata)
@@ -542,7 +581,11 @@ hippo_umap_plot = function(sce, k = NA) {
 #' toydata = hippo_dimension_reduction(toydata, method="tsne")
 #' hippo_tsne_plot(toydata)
 #' @export
-hippo_tsne_plot = function(sce, k = NA, title = "") {
+hippo_tsne_plot = function(sce,
+                           k = NA,
+                           pointsize = 0.5,
+                           pointalpha = 0.5,
+                           plottitle = "") {
   if (is.na(k[1])) {
     k = seq(1, ncol(sce@int_metadata$hippo$labelmatrix))
   }
@@ -553,7 +596,8 @@ hippo_tsne_plot = function(sce, k = NA, title = "") {
                         ggplot2::aes(x = .data$tsne1, y = .data$tsne2,
                                      col = .data$label)) +
       ggplot2::facet_wrap(~.data$K, ncol = 4) +
-      ggplot2::geom_point(size = 0.4, alpha = 0.5) + ggplot2::theme_bw() +
+      ggplot2::geom_point(size = pointsize, alpha = pointalpha) +
+      ggplot2::theme_bw() +
       ggplot2::ylab("tsne2") + ggplot2::xlab("tsne1") +
       ggplot2::theme(legend.title = ggplot2::element_blank()) +
       ggplot2::guides(colour =
@@ -566,7 +610,7 @@ hippo_tsne_plot = function(sce, k = NA, title = "") {
                      legend.title = ggplot2::element_blank(),
                      axis.ticks = ggplot2::element_blank(),
                      legend.position = "none", strip.placement = "inside") +
-      ggplot2::ggtitle(title)
+      ggplot2::ggtitle(plottitle)
     gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
   } else {
     stop("use dimension_reduction to compute tsne first")
@@ -577,6 +621,9 @@ hippo_tsne_plot = function(sce, k = NA, title = "") {
 #' @param sce SincleCellExperiment object with hippo and t-SNE result in it
 #' @param k number of rounds of clustering that you'd like to see result.
 #' Default is 1 to K
+#' @param pointsize size of the point for the plot (default 0.5)
+#' @param pointalpha transparency level of points for the plot (default 0.5)
+#' @param plottitle title for the ggplot
 #' @return ggplot for pca in each round
 #' @examples
 #' data(toydata)
@@ -584,7 +631,11 @@ hippo_tsne_plot = function(sce, k = NA, title = "") {
 #' toydata = hippo(toydata, K = 10,z_threshold = 1)
 #' hippo_pca_plot(toydata, k = 2:3)
 #' @export
-hippo_pca_plot = function(sce, k = NA) {
+hippo_pca_plot = function(sce,
+                          k = NA,
+                          pointsize = 0.5,
+                          pointalpha = 0.5,
+                          plottitle = "") {
   if (is.na(k[1])) {
     k = seq(2, ncol(sce@int_metadata$hippo$labelmatrix))
   }
@@ -605,18 +656,19 @@ hippo_pca_plot = function(sce, k = NA) {
                                    y = .data$PC2,
                                    col = .data$label)) +
     ggplot2::facet_wrap(~.data$K, ncol = 4) +
-    ggplot2::geom_point(size = 0.5, alpha = 0.8) +
+    ggplot2::geom_point(size = pointsize, alpha = pointalpha) +
     ggplot2::theme_bw() +
     ggplot2::ylab("PC2") + ggplot2::xlab("PC1") +
     ggplot2::theme(legend.title = ggplot2::element_blank()) +
     ggplot2::guides(colour =
-                      ggplot2::guide_legend(override.aes = list(size = 5,
-                                                                alpha = 1))) +
+                      ggplot2::guide_legend(override.aes =
+                                              list(size = 5,alpha = 1))) +
     ggplot2::theme(panel.grid = ggplot2::element_blank(),
                    axis.line = ggplot2::element_line(colour = "black"),
                    legend.title = ggplot2::element_blank(),
                    axis.ticks = ggplot2::element_blank(),
-                   legend.position = "none", strip.placement = "inside")
+                   legend.position = "none", strip.placement = "inside") +
+    ggplot2::ggtitle(plottitle)
   gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
 }
 
@@ -631,6 +683,7 @@ hippo_pca_plot = function(sce, k = NA) {
 #' only required when switch_to_hgnc is set to TRUE
 #' @param k number of rounds of clustering that you'd like to see result.
 #' Default is 1 to K
+#' @param plottitle title of the resulting plot
 #' @return list of differential expression result
 #' @examples
 #' data(toydata)
@@ -639,13 +692,14 @@ hippo_pca_plot = function(sce, k = NA) {
 #' result = hippo_diffexp(toydata)
 #' @export
 hippo_diffexp = function(sce,
-                   top.n = 5,
-                   switch_to_hgnc = FALSE,
-                   ref = NA,
-                   k = NA) {
+                         top.n = 5,
+                         switch_to_hgnc = FALSE,
+                         ref = NA,
+                         k = NA,
+                         plottitle = "") {
   if (switch_to_hgnc & length(ref) < 2) {
     stop("A reference must be provided in order to match
-             ENSG ids to HGNC symbols")
+         ENSG ids to HGNC symbols")
   }
   hippo_object = sce@int_metadata$hippo
   if (is.na(k[1])) {k = seq(2,ncol(hippo_object$labelmatrix))}
@@ -684,6 +738,8 @@ hippo_diffexp = function(sce,
     ind = ind + 1
   }
   sce@int_metadata$hippo$diffexp$result_table = result
+  finalnewcount$round = factor(finalnewcount$round,
+                               levels = paste0("K = ", k))
   g = ggplot2::ggplot(finalnewcount,
                       ggplot2::aes(x = .data$gene,
                                    y = exp(.data$logcount) - 1,
@@ -699,19 +755,29 @@ hippo_diffexp = function(sce,
                    legend.title = ggplot2::element_blank(),
                    legend.position = "none") +
     ggplot2::ylab("UMI count") + ggplot2::xlab("") +
-    ggplot2::scale_y_continuous(trans = "log1p",breaks = c(0, 10, 100, 1000))
+    ggplot2::scale_y_continuous(trans = "log1p",breaks = c(0, 10, 100, 1000)) +
+    ggplot2::ggtitle(plottitle)
   gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
   sce@int_metadata$hippo$diffexp$plot = g
   return(sce)
-}
+  }
 
 diffexp_subfunction = function(count, features, cellgroup1, cellgroup2){
   rowdata = data.frame(genes = features$gene)
   tmpcount1 = count[features$gene, cellgroup1]
   tmpcount2 = count[features$gene, cellgroup2]
-  rowdata$meandiff = Matrix::rowMeans(tmpcount1) - Matrix::rowMeans(tmpcount2)
-  rowdata$sd = sqrt(Matrix::rowMeans(tmpcount1)/length(cellgroup1) +
-                      Matrix::rowMeans(tmpcount2)/length(cellgroup2))
+  if(length(cellgroup1) == 1){
+    tmpmean1 = mean(tmpcount1)
+  }else{
+    tmpmean1 = Matrix::rowMeans(tmpcount1)
+  }
+  if(length(cellgroup2) == 1){
+    tmpmean2 = mean(tmpcount2)
+  }else{
+    tmpmean2 = Matrix::rowMeans(tmpcount2)
+  }
+  rowdata$meandiff = tmpmean1 - tmpmean2
+  rowdata$sd = sqrt(tmpmean1/length(cellgroup1) + tmpmean2/length(cellgroup2))
   rowdata$z = rowdata$meandiff/rowdata$sd
   rowdata = rowdata[order(rowdata$z, decreasing = TRUE), ]
   rowdata$genes = as.character(rowdata$genes)
@@ -728,6 +794,7 @@ diffexp_subfunction = function(count, features, cellgroup1, cellgroup2){
 #' only required when switch_to_hgnc is set to TRUE
 #' @param kk integer for the round of clustering that you'd like to see result.
 #' Default is 2
+#' @param plottitle title for the plot
 #' @return list of differential expression result
 #' @examples
 #' data(toydata)
@@ -735,8 +802,12 @@ diffexp_subfunction = function(count, features, cellgroup1, cellgroup2){
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
 #' hippo_feature_heatmap(toydata)
 #' @export
-hippo_feature_heatmap = function(sce, switch_to_hgnc = FALSE, ref = NA,
-                                 top.n = 50, kk = 2) {
+hippo_feature_heatmap = function(sce,
+                                 switch_to_hgnc = FALSE,
+                                 ref = NA,
+                                 top.n = 50,
+                                 kk = 2,
+                                 plottitle = "") {
   if (switch_to_hgnc & length(ref) < 2) {
     stop("A reference must be provided to match ENSG ids to HGNC symbols")
   }
@@ -773,7 +844,8 @@ hippo_feature_heatmap = function(sce, switch_to_hgnc = FALSE, ref = NA,
                    strip.placement = "inside",
                    legend.position = "none",
                    panel.grid = ggplot2::element_blank()) +
-    ggplot2::xlab("") + ggplot2::ylab("")
+    ggplot2::xlab("") + ggplot2::ylab("") +
+    ggplot2::ggtitle(plottitle)
   gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
 }
 
