@@ -98,14 +98,14 @@ sce = hippo_dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce, k = 1:4)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/umap-1.png.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/umap-1.png></a>
 
 ``` r
 sce = hippo_dimension_reduction(sce, method="tsne")
 hippo_tsne_plot(sce)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/tsne-1.png.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/tsne-1.png></a>
 
 Visualize the selected features at each round
 ---------------------------------------------
@@ -119,7 +119,7 @@ zero_proportion_plot(sce,
                      ref = ensg_hgnc)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/featureselection-1.png.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/featureselection-1.png></a>
 
 ``` r
 hippo_feature_heatmap(sce, k = 2, 
@@ -128,7 +128,7 @@ hippo_feature_heatmap(sce, k = 2,
                       top.n = 20)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/featureselection-2.png.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/featureselection-2.png></a>
 
 ``` r
 hippo_feature_heatmap(sce, k = 3, 
@@ -137,7 +137,7 @@ hippo_feature_heatmap(sce, k = 3,
                       top.n = 20)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/featureselection-3.png.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/featureselection-3.png></a>
 
 Differential Expression Example
 -------------------------------
@@ -155,7 +155,7 @@ sce = hippo_diffexp(sce,
                   ref = ensg_hgnc)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/diffexp-1.png.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/diffexp-1.png></a>
 
 Each round of differential expression test results are also saved in the list of data frames.
 
