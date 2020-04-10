@@ -9,8 +9,11 @@ zero_proportion_plot(
   switch_to_hgnc = FALSE,
   ref = NA,
   k = NA,
-  title = "",
-  topn = 5
+  plottitle = "",
+  top.n = 5,
+  pointsize = 0.5,
+  pointalpha = 0.5,
+  textsize = 3
 )
 }
 \arguments{
@@ -24,9 +27,9 @@ names from ENSG IDs to HGNC symbols}
 \item{k}{select rounds of clustering that you would like to see result.
 Default is 1 to K}
 
-\item{title}{Title of your plot output}
+\item{plottitle}{Title of your plot output}
 
-\item{topn}{number of top genes to show the name}
+\item{top.n}{number of top genes to show the name}
 }
 \value{
 a ggplot object that shows the zero proportions for each round

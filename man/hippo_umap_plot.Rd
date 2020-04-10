@@ -4,7 +4,7 @@
 \alias{hippo_umap_plot}
 \title{visualize each round of hippo through UMAP}
 \usage{
-hippo_umap_plot(sce, k = NA)
+hippo_umap_plot(sce, k = NA, pointsize = 0.5, pointalpha = 0.5, plottitle = "")
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo and
@@ -12,6 +12,12 @@ UMAP result in it}
 
 \item{k}{number of rounds of clustering that you'd like to see result.
 Default is 1 to K}
+
+\item{pointsize}{size of the point for the plot (default 0.5)}
+
+\item{pointalpha}{transparency level of points for the plot (default 0.5)}
+
+\item{plottitle}{title of the resulting plot}
 }
 \value{
 ggplot object for umap in each round

@@ -4,7 +4,7 @@
 \alias{hippo}
 \title{HIPPO's hierarchical clustering}
 \usage{
-hippo(sce, K = 30, z_threshold = 3, outlier_proportion = 0.01, verbose = TRUE)
+hippo(sce, K = 20, z_threshold = 2, outlier_proportion = 0.001, verbose = TRUE)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object}

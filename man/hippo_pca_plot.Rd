@@ -4,13 +4,19 @@
 \alias{hippo_pca_plot}
 \title{visualize each round of hippo through t-SNE}
 \usage{
-hippo_pca_plot(sce, k = NA)
+hippo_pca_plot(sce, k = NA, pointsize = 0.5, pointalpha = 0.5, plottitle = "")
 }
 \arguments{
 \item{sce}{SincleCellExperiment object with hippo and t-SNE result in it}
 
 \item{k}{number of rounds of clustering that you'd like to see result.
 Default is 1 to K}
+
+\item{pointsize}{size of the point for the plot (default 0.5)}
+
+\item{pointalpha}{transparency level of points for the plot (default 0.5)}
+
+\item{plottitle}{title for the ggplot}
 }
 \value{
 ggplot for pca in each round

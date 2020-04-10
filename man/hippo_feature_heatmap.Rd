@@ -9,7 +9,8 @@ hippo_feature_heatmap(
   switch_to_hgnc = FALSE,
   ref = NA,
   top.n = 50,
-  kk = 2
+  kk = 2,
+  plottitle = ""
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ only required when switch_to_hgnc is set to TRUE}
 
 \item{kk}{integer for the round of clustering that you'd like to see result.
 Default is 2}
+
+\item{plottitle}{title for the plot}
 }
 \value{
 list of differential expression result

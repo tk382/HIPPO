@@ -4,7 +4,7 @@
 \alias{hippo_tsne_plot}
 \title{visualize each round of hippo through t-SNE}
 \usage{
-hippo_tsne_plot(sce, k = NA, title = "")
+hippo_tsne_plot(sce, k = NA, pointsize = 0.5, pointalpha = 0.5, plottitle = "")
 }
 \arguments{
 \item{sce}{SincleCellExperiment object with hippo and t-SNE
@@ -13,7 +13,11 @@ result in it}
 \item{k}{number of rounds of clustering that you'd like to see result.
 Default is 1 to K}
 
-\item{title}{title for the ggplot output}
+\item{pointsize}{size of the point for the plot (default 0.5)}
+
+\item{pointalpha}{transparency level of points for the plot (default 0.5)}
+
+\item{plottitle}{title for the ggplot output}
 }
 \value{
 ggplot object for t-SNE in each round
