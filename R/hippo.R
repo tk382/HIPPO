@@ -388,6 +388,9 @@ hippo = function(sce, K = 20,
 #' Default is 1 to K
 #' @param plottitle Title of your plot output
 #' @param top.n number of top genes to show the name
+#' @param pointsize size of the ggplot point
+#' @param pointalpha transparency level of the ggplot point
+#' @param textsize text size of the resulting plot
 #' @examples
 #' data(toydata)
 #' set.seed(20200321)

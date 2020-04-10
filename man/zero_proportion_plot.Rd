@@ -30,6 +30,12 @@ Default is 1 to K}
 \item{plottitle}{Title of your plot output}
 
 \item{top.n}{number of top genes to show the name}
+
+\item{pointsize}{size of the ggplot point}
+
+\item{pointalpha}{transparency level of the ggplot point}
+
+\item{textsize}{text size of the resulting plot}
 }
 \value{
 a ggplot object that shows the zero proportions for each round
