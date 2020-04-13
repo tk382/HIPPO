@@ -2,8 +2,6 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 [![Build Status](https://travis-ci.org/tk382/HIPPO.svg?branch=master)](https://travis-ci.org/tk382/HIPPO)
 
-<img src=http://bioconductor.org/shields/build/release/bioc/HIPPO.svg></a>
-
 HIPPO
 =====
 
