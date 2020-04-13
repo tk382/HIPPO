@@ -1,5 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+[![Build Status](https://travis-ci.org/tk382/HIPPO.svg?branch=master)](https://travis-ci.org/tk382/HIPPO)
 HIPPO
 =====
 
@@ -105,7 +106,7 @@ sce = hippo_dimension_reduction(sce, method="tsne")
 hippo_tsne_plot(sce)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/HIPPO/blob/master/figures/tsne-1.png></a>
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/tsne-1.png></a>
 
 Visualize the selected features at each round
 ---------------------------------------------
