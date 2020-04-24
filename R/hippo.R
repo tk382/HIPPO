@@ -386,6 +386,7 @@ hippo = function(sce, K = 20,
 #' @param ref a data frame with hgnc column and ensg column
 #' @param k select rounds of clustering that you would like to see result.
 #' Default is 1 to K
+#' @param show_topmarkers mark the names with the highest zero proportion
 #' @param plottitle Title of your plot output
 #' @param top.n number of top genes to show the name
 #' @param pointsize size of the ggplot point
@@ -403,26 +404,31 @@ zero_proportion_plot = function(sce,
                                 switch_to_hgnc = FALSE,
                                 ref = NA,
                                 k = NA,
+                                show_topmarkers = FALSE,
                                 plottitle = "",
                                 top.n = 5,
                                 pointsize = 0.5,
                                 pointalpha = 0.5,
                                 textsize = 3) {
   df = do.call(rbind, sce@int_metadata$hippo$features)
-  topz = df %>% dplyr::group_by(K) %>% dplyr::arrange(desc(zvalue)) %>%
-    dplyr::slice(seq_len(5))
   featurelength = as.numeric(table(df$K))
   df$featurecount = featurelength[df$K - 1]
   if (is.na(k[1])) {
     k = 2:ncol(sce@int_metadata$hippo$labelmatrix)
   } else {
     df = df[df$K %in% k, ]
-    topz = topz[topz$K %in% k, ]
+
   }
-  topz$hgnc = topz$gene
-  if (switch_to_hgnc) {
-    topz$hgnc = as.character(ref$hgnc[match(topz$gene, ref$ensg)])
-    topz$hgnc[is.na(topz$hgnc)] = topz$gene[is.na(topz$hgnc)]
+  if (show_topmarkers){
+    topz = df %>% dplyr::group_by(.data$K) %>%
+      dplyr::arrange(desc(.data$zvalue)) %>%
+      dplyr::slice(1:seq_len(5))
+    topz = topz[topz$K %in% k, ]
+    topz$hgnc = topz$gene
+    if (switch_to_hgnc) {
+      topz$hgnc = as.character(ref$hgnc[match(topz$gene, ref$ensg)])
+      topz$hgnc[is.na(topz$hgnc)] = topz$gene[is.na(topz$hgnc)]
+    }
   }
   g = ggplot2::ggplot(df,ggplot2::aes(x = .data$gene_mean,
                                       y = .data$zero_proportion)) +
@@ -432,11 +438,8 @@ zero_proportion_plot = function(sce,
                                     y = exp(-.data$gene_mean)),
                        col = "black") +
     ggplot2::xlim(c(0,10)) +
-    ggrepel::geom_label_repel(data = topz,
-                              ggplot2::aes(label = .data$hgnc),
-                              size = textsize, col = "black") +
     ggplot2::geom_text(ggplot2::aes(label =
-                                      paste0(featurecount,"genes"),
+                                      paste0(.data$featurecount,"genes"),
                                     x = 8, y = 0.8),
                        check_overlap = TRUE,col = "red",size = textsize) +
     ggplot2::theme(legend.position = "none") + ggplot2::theme_bw() +
@@ -454,6 +457,11 @@ zero_proportion_plot = function(sce,
                    legend.position = "none", strip.placement = "inside") +
     ggplot2::ggtitle(plottitle) +
     ggplot2::scale_color_manual(values = c("black", "red"))
+  if (show_topmarkers){
+    g = g+ggrepel::geom_label_repel(data = topz,
+                                    ggplot2::aes(label = .data$hgnc),
+                                    size = textsize, col = "black")
+  }
   gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
 }
 
@@ -542,7 +550,7 @@ hippo_umap_plot = function(sce,
     k = seq(1, ncol(sce@int_metadata$hippo$labelmatrix))
   }
   umdf = sce@int_metadata$hippo$umap
-  umdf = umdf %>% dplyr::filter(K %in% k)
+  umdf = umdf %>% dplyr::filter(.data$K %in% k)
   if (length(umdf)) {
     g = ggplot2::ggplot(umdf,
                         ggplot2::aes(x = .data$umap1,y = .data$umap2,
@@ -593,7 +601,7 @@ hippo_tsne_plot = function(sce,
     k = seq(1, ncol(sce@int_metadata$hippo$labelmatrix))
   }
   tsnedf = sce@int_metadata$hippo$tsne
-  tsnedf = tsnedf %>% dplyr::filter(K %in% k)
+  tsnedf = tsnedf %>% dplyr::filter(.data$K %in% k)
   if (length(tsnedf)) {
     g = ggplot2::ggplot(tsnedf,
                         ggplot2::aes(x = .data$tsne1, y = .data$tsne2,
@@ -695,7 +703,7 @@ hippo_pca_plot = function(sce,
 #' result = hippo_diffexp(toydata)
 #' @export
 hippo_diffexp = function(sce,
-                         top.n = 5,
+                         top.n = 15,
                          switch_to_hgnc = FALSE,
                          ref = NA,
                          k = NA,
@@ -747,7 +755,7 @@ hippo_diffexp = function(sce,
                       ggplot2::aes(x = .data$gene,
                                    y = exp(.data$logcount) - 1,
                                    col = .data$celltype)) +
-    ggplot2::facet_wrap(~round,scales = "free", ncol = 4) +
+    ggplot2::facet_wrap(~round,scales = "free", ncol = 1) +
     ggplot2::geom_boxplot(outlier.size = 0.2) +
     ggplot2::theme_classic()+
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle=45,hjust=1),
@@ -765,24 +773,25 @@ hippo_diffexp = function(sce,
   return(sce)
   }
 
-diffexp_subfunction = function(count, features, cellgroup1, cellgroup2){
+diffexp_subfunction = function(count, features, group1, group2){
   rowdata = data.frame(genes = features$gene)
-  tmpcount1 = count[features$gene, cellgroup1]
-  tmpcount2 = count[features$gene, cellgroup2]
-  if(length(cellgroup1) == 1){
-    tmpmean1 = mean(tmpcount1)
+  count1 = count[features$gene, group1]
+  count2 = count[features$gene, group2]
+  if(length(group1) == 1){
+    mean1 = mean(count1)
   }else{
-    tmpmean1 = Matrix::rowMeans(tmpcount1)
+    mean1 = Matrix::rowMeans(count1)
   }
-  if(length(cellgroup2) == 1){
-    tmpmean2 = mean(tmpcount2)
+  if(length(group2) == 1){
+    mean2 = mean(count2)
   }else{
-    tmpmean2 = Matrix::rowMeans(tmpcount2)
+    mean2 = Matrix::rowMeans(count2)
   }
-  rowdata$meandiff = tmpmean1 - tmpmean2
-  rowdata$sd = sqrt(tmpmean1/length(cellgroup1) + tmpmean2/length(cellgroup2))
-  rowdata$z = rowdata$meandiff/rowdata$sd
-  rowdata = rowdata[order(rowdata$z, decreasing = TRUE), ]
+  rowdata = rowdata %>% dplyr::mutate(meandiff = mean1-mean2) %>%
+    dplyr::mutate(sd = sqrt(mean1/length(group1)+
+                              mean2/length(group2))) %>%
+    dplyr::mutate(z = .data$meandiff/.data$sd) %>%
+    dplyr::arrange(dplyr::desc(.data$z))
   rowdata$genes = as.character(rowdata$genes)
   return(rowdata)
 }
@@ -819,11 +828,9 @@ hippo_feature_heatmap = function(sce,
   labelmatrix$barcode = colnames(hippo_object$X)
   bigX = data.frame()
   feat = hippo_object$features[[kk - 1]]
-  feat = feat %>% dplyr::arrange(desc(zvalue))
-  feat = feat[seq(top.n), ]
-  lab = sce@int_metadata$hippo$labelmatrix[, kk]
-  tmp = log(hippo_object$X[feat$gene, ] + 1)
-  tmp = as.data.frame(tmp)
+  feat = feat %>% dplyr::arrange(desc(.data$zvalue)) %>% dplyr::slice(1:top.n)
+  lab = labelmatrix[, kk]
+  tmp = as.data.frame(log(hippo_object$X[feat$gene, ] + 1))
   tmp$gene = feat$gene
   tmp$hgnc = tmp$gene
   if (switch_to_hgnc) {
@@ -834,9 +841,9 @@ hippo_feature_heatmap = function(sce,
   X$label = labelmatrix[match(X$variable, labelmatrix$barcode), kk]
   X$K = kk - 1
   X$value = as.numeric(X$value)
-  g = ggplot2::ggplot(X,
-                      ggplot2::aes(x = .data$variable, y = .data$hgnc,
-                                   fill = .data$value)) +
+  g = ggplot2::ggplot(X,ggplot2::aes(x = .data$variable,
+                                     y = .data$hgnc,
+                                     fill = .data$value)) +
     ggplot2::facet_grid(~.data$label, scales = "free_x") +
     ggplot2::geom_tile() +
     ggplot2::scale_fill_gradient2(high = "darkred",low = "white") +
@@ -847,8 +854,7 @@ hippo_feature_heatmap = function(sce,
                    strip.placement = "inside",
                    legend.position = "none",
                    panel.grid = ggplot2::element_blank()) +
-    ggplot2::xlab("") + ggplot2::ylab("") +
-    ggplot2::ggtitle(plottitle)
+    ggplot2::xlab("") + ggplot2::ylab("") + ggplot2::ggtitle(plottitle)
   gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
 }
 

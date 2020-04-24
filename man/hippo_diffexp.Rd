@@ -6,7 +6,7 @@
 \usage{
 hippo_diffexp(
   sce,
-  top.n = 5,
+  top.n = 15,
   switch_to_hgnc = FALSE,
   ref = NA,
   k = NA,

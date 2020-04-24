@@ -24,6 +24,8 @@ Imports:
     Rtsne,
     umap,
     dplyr,
+    methods,
+    utils,
     rlang,
     magrittr,
     irlba,
