@@ -9,6 +9,7 @@ zero_proportion_plot(
   switch_to_hgnc = FALSE,
   ref = NA,
   k = NA,
+  show_topmarkers = FALSE,
   plottitle = "",
   top.n = 5,
   pointsize = 0.5,
@@ -26,6 +27,8 @@ names from ENSG IDs to HGNC symbols}
 
 \item{k}{select rounds of clustering that you would like to see result.
 Default is 1 to K}
+
+\item{show_topmarkers}{mark the names with the highest zero proportion}
 
 \item{plottitle}{Title of your plot output}
 

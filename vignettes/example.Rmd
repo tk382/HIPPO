@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.height = 4)
 library(HIPPO)
 library(SingleCellExperiment)
+set.seed(20200424)
 ```
 
 ## Installing the Package
@@ -108,7 +109,7 @@ The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is
 
 ```{r}
 toydata = hippo_diffexp(toydata, 
-                  top.n = 5, 
+                  top.n = 15, 
                   switch_to_hgnc = TRUE, 
                   ref = ensg_hgnc)
 ```
@@ -116,9 +117,12 @@ toydata = hippo_diffexp(toydata,
 Each round of differential expression test results are also saved in the list of data frames.
 
 ```{r}
-head(get_hippo_diffexp(toydata, 1))
-```
+# First round
+get_hippo_diffexp(toydata, 1)[1:15,]
 
+# Second round
+get_hippo_diffexp(toydata, 2)[1:15,]
+```
 
 ```{r}
 sessionInfo()
