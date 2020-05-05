@@ -15,20 +15,48 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.height = 4)
 library(HIPPO)
 library(SingleCellExperiment)
-set.seed(20200424)
+set.seed(20200505)
 ```
 
 ## Installing the Package
 
-HIPPO is under review for Bioconductor and CRAN submission. You can download the developer version as below. Please allow up to 5 minutes to completely compile the vignette.
+HIPPO is now available in Bioconductor as a developer's version. 
+
+```{r, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("HIPPO")
+```
+
+You can also download the most recent version from github.
 
 ```{r, eval=FALSE}
 devtools::install_github("tk382/HIPPO", build_vignettes = TRUE)
 ```
 
+Also, the HIPPO package works with the SingleCellExperiment package, so please make sure you have version >=1.8.0 of the following package.
+
+```{r, eval=FALSE}
+BiocManager::install("SingleCellExperiment")
+```
+
 ## Read the data
 
-The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). We use a subset of Zheng 2017 data set saved as a toydata within this package. Also, we load a reference data that matches ENSG ID to HGNC gene names.
+The data set is available in the following [link](http://imlspenticton.uzh.ch/robinson_lab/DuoClustering2018/DuoClustering2018.tar.gz), where the detailed explanation is available [here](https://github.com/markrobinsonuzh/scRNAseq_clustering_comparison). Note that the file is very large (3.3GB). Also note that these data sets have the data in 
+
+```
+obj@assays$data$counts
+```
+
+instead of
+
+```
+obj@assays@data$counts
+```
+
+due to the version difference of SingleCellExperiment package, so it is necessary to change the location of the count data to the "@data" slot of the object.
+
+We use a subset of Zheng 2017 data set saved as a toydata within this package. Also, we load a reference data that matches ENSG ID to HGNC gene names.
 
 ```{r}
 data(toydata)
