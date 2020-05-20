@@ -492,9 +492,12 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
   K = ncol(hippo_object$labelmatrix)
 
   # Convert into matrix type
-  log_mtx_t = log(t(hippo_object$X[hippo_object$features[[1]]$gene,]) + 1)
-  if (!is.matrix(log_mtx_t)){
+  mtx = hippo_object$X[hippo_object$features[[1]]$gene,]
+  if (is(mtx, 'Matrix')){
+    log_mtx_t = log(Matrix::t(mtx) +1)
     log_mtx_t = as.matrix(log_mtx_t)
+  } else {
+    log_mtx_t = log(t(mtx) +1)
   }
 
   if (method == "umap"){
