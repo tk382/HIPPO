@@ -12,20 +12,16 @@ compute_test_statistic = function(df) {
     df = df[-grep("^MT-", df$gene), ]
   }
   df = df %>%
-    dplyr::mutate(const1 = 2*.data$samplesize/(2*.data$samplesize-1)) %>%
-    dplyr::mutate(expected_pi1 = .data$const1*exp(-.data$gene_mean)) %>%
-    dplyr::mutate(expected_pi = pmin(.data$expected_pi1, 1 - 1e-10)) %>%
-    dplyr::mutate(const2 = (1-.data$expected_pi)/(.data$samplesize-1.25)) %>%
-    dplyr::mutate(se = sqrt(.data$expected_pi*.data$const2)) %>%
+    dplyr::mutate(expected_pi = pmin(exp(-.data$gene_mean), 1 - 1e-10)) %>%
+    dplyr::mutate(se = sqrt(.data$expected_pi*(1-.data$expected_pi))) %>%
+    dplyr::mutate(se = se / sqrt(.data$samplesize)) %>%
     dplyr::mutate(propdiff = .data$zero_proportion - .data$expected_pi) %>%
     dplyr::mutate(zvalue = .data$propdiff/.data$se) %>%
-    dplyr::mutate(zvalue = pmin(.data$zvalue, 500)) %>%
-    dplyr::mutate(minus_logp = -pnorm(.data$zero_proportion,
-                                      .data$expected_pi,
-                                      .data$se,
-                                      log.p = TRUE,
-                                      lower.tail = FALSE)) %>%
-    dplyr::mutate(minus_logp = pmin(.data$minus_logp, 500))
+    dplyr::mutate(pvalue = pnorm(.data$zero_proportion,
+                                 .data$expected_pi,
+                                 .data$se,
+                                 lower.tail = TRUE)) %>%
+    dplyr::mutate(minus_logp = -log(.data$pvalue))
   df$gene = as.character(df$gene)
   return(df)
 }
@@ -490,20 +486,12 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
   hippo_object = sce@int_metadata$hippo
   dflist = list()
   K = ncol(hippo_object$labelmatrix)
-
-  # Convert into matrix type
-  mtx = hippo_object$X[hippo_object$features[[1]]$gene,]
-  if (is(mtx, 'Matrix')){
-    log_mtx_t = log(Matrix::t(mtx) +1)
-    log_mtx_t = as.matrix(log_mtx_t)
-  } else {
-    log_mtx_t = log(t(mtx) +1)
-  }
-
   if (method == "umap"){
-    dimred = umap::umap(log_mtx_t)$layout
+    dimred = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
+                                             ]) + 1))$layout
   }else{
-    dimred = tsne = Rtsne::Rtsne(log_mtx_t, perplexity = perplexity,
+    dimred = tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
+                                                      ]) + 1), perplexity = perplexity,
                                  check_duplicates = FALSE)$Y
   }
   dimred = as.data.frame(dimred)

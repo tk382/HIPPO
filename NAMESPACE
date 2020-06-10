@@ -31,4 +31,4 @@ importFrom(irlba, irlba, prcomp_irlba)
 importFrom(Matrix, readMM)
 importFrom(SingleCellExperiment, rowData, SingleCellExperiment)
 importFrom(ggrepel, geom_label_repel)
-importFrom(Matrix, t)
+

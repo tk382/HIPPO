@@ -93,9 +93,10 @@ z_threshold is the feature selection criterion. For each round of hierarchical c
 outlier_proportion is the number of outlier genes to allow. The default is 0.01 (1%) which means the clustering procedure will automatically stop if there are less than 1% of genes remain as important features. With the example data set, the default choice has empirically worked well.
 
 ```{r, warning = FALSE}
-set.seed(20200321)
+set.seed(20200610)
 toydata = hippo(toydata, K = 10, 
-                z_threshold = 2, outlier_proportion = 0.00001)
+                z_threshold = 2, 
+                outlier_proportion = 0.00001)
 ```
 
 ## Dimension Reduction for Each Round of HIPPO
