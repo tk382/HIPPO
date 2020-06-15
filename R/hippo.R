@@ -27,7 +27,7 @@ compute_test_statistic = function(df) {
 }
 
 
-one_level_clustering = function(subX, z_threshold) {
+one_level_clustering = function(subX, z_threshold, num_embeds, nstart) {
   subdf = preprocess_heterogeneous(subX)
   subdf = compute_test_statistic(subdf)
   features = subdf[subdf$zvalue > z_threshold, ]
@@ -43,8 +43,9 @@ one_level_clustering = function(subX, z_threshold) {
                 unscaled_pcs = NA,subdf = NA))
   }
   pcs = tryCatch(expr = {
-    irlba::irlba(log(subX[features$gene, ] + 1), min(9, nrow(features) -
-                                                       1, ncol(subX) - 1))$v
+    irlba::irlba(log(subX[features$gene, ] + 1), min(num_embeds - 1,
+                                                     nrow(features) -1,
+                                                     ncol(subX) - 1))$v
   }, error = function(e) {
     NA
   }, warning = function(w) {
@@ -56,10 +57,11 @@ one_level_clustering = function(subX, z_threshold) {
                 subdf = NA))
   } else {
     unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features$gene,])) + 1),
-                                     n = min(9, nrow(features) - 1,
+                                     n = min(num_embeds - 1,
+                                             nrow(features) - 1,
                                              ncol(subX) - 1),
                                      scale. = FALSE, center = FALSE)$x
-    km = kmeans(pcs, 2, nstart = 10, iter.max = 50)
+    km = kmeans(pcs, 2, nstart = nstart, iter.max = 50)
   }
   return(list(features = features,
               pcs = pcs,
@@ -281,6 +283,8 @@ get_data_from_sce = function(sce){
 hippo = function(sce, K = 20,
                  z_threshold = 2,
                  outlier_proportion = 0.001,
+                 num_embeds = 10,
+                 nstart = 10,
                  verbose = TRUE) {
   if (is(sce, "SingleCellExperiment")) {
     X = sce@assays@data$counts
@@ -308,7 +312,7 @@ hippo = function(sce, K = 20,
   features = list()
   featuredata = list()
   for (k in 2:K) {
-    thisk = one_level_clustering(subX, z_threshold)
+    thisk = one_level_clustering(subX, z_threshold, num_embeds)
     if (is.na(thisk$features$gene[1])) {
       if(verbose){
         message("not enough important features left; terminate the procedure")
@@ -318,7 +322,7 @@ hippo = function(sce, K = 20,
     }
     if (nrow(thisk$features) < outlier_number) {
       if(verbose){
-        message("not enough important features; terminate the procedure")
+        message("not enough important features left; terminate the procedure")
       }
       labelmatrix = labelmatrix[, seq((k - 1))]
       break
@@ -345,8 +349,6 @@ hippo = function(sce, K = 20,
     }else{
       withinss[k] = var(as.numeric(thisk$unscaled_pcs[twoind,]))^2
     }
-
-
     ind = which(table(thisk$km$cluster) <= 5)
     if (length(ind) >= 1){
       valid_indices = seq(k-1)[-ind]
