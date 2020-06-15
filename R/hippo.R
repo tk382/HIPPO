@@ -27,7 +27,7 @@ compute_test_statistic = function(df) {
 }
 
 
-one_level_clustering = function(subX, z_threshold, num_embeds, nstart) {
+one_level_clustering = function(subX, z_threshold, num_embeds = 10, nstart = 50) {
   subdf = preprocess_heterogeneous(subX)
   subdf = compute_test_statistic(subdf)
   features = subdf[subdf$zvalue > z_threshold, ]
