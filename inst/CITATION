@@ -1,0 +1,10 @@
+citHeader("To cite HIPPO in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "Demystifying drop-outs in single cell UMI data",
+  author   = "Kim, Tae and Zhou, Xiang and Chen, Mengjie",
+  journal  = "bioRxiv",
+  year     = "2020",
+  url      = "https://www.biorxiv.org/content/10.1101/2020.03.31.018911v1.article-metrics",
+)

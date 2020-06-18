@@ -266,6 +266,8 @@ get_hippo = function(sce) {
 #' so that when the proportion of important features reach this
 #' number, the clustering terminates
 #' @param verbose if set to TRUE, it shows progress of the algorithm
+#' @param num_embeds number of cell embeddings to use in dimension reduction
+#' @param nstart number of tries for k-means for reliability
 #' @examples
 #' data(toydata)
 #' toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)

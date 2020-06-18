@@ -26,6 +26,10 @@ for selecting the features}
 so that when the proportion of important features reach this
 number, the clustering terminates}
 
+\item{num_embeds}{number of cell embeddings to use in dimension reduction}
+
+\item{nstart}{number of tries for k-means for reliability}
+
 \item{verbose}{if set to TRUE, it shows progress of the algorithm}
 }
 \value{
