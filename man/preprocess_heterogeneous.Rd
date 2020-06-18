@@ -19,5 +19,5 @@ information about each gene
 }
 \examples{
 data(toydata)
-df = preprocess_heterogeneous(counts(toydata))
+df = preprocess_heterogeneous(SingleCellExperiment::counts(toydata))
 }

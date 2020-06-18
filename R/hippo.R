@@ -121,7 +121,7 @@ zinb_prob_zero = function(lambda, theta, pi) {
 #' @return data frame with one row for each gene.
 #' @examples
 #' data(toydata)
-#' df = preprocess_heterogeneous(counts(toydata))
+#' df = preprocess_heterogeneous(SingleCellExperiment::counts(toydata))
 #' @export
 preprocess_heterogeneous = function(X) {
   gene_mean = Matrix::rowMeans(X)
@@ -149,10 +149,10 @@ preprocess_heterogeneous = function(X) {
 #' @export
 preprocess_homogeneous = function(sce, label) {
   if (is(sce, "SingleCellExperiment")) {
-    X = counts(sce)
+    X = SingleCellExperiment::counts(sce)
   } else if (is(sce, "matrix")){
     sce = SingleCellExperiment::SingleCellExperiment(assays=list(counts = sce))
-    X = counts(sce)
+    X = SingleCellExperiment::counts(sce)
   }else{
     stop("input must be a SingleCellExperiment object")
   }
@@ -211,7 +211,7 @@ preprocess_homogeneous = function(sce, label) {
 hippo_diagnostic_plot = function(sce,
                                  show_outliers = FALSE,
                                  zvalue_thresh = 10) {
-  df = preprocess_heterogeneous(counts(sce))
+  df = preprocess_heterogeneous(SingleCellExperiment::counts(sce))
   df = compute_test_statistic(df)
   subset = df[which(df$zvalue > zvalue_thresh), ]
   g = ggplot2::ggplot(df, ggplot2::aes(x = .data$gene_mean,
@@ -278,10 +278,10 @@ hippo = function(sce, K = 20,
                  nstart = 10,
                  verbose = TRUE) {
   if (is(sce, "SingleCellExperiment")) {
-    X = sce@assays@data$counts
+    X = SingleCellExperiment::counts(sce)
   } else if (is(sce, "matrix")) {
     sce = SingleCellExperiment::SingleCellExperiment(assays=list(counts = sce))
-    X = sce@assays@data$counts
+    X = SingleCellExperiment::counts(sce)
   } else {
     stop("input must be either matrix or SingleCellExperiment object")
   }
@@ -640,8 +640,8 @@ hippo_pca_plot = function(sce,
     k = seq(2, ncol(sce@int_metadata$hippo$labelmatrix))
   }
   hippo_object = sce@int_metadata$hippo
-  counts = counts(sce)
-  pc = irlba::irlba(log(counts[hippo_object$features[[1]]$gene,
+  count = SingleCellExperiment::counts(sce)
+  pc = irlba::irlba(log(count[hippo_object$features[[1]]$gene,
                                ] + 1), v = 2)$v
   pcadf = data.frame()
   for (kk in k) {
