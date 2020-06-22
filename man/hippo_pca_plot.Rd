@@ -27,6 +27,8 @@ visualize each round of hippo through t-SNE
 \examples{
 data(toydata)
 set.seed(20200321)
-toydata = hippo(toydata, K = 10,z_threshold = 1)
+toydata = hippo(toydata, K = 10,
+method = "zero_inflation",
+z_threshold = 1)
 hippo_pca_plot(toydata, k = 2:3)
 }

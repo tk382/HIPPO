@@ -7,10 +7,12 @@
 hippo(
   sce,
   K = 20,
+  method = c("zero inflation", "deviance"),
   z_threshold = 2,
+  deviance_threshold = 200,
   outlier_proportion = 0.001,
   num_embeds = 10,
-  nstart = 10,
+  nstart = 50,
   verbose = TRUE
 )
 }
@@ -19,8 +21,14 @@ hippo(
 
 \item{K}{number of clusters to ultimately get}
 
+\item{method}{string, either zero-inflation or deviance, for feature
+selection method}
+
 \item{z_threshold}{numeric > 0 as a z-value threshold
 for selecting the features}
+
+\item{deviance_threshold}{numeric > 0 as a deviance threshold for
+selecting the features when method is "deviance}
 
 \item{outlier_proportion}{numeric between 0 and 1, a cut-off
 so that when the proportion of important features reach this
@@ -40,5 +48,6 @@ HIPPO's hierarchical clustering
 }
 \examples{
 data(toydata)
-toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
+toydata = hippo(toydata,K = 10,
+method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
 }

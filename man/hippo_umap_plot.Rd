@@ -28,7 +28,9 @@ visualize each round of hippo through UMAP
 \examples{
 data(toydata)
 set.seed(20200321)
-toydata = hippo(toydata,K = 10,z_threshold = 1,outlier_proportion = 0.01)
+toydata = hippo(toydata,
+method = "zero_inflation",
+K = 10,z_threshold = 1,outlier_proportion = 0.01)
 toydata = hippo_dimension_reduction(toydata, method="umap")
 hippo_umap_plot(toydata)
 }
