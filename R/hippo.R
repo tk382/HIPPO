@@ -2,6 +2,11 @@ RowVar <- function(x) {
   Matrix::rowSums((x - Matrix::rowMeans(x))^2)/(ncol(x) - 1)
 }
 
+pois_deviance = function(x){
+  mu = mean(x)
+  return(2*sum(x*log(x/mu),na.rm=TRUE)-2*sum(x-mu))
+}
+
 compute_test_statistic = function(df) {
   ind = which(df$gene_mean == 0)
   if (length(ind)) {
@@ -27,10 +32,19 @@ compute_test_statistic = function(df) {
 }
 
 
-one_level_clustering = function(subX, z_threshold, num_embeds = 10, nstart = 50) {
+one_level_clustering = function(subX,
+                                method = c("zero_inflation", "deviance"),
+                                z_threshold,
+                                deviance_threshold,
+                                num_embeds = 10,
+                                nstart = 50){
   subdf = preprocess_heterogeneous(subX)
   subdf = compute_test_statistic(subdf)
-  features = subdf[subdf$zvalue > z_threshold, ]
+  if (method == "zero_inflation"){
+    features = subdf[subdf$zvalue > z_threshold, ]
+  }else{
+    features = subdf[subdf$deviance > deviance_threshold, ]
+  }
   nullfeatures = data.frame(matrix(ncol = 11, nrow = 0))
   colnames(nullfeatures) = c("gene", "gene_mean", "zero_proportion",
                              "gene_var", "samplesize", "expected_pi", "se",
@@ -43,9 +57,10 @@ one_level_clustering = function(subX, z_threshold, num_embeds = 10, nstart = 50)
                 unscaled_pcs = NA,subdf = NA))
   }
   pcs = tryCatch(expr = {
-    irlba::irlba(log(subX[features$gene, ] + 1), min(num_embeds - 1,
-                                                     nrow(features) -1,
-                                                     ncol(subX) - 1))$v
+    irlba::irlba(log(subX[features$gene, ] + 1),
+                 min(num_embeds - 1,
+                     nrow(features) -1,
+                     ncol(subX) - 1))$v
   }, error = function(e) {
     NA
   }, warning = function(w) {
@@ -124,14 +139,18 @@ zinb_prob_zero = function(lambda, theta, pi) {
 #' df = preprocess_heterogeneous(SingleCellExperiment::counts(toydata))
 #' @export
 preprocess_heterogeneous = function(X) {
-  gene_mean = Matrix::rowMeans(X)
-  zero_proportion = Matrix::rowMeans(X == 0)
-  where = which(gene_mean > 0)
+  pois_deviance = function(x){
+    mu = mean(x); return(2*sum(x*log(x/mu),na.rm=TRUE)-2*sum(x-mu))
+  }
+  df = data.frame(gene = rownames(X),
+                  gene_mean = Matrix::rowMeans(X),
+                  zero_proportion = Matrix::rowMeans(X == 0))
+  where = which(df$gene_mean > 0)
   gene_var = rep(NA, nrow(X))
   gene_var[where] = RowVar(X[where, ])
-  df = data.frame(gene = rownames(X), gene_mean = Matrix::rowMeans(X),
-                  zero_proportion = Matrix::rowMeans(X == 0),
-                  gene_var = gene_var)
+  df = df %>% dplyr::mutate(gene_var = gene_var) %>%
+    dplyr::mutate(samplesize = ncol(X)) %>%
+    dplyr::mutate(deviance = apply(X, 1, pois_deviance))
   df$samplesize = ncol(X)
   df = compute_test_statistic(df)
   return(df)
@@ -161,6 +180,7 @@ preprocess_homogeneous = function(sce, label) {
   gene_mean = matrix(NA, nrow(X), length(labelnames))
   positive_mean = matrix(NA, nrow(X), length(labelnames))
   gene_var = matrix(NA, nrow(X), length(labelnames))
+  deviance = matrix(NA, nrow(X), length(labelnames))
   samplesize = table(label)
   for (i in seq(length(labelnames))) {
     ind = which(label == labelnames[i])
@@ -169,26 +189,30 @@ preprocess_homogeneous = function(sce, label) {
       gene_mean[, i] = Matrix::rowMeans(X[, ind])
       where = gene_mean[, i] != 0
       gene_var[where, i] = RowVar(X[where, ind])
+      deviance[where,i] = apply(X[where,], 1, pois_deviance)
     }else{
       zero_proportion[, i] = mean(X[, ind] == 0)
       gene_mean[, i] = mean(X[, ind])
       where = gene_mean[, i] != 0
       gene_var[where, i] = var(X[where, ind])
+      deviance[where,i] = apply(X[where,], 1, pois_deviance)
     }
-
   }
   colnames(zero_proportion) = colnames(gene_mean) =
-    colnames(gene_var) = labelnames
+    colnames(gene_var) = colnames(deviance) = labelnames
   gene_mean = as.data.frame(gene_mean)
   zero_proportion = as.data.frame(zero_proportion)
   gene_var = as.data.frame(gene_var)
-  gene_mean$id = zero_proportion$id = gene_var$id = rownames(X)
+  deviance = as.data.frame(deviance)
+  gene_mean$id = zero_proportion$id = gene_var$id =
+    deviance$id = rownames(X)
   mgm = reshape2::melt(gene_mean, id = "id")
   mdor = reshape2::melt(zero_proportion, id = "id")
   mgv = reshape2::melt(gene_var, id = "id")
+  mdv = reshape2::melt(deviance, id = "id")
   df = data.frame(gene = rownames(X), gene_mean = mgm$value,
                   gene_var = mgv$value, zero_proportion = mdor$value,
-                  celltype = mgm$variable)
+                  deviance = mdv$value, celltype = mgm$variable)
   df$samplesize = NA
   for (i in names(samplesize)) {
     df[df$celltype == i, "samplesize"] = samplesize[i]
@@ -274,10 +298,12 @@ get_hippo = function(sce) {
 #' @return a list of clustering result for each level of k=1, 2, ... K.
 #' @export
 hippo = function(sce, K = 20,
+                 method = c("zero inflation", "deviance"),
                  z_threshold = 2,
+                 deviance_threshold = 200,
                  outlier_proportion = 0.001,
                  num_embeds = 10,
-                 nstart = 10,
+                 nstart = 50,
                  verbose = TRUE) {
   if (is(sce, "SingleCellExperiment")) {
     X = SingleCellExperiment::counts(sce)
@@ -305,7 +331,12 @@ hippo = function(sce, K = 20,
   features = list()
   featuredata = list()
   for (k in 2:K) {
-    thisk = one_level_clustering(subX, z_threshold, num_embeds)
+    thisk = one_level_clustering(subX,
+                                 method = method,
+                                 z_threshold = z_threshold,
+                                 deviance_threshold = deviance_threshold,
+                                 num_embeds = num_embeds,
+                                 nstart = nstart)
     if (is.na(thisk$features$gene[1])) {
       if(verbose){
         message("not enough important features left; terminate the procedure")
@@ -320,13 +351,6 @@ hippo = function(sce, K = 20,
       labelmatrix = labelmatrix[, seq((k - 1))]
       break
     }
-    # if(min(table(thisk$km$cluster)) <= 1){
-    #   if(verbose){
-    #     message("only one cell in a cluster: terminate procedure")
-    #   }
-    #   labelmatrix = labelmatrix[, seq((k - 1))]
-    #   break
-    # }
     if (verbose) {message(paste0("K = ", k, ".."))}
     labelmatrix[, k] = labelmatrix[, k - 1]
     labelmatrix[subXind[thisk$km$cluster == 2], k] = k
