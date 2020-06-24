@@ -97,13 +97,11 @@ set.seed(20200610)
 toydata = hippo(toydata, 
                 method = "zero_inflation",
                 K = 10, 
-                z_threshold = 2, 
                 outlier_proportion = 0.00001)
 
 toydata2 = hippo(toydata,
                  method = "deviance",
                  K = 10,
-                 deviance_threshold = 100,
                  outlier_proportion = 0.00001)
 ```
 
@@ -146,9 +144,17 @@ The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is
 
 ```{r}
 toydata = hippo_diffexp(toydata, 
-                  top.n = 15, 
-                  switch_to_hgnc = TRUE, 
-                  ref = ensg_hgnc)
+                        method = "pois",
+                        top.n = 15, 
+                        switch_to_hgnc = TRUE, 
+                        ref = ensg_hgnc)
+
+toydata = hippo_diffexp(toydata, 
+                        method = "gaus",
+                        top.n = 15, 
+                        switch_to_hgnc = TRUE, 
+                        ref = ensg_hgnc)
+
 ```
 
 Each round of differential expression test results are also saved in the list of data frames.

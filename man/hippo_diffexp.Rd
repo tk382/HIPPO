@@ -6,6 +6,7 @@
 \usage{
 hippo_diffexp(
   sce,
+  method = "pois",
   top.n = 15,
   switch_to_hgnc = FALSE,
   ref = NA,
@@ -15,6 +16,9 @@ hippo_diffexp(
 }
 \arguments{
 \item{sce}{SingleCellExperiment object with hippo}
+
+\item{method}{whether to use Poisson likelihood test vs
+Gaussian different mean test}
 
 \item{top.n}{number of markers to return}
 

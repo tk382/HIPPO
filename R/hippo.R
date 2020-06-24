@@ -19,6 +19,7 @@ compute_test_statistic = function(df) {
   df = df %>%
     dplyr::mutate(expected_pi = pmin(exp(-.data$gene_mean), 1 - 1e-10)) %>%
     dplyr::mutate(se = sqrt(.data$expected_pi*(1-.data$expected_pi))) %>%
+    dplyr::mutate(expected_pi = pmax(1e-10, expected_pi)) %>%
     dplyr::mutate(se = se / sqrt(.data$samplesize)) %>%
     dplyr::mutate(propdiff = .data$zero_proportion - .data$expected_pi) %>%
     dplyr::mutate(zvalue = .data$propdiff/.data$se) %>%
@@ -717,6 +718,8 @@ hippo_pca_plot = function(sce,
 #' HIPPO's differential expression
 #'
 #' @param sce SingleCellExperiment object with hippo
+#' @param method whether to use Poisson likelihood test vs
+#'  Gaussian different mean test
 #' @param top.n number of markers to return
 #' @param switch_to_hgnc if the current gene names are ensemble ids, and would
 #' like to switch to hgnc
@@ -734,6 +737,7 @@ hippo_pca_plot = function(sce,
 #' result = hippo_diffexp(toydata)
 #' @export
 hippo_diffexp = function(sce,
+                         method = "pois",
                          top.n = 15,
                          switch_to_hgnc = FALSE,
                          ref = NA,
@@ -743,7 +747,7 @@ hippo_diffexp = function(sce,
     stop("A reference must be provided in order to match
          ENSG ids to HGNC symbols")
   }
-  hippo_object = sce@int_metadata$hippo
+  hippo_object = get_hippo(sce)
   if (is.na(k[1])) {k = seq(2,ncol(hippo_object$labelmatrix))}
   param = hippo_object$param
   featureind = cellind = result = list()
@@ -755,17 +759,23 @@ hippo_diffexp = function(sce,
   ind = 1
   for (kk in k) {
     features = hippo_object$features[[ind]]
-    cellind = which(labelmatrix[, kk - 1] ==
+    cellind = which(labelmatrix[, kk-1] ==
                       labelmatrix[which(labelmatrix[,kk - 1] !=
                                           labelmatrix[, kk])[1], kk - 1])
     types = unique(hippo_object$labelmatrix[cellind, kk])
     cellgroup1 = which(hippo_object$labelmatrix[, kk] == types[1])
     cellgroup2 = which(hippo_object$labelmatrix[, kk] == types[2])
-    rowdata = diffexp_subfunction(count,features, cellgroup1, cellgroup2)
-    topgenes = rowdata$genes[seq(top.n)]
-    tmpx = cbind(count[rowdata$genes[seq(top.n)],cellgroup1],
-                 count[rowdata$genes[seq(top.n)], cellgroup2])
-    newcount = as.data.frame(Matrix::t(log(tmpx+1))[,topgenes])
+
+    if (method == "pois"){
+      rowdata = diffexp_subfunction_pois(count,features, cellgroup1, cellgroup2)
+    }else if (method == "gaus"){
+      rowdata = diffexp_subfunction_gaus(count,features, cellgroup1, cellgroup2)
+    }
+
+    topgenes = as.character(rowdata$genes[seq(top.n)])
+    tmpx = cbind(count[topgenes,cellgroup1],
+                 count[topgenes, cellgroup2])
+    newcount = as.data.frame(Matrix::t(log(tmpx+1)))
     if (switch_to_hgnc) {
       colnames(newcount) = ref$hgnc[match(colnames(newcount), ref$ensg)]
     }
@@ -804,7 +814,23 @@ hippo_diffexp = function(sce,
   return(sce)
   }
 
-diffexp_subfunction = function(count, features, group1, group2){
+
+diffexp_subfunction_pois = function(count, features, group1, group2){
+  out = data.frame(genes = features$gene, null_dev = NA, alt_dev = NA,
+                   pval = NA)
+  count = count[features$gene, ]
+  count1 = count[features$gene, group1]
+  count2 = count[features$gene, group2]
+  out = out %>% mutate(null_dev = apply(count, 1, pois_deviance)) %>%
+    dplyr::mutate(alt_dev = apply(count1, 1, pois_deviance) +
+             apply(count2, 1, pois_deviance)) %>%
+    dplyr::mutate(pval = pchisq(.data$null_dev-.data$alt_dev,
+                         1,
+                         lower.tail=FALSE)) %>%
+    dplyr::arrange(.data$pval)
+}
+
+diffexp_subfunction_gaus = function(count, features, group1, group2){
   rowdata = data.frame(genes = features$gene)
   count1 = count[features$gene, group1]
   count2 = count[features$gene, group2]
