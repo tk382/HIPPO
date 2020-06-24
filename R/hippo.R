@@ -266,7 +266,7 @@ hippo_diagnostic_plot = function(sce,
 #' @examples
 #' data(toydata)
 #' set.seed(20200321)
-#' toydata = hippo(toydata,K = 10,
+#' toydata = hippo(toydata,K = 3,
 #' method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
 #' hippo_object = get_hippo(toydata)
 #' @return hippo object embedded in SingleCellExperiment object
@@ -300,7 +300,7 @@ get_hippo = function(sce) {
 #' @param nstart number of tries for k-means for reliability
 #' @examples
 #' data(toydata)
-#' toydata = hippo(toydata,K = 10,
+#' toydata = hippo(toydata,K = 3,
 #' method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
 #' @return a list of clustering result for each level of k=1, 2, ... K.
 #' @export
@@ -417,8 +417,8 @@ hippo = function(sce, K = 20,
 #' @examples
 #' data(toydata)
 #' set.seed(20200321)
-#' toydata = hippo(toydata, method = "zero_inflation",
-#' K = 10,z_threshold = 1,outlier_proportion = 0.01)
+#' toydata = hippo(toydata, K=3,method = "zero_inflation",
+#' z_threshold = 1,outlier_proportion = 0.01)
 #' data(ensg_hgnc)
 #' zero_proportion_plot(toydata, switch_to_hgnc = TRUE, ref = ensg_hgnc)
 #' @return a ggplot object that shows the zero proportions for each round
@@ -505,7 +505,7 @@ zero_proportion_plot = function(sce,
 #' set.seed(20200321)
 #' toydata = hippo(toydata,
 #' method = "zero_inflation",
-#' K = 10,z_threshold = 1,outlier_proportion = 0.01)
+#' K = 3,z_threshold = 1,outlier_proportion = 0.01)
 #' toydata = hippo_dimension_reduction(toydata, method="tsne")
 #' hippo_tsne_plot(toydata)
 #' @export
@@ -564,7 +564,7 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
 #' set.seed(20200321)
 #' toydata = hippo(toydata,
 #' method = "zero_inflation",
-#' K = 10,z_threshold = 1,outlier_proportion = 0.01)
+#' K = 3,z_threshold = 1,outlier_proportion = 0.01)
 #' toydata = hippo_dimension_reduction(toydata, method="umap")
 #' hippo_umap_plot(toydata)
 #' @export
@@ -615,7 +615,7 @@ hippo_umap_plot = function(sce,
 #' @examples
 #' data(toydata)
 #' set.seed(20200321)
-#' toydata = hippo(toydata,K = 10,
+#' toydata = hippo(toydata,K = 3,
 #' method = "zero_inflation",
 #' z_threshold = 1,outlier_proportion = 0.01)
 #' toydata = hippo_dimension_reduction(toydata, method="tsne")
@@ -668,7 +668,7 @@ hippo_tsne_plot = function(sce,
 #' @examples
 #' data(toydata)
 #' set.seed(20200321)
-#' toydata = hippo(toydata, K = 10,
+#' toydata = hippo(toydata, K = 3,
 #' method = "zero_inflation",
 #' z_threshold = 1)
 #' hippo_pca_plot(toydata, k = 2:3)
@@ -732,9 +732,9 @@ hippo_pca_plot = function(sce,
 #' @examples
 #' data(toydata)
 #' set.seed(20200321)
-#' toydata = hippo(toydata,K = 10,
+#' toydata = hippo(toydata,K = 3,
 #' method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
-#' result = hippo_diffexp(toydata)
+#' result = hippo_diffexp(toydata, method = "gaus")
 #' @export
 hippo_diffexp = function(sce,
                          method = "pois",
@@ -821,13 +821,17 @@ diffexp_subfunction_pois = function(count, features, group1, group2){
   count = count[features$gene, ]
   count1 = count[features$gene, group1]
   count2 = count[features$gene, group2]
-  out = out %>% mutate(null_dev = apply(count, 1, pois_deviance)) %>%
-    dplyr::mutate(alt_dev = apply(count1, 1, pois_deviance) +
-             apply(count2, 1, pois_deviance)) %>%
-    dplyr::mutate(pval = pchisq(.data$null_dev - .data$alt_dev,
-                         1,
-                         lower.tail=FALSE)) %>%
-    dplyr::arrange(.data$pval)
+  if(length(group1) & length(group2)){
+    out = out %>% mutate(null_dev = apply(count, 1, pois_deviance)) %>%
+      dplyr::mutate(alt_dev = apply(count1, 1, pois_deviance) +
+                      apply(count2, 1, pois_deviance)) %>%
+      dplyr::mutate(pval = pchisq(.data$null_dev - .data$alt_dev,
+                                  1,
+                                  lower.tail=FALSE)) %>%
+      dplyr::arrange(.data$pval)
+  }
+  return(out)
+
 }
 
 diffexp_subfunction_gaus = function(count, features, group1, group2){
@@ -868,7 +872,7 @@ diffexp_subfunction_gaus = function(count, features, group1, group2){
 #' @examples
 #' data(toydata)
 #' set.seed(20200321)
-#' toydata = hippo(toydata,K = 10,
+#' toydata = hippo(toydata,K = 3,
 #' method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
 #' hippo_feature_heatmap(toydata)
 #' @export
@@ -940,9 +944,9 @@ ensg_to_hgnc = function(ensg) {
 #' @examples
 #' data(toydata)
 #' set.seed(20200321)
-#' toydata = hippo(toydata,K = 10,
-#' method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
-#' toydata = hippo_diffexp(toydata)
+#' toydata = hippo(toydata,K = 3,
+#' method = "zero_inflation",z_threshold = 1)
+#' toydata = hippo_diffexp(toydata, method = "gaus")
 #' result1 = get_hippo_diffexp(toydata)
 #' @export
 get_hippo_diffexp = function(sce, k=1){
