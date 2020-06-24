@@ -824,7 +824,7 @@ diffexp_subfunction_pois = function(count, features, group1, group2){
   out = out %>% mutate(null_dev = apply(count, 1, pois_deviance)) %>%
     dplyr::mutate(alt_dev = apply(count1, 1, pois_deviance) +
              apply(count2, 1, pois_deviance)) %>%
-    dplyr::mutate(pval = pchisq(.data$null_dev-.data$alt_dev,
+    dplyr::mutate(pval = pchisq(.data$null_dev - .data$alt_dev,
                          1,
                          lower.tail=FALSE)) %>%
     dplyr::arrange(.data$pval)
