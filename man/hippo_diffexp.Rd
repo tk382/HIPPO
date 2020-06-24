@@ -41,8 +41,10 @@ HIPPO's differential expression
 }
 \examples{
 data(toydata)
-set.seed(20200321)
-toydata = hippo(toydata,K = 10,
-method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
-result = hippo_diffexp(toydata)
+set.seed(20200505)
+toydata = hippo(toydata,
+          method = "zero_inflation",
+          K = 4,
+          outlier_proportion = 0.00001)
+result = hippo_diffexp(toydata, method = "gaus")
 }

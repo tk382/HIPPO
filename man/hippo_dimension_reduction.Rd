@@ -31,11 +31,11 @@ compute t-SNE or umap of each round of HIPPO
 }
 \examples{
 data(toydata)
-set.seed(20200321)
-set.seed(20200321)
+set.seed(20200505)
 toydata = hippo(toydata,
-method = "zero_inflation",
-K = 10,z_threshold = 1,outlier_proportion = 0.01)
+          method = "zero_inflation",
+          K = 4,
+          outlier_proportion = 0.00001)
 toydata = hippo_dimension_reduction(toydata, method="tsne")
 hippo_tsne_plot(toydata)
 }

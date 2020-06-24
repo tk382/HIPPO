@@ -48,6 +48,8 @@ HIPPO's hierarchical clustering
 }
 \examples{
 data(toydata)
-toydata = hippo(toydata,K = 10,
-method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
+toydata = hippo(toydata,
+          method = "zero_inflation",
+          K = 4,
+          outlier_proportion = 0.00001)
 }

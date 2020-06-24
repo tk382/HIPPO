@@ -96,12 +96,12 @@ outlier_proportion is the number of outlier genes to allow. The default is 0.01 
 set.seed(20200610)
 toydata = hippo(toydata, 
                 method = "zero_inflation",
-                K = 10, 
+                K = 4, 
                 outlier_proportion = 0.00001)
 
 toydata2 = hippo(toydata,
                  method = "deviance",
-                 K = 10,
+                 K = 4,
                  outlier_proportion = 0.00001)
 ```
 

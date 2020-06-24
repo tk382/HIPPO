@@ -265,9 +265,11 @@ hippo_diagnostic_plot = function(sce,
 #' @param sce SingleCellExperiment object
 #' @examples
 #' data(toydata)
-#' set.seed(20200321)
-#' toydata = hippo(toydata,K = 3,
-#' method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
+#' set.seed(20200505)
+#' toydata = hippo(toydata,
+#'           method = "zero_inflation",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
 #' hippo_object = get_hippo(toydata)
 #' @return hippo object embedded in SingleCellExperiment object
 #' @export
@@ -300,8 +302,10 @@ get_hippo = function(sce) {
 #' @param nstart number of tries for k-means for reliability
 #' @examples
 #' data(toydata)
-#' toydata = hippo(toydata,K = 3,
-#' method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
+#' toydata = hippo(toydata,
+#'           method = "zero_inflation",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
 #' @return a list of clustering result for each level of k=1, 2, ... K.
 #' @export
 hippo = function(sce, K = 20,
@@ -416,9 +420,11 @@ hippo = function(sce, K = 20,
 #' @param textsize text size of the resulting plot
 #' @examples
 #' data(toydata)
-#' set.seed(20200321)
-#' toydata = hippo(toydata, K=3,method = "zero_inflation",
-#' z_threshold = 1,outlier_proportion = 0.01)
+#' set.seed(20200505)
+#' toydata = hippo(toydata,
+#'           method = "zero_inflation",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
 #' data(ensg_hgnc)
 #' zero_proportion_plot(toydata, switch_to_hgnc = TRUE, ref = ensg_hgnc)
 #' @return a ggplot object that shows the zero proportions for each round
@@ -501,11 +507,11 @@ zero_proportion_plot = function(sce,
 #' k in 1, ..., K
 #' @examples
 #' data(toydata)
-#' set.seed(20200321)
-#' set.seed(20200321)
+#' set.seed(20200505)
 #' toydata = hippo(toydata,
-#' method = "zero_inflation",
-#' K = 3,z_threshold = 1,outlier_proportion = 0.01)
+#'           method = "zero_inflation",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
 #' toydata = hippo_dimension_reduction(toydata, method="tsne")
 #' hippo_tsne_plot(toydata)
 #' @export
@@ -561,10 +567,11 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
 #' @return ggplot object for umap in each round
 #' @examples
 #' data(toydata)
-#' set.seed(20200321)
+#' set.seed(20200505)
 #' toydata = hippo(toydata,
-#' method = "zero_inflation",
-#' K = 3,z_threshold = 1,outlier_proportion = 0.01)
+#'           method = "zero_inflation",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
 #' toydata = hippo_dimension_reduction(toydata, method="umap")
 #' hippo_umap_plot(toydata)
 #' @export
@@ -614,10 +621,11 @@ hippo_umap_plot = function(sce,
 #' @return ggplot object for t-SNE in each round
 #' @examples
 #' data(toydata)
-#' set.seed(20200321)
-#' toydata = hippo(toydata,K = 3,
-#' method = "zero_inflation",
-#' z_threshold = 1,outlier_proportion = 0.01)
+#' set.seed(20200505)
+#' toydata = hippo(toydata,
+#'           method = "zero_inflation",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
 #' toydata = hippo_dimension_reduction(toydata, method="tsne")
 #' hippo_tsne_plot(toydata)
 #' @export
@@ -667,10 +675,11 @@ hippo_tsne_plot = function(sce,
 #' @return ggplot for pca in each round
 #' @examples
 #' data(toydata)
-#' set.seed(20200321)
-#' toydata = hippo(toydata, K = 3,
-#' method = "zero_inflation",
-#' z_threshold = 1)
+#' set.seed(20200505)
+#' toydata = hippo(toydata,
+#'           method = "zero_inflation",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
 #' hippo_pca_plot(toydata, k = 2:3)
 #' @export
 hippo_pca_plot = function(sce,
@@ -731,9 +740,11 @@ hippo_pca_plot = function(sce,
 #' @return list of differential expression result
 #' @examples
 #' data(toydata)
-#' set.seed(20200321)
-#' toydata = hippo(toydata,K = 3,
-#' method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
+#' set.seed(20200505)
+#' toydata = hippo(toydata,
+#'           method = "zero_inflation",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
 #' result = hippo_diffexp(toydata, method = "gaus")
 #' @export
 hippo_diffexp = function(sce,
@@ -871,9 +882,11 @@ diffexp_subfunction_gaus = function(count, features, group1, group2){
 #' @return list of differential expression result
 #' @examples
 #' data(toydata)
-#' set.seed(20200321)
-#' toydata = hippo(toydata,K = 3,
-#' method = "zero_inflation",z_threshold = 1,outlier_proportion = 0.01)
+#' set.seed(20200505)
+#' toydata = hippo(toydata,
+#'           method = "zero_inflation",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
 #' hippo_feature_heatmap(toydata)
 #' @export
 hippo_feature_heatmap = function(sce,
@@ -943,9 +956,11 @@ ensg_to_hgnc = function(ensg) {
 #' @return data frame of differential expression test
 #' @examples
 #' data(toydata)
-#' set.seed(20200321)
-#' toydata = hippo(toydata,K = 3,
-#' method = "zero_inflation",z_threshold = 1)
+#' set.seed(20200505)
+#' toydata = hippo(toydata,
+#'           method = "zero_inflation",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
 #' toydata = hippo_diffexp(toydata, method = "gaus")
 #' result1 = get_hippo_diffexp(toydata)
 #' @export
