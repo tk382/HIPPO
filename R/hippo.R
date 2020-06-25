@@ -39,24 +39,30 @@ one_level_clustering = function(subX,
                                 deviance_threshold,
                                 num_embeds = 10,
                                 nstart = 50){
+
+
   subdf = preprocess_heterogeneous(subX)
   subdf = compute_test_statistic(subdf)
+
   if (method == "zero_inflation"){
     features = subdf[subdf$zvalue > z_threshold, ]
-  }else{
+  }else if(method=="deviance"){
     features = subdf[subdf$deviance > deviance_threshold, ]
+  }else{
+    stop("method should be either 'zero_inflation' or 'deviance'")
   }
+
+  ## create empty data frame with desired column names
   nullfeatures = data.frame(matrix(ncol = 11, nrow = 0))
   colnames(nullfeatures) = c("gene", "gene_mean", "zero_proportion",
                              "gene_var", "samplesize", "expected_pi", "se",
                              "minus_logp","zvalue", "subsetK", "K")
-  if (nrow(features) < 10) {
-    return(list(features = nullfeatures, pcs = NA, km = NA))
-  }
+
   if (nrow(features) < 10) {
     return(list(features = nullfeatures, pcs = NA, km = NA,
                 unscaled_pcs = NA,subdf = NA))
   }
+
   pcs = tryCatch(expr = {
     irlba::irlba(log(subX[features$gene, ] + 1),
                  min(num_embeds - 1,
@@ -67,18 +73,22 @@ one_level_clustering = function(subX,
   }, warning = function(w) {
     NA
   })
+
   if (is.na(pcs[1])) {
     return(list(features = nullfeatures, pcs = NA, km = NA,
                 unscaled_pcs = NA,
                 subdf = NA))
   } else {
+
     unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features$gene,])) + 1),
                                      n = min(num_embeds - 1,
                                              nrow(features) - 1,
                                              ncol(subX) - 1),
                                      scale. = FALSE, center = FALSE)$x
+
     km = kmeans(pcs, 2, nstart = nstart, iter.max = 50)
   }
+
   return(list(features = features,
               pcs = pcs,
               km = km,
@@ -288,7 +298,7 @@ get_hippo = function(sce) {
 #'
 #' @param sce SingleCellExperiment object
 #' @param K number of clusters to ultimately get
-#' @param method string, either zero-inflation or deviance, for feature
+#' @param method string, either "zero-inflation" or "deviance", for feature
 #' selection method
 #' @param z_threshold numeric > 0 as a z-value threshold
 #' for selecting the features
@@ -309,8 +319,9 @@ get_hippo = function(sce) {
 #' @return a list of clustering result for each level of k=1, 2, ... K.
 #' @export
 hippo = function(sce, K = 20,
-                 method = c("zero inflation", "deviance"),
+                 method = "deviance",
                  z_threshold = 2,
+                 featurenum = 2000,
                  deviance_threshold = 200,
                  outlier_proportion = 0.001,
                  num_embeds = 10,
