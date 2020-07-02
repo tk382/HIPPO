@@ -7,8 +7,9 @@
 hippo(
   sce,
   K = 20,
-  method = c("zero inflation", "deviance"),
+  method = "deviance",
   z_threshold = 2,
+  featurenum = 2000,
   deviance_threshold = 200,
   outlier_proportion = 0.001,
   num_embeds = 10,
@@ -21,7 +22,7 @@ hippo(
 
 \item{K}{number of clusters to ultimately get}
 
-\item{method}{string, either zero-inflation or deviance, for feature
+\item{method}{string, either "zero-inflation" or "deviance", for feature
 selection method}
 
 \item{z_threshold}{numeric > 0 as a z-value threshold
