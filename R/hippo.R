@@ -96,28 +96,10 @@ one_level_clustering = function(subX,
               subdf = subdf))
 }
 
-
-#' Expected zero proportion under Poisson
-#'
-#' @param lambda numeric vector of means of Poisson
-#' @return numeric vector of expected proportion of zeros for each lambda
-#' @examples
-#' pois_prob_zero(3)
-#' @export
 pois_prob_zero = function(lambda) {
   exp(-lambda)
 }
 
-#' Expected zero proportion under Negative Binomial
-#'
-#' @param lambda numeric vector of means of negative binomial
-#' @param theta numeric vector of the dispersion parameter
-#' for negative binomial, 0 if poisson
-#' @return numeric vector of expected zero proportion under
-#' Negative Binomial
-#' @examples
-#' nb_prob_zero(3, 1.1)
-#' @export
 nb_prob_zero = function(lambda, theta) {
   if (theta == 0) {
     return(exp(-lambda))
@@ -126,29 +108,11 @@ nb_prob_zero = function(lambda, theta) {
   }
 }
 
-
-#' Expected zero proportion under Negative Binomial
-#'
-#' @param lambda gene mean
-#' @param theta dispersion parameter, 0 if zero-inflated poisson
-#' @param pi zero inflation, 0 if negative binomial
-#' @return Expected zero proportion under Zero-Inflated Negative Binomial
-#' @examples
-#' zinb_prob_zero(3, 1.1, 0.1)
-#' @export
 zinb_prob_zero = function(lambda, theta, pi) {
   return(pi + (1-pi) * nb_prob_zero(lambda, theta))
 }
 
-#' Preprocess UMI data without cell label so that each row contains
-#' information about each gene
-#'
-#' @param X a matrix object with counts data
-#' @return data frame with one row for each gene.
-#' @examples
-#' data(toydata)
-#' df = preprocess_heterogeneous(SingleCellExperiment::counts(toydata))
-#' @export
+
 preprocess_heterogeneous = function(X) {
   pois_deviance = function(x){
     mu = mean(x); return(2*sum(x*log(x/mu),na.rm=TRUE)-2*sum(x-mu))
@@ -167,11 +131,11 @@ preprocess_heterogeneous = function(X) {
   return(df)
 }
 
-#' Preprocess UMI data with inferred or known labels
+#' Create data frame with gene-level information for each cell type
 #'
 #' @param sce SingleCellExperiment object with counts data
 #' @param label a numeric or character vector of inferred or known label
-#' @return data frame with one row for each gene.
+#' @return data frame with cell-type specific gene information in each row
 #' @examples
 #' data(toydata)
 #' labels = SingleCellExperiment::colData(toydata)$phenoid
@@ -232,16 +196,20 @@ preprocess_homogeneous = function(sce, label) {
   return(df)
 }
 
-#' Conduct feature selection by computing test statistics for each gene
+#' Create zero-inflation plot compared to reference Poisson line (e^{-x})
 #'
 #' @param sce SingleCellExperiment object with count matrix
 #' @param show_outliers boolean to indicate whether to circle the outliers
 #' with given zvalue_thresh
-#' @param zvalue_thresh a numeric v for defining outliers
+#' @param zvalue_thresh a numeric scalar z-value threshold. Genes with z-value
+#' higher than this threshold are marked as outliers when show_outliers is set
+#' to TRUE
+#' @return a diagnostic plot that shows proportions of zeroes against gene mean
+#' with zero inflation. Black line is the inverse exponential of gene mean.
+#' Outliers are circled in red.
 #' @examples
 #' data(toydata)
 #' hippo_diagnostic_plot(toydata, show_outliers=TRUE, zvalue_thresh = 2)
-#' @return a diagnostic plot that shows genes with zero inflation
 #' @export
 hippo_diagnostic_plot = function(sce,
                                  show_outliers = FALSE,
@@ -297,7 +265,7 @@ get_hippo = function(sce) {
 #' HIPPO's hierarchical clustering
 #'
 #' @param sce SingleCellExperiment object
-#' @param K number of clusters to ultimately get
+#' @param K maximum number of clusters
 #' @param method string, either "zero-inflation" or "deviance", for feature
 #' selection method
 #' @param z_threshold numeric > 0 as a z-value threshold
@@ -307,7 +275,7 @@ get_hippo = function(sce) {
 #' @param outlier_proportion numeric between 0 and 1, a cut-off
 #' so that when the proportion of important features reach this
 #' number, the clustering terminates
-#' @param verbose if set to TRUE, it shows progress of the algorithm
+#' @param verbose if set to TRUE, shows progress of the algorithm
 #' @param num_embeds number of cell embeddings to use in dimension reduction
 #' @param nstart number of tries for k-means for reliability
 #' @examples
