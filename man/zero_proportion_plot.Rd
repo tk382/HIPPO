@@ -70,7 +70,8 @@ of clustering
 data(toydata)
 set.seed(20200505)
 toydata = hippo(toydata,
-          method = "zero_inflation",
+          feature_method = "zero_inflation",
+          clustering_method = "kmeans",
           K = 4,
           outlier_proportion = 0.00001)
 data(ensg_hgnc)

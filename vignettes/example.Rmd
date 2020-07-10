@@ -95,14 +95,16 @@ outlier_proportion is the number of outlier genes to allow. The default is 0.01 
 ```{r, warning = FALSE}
 set.seed(20200610)
 toydata = hippo(toydata, 
-                method = "zero_inflation",
+                feature_method = "zero_inflation",
+                clustering_method = "kmeans",
                 K = 4, 
                 outlier_proportion = 0.00001)
 
-toydata2 = hippo(toydata,
-                 method = "deviance",
-                 K = 4,
-                 outlier_proportion = 0.00001)
+toydata = hippo(toydata, 
+                feature_method = "deviance",
+                clustering_method = "kmeans",
+                K = 4, 
+                outlier_proportion = 0.00001)
 ```
 
 ## Dimension Reduction for Each Round of HIPPO

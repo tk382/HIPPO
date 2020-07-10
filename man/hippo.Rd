@@ -47,6 +47,12 @@ selection method}
 
 \item{deviance_threshold}{numeric > 0 as a deviance threshold for
 selecting the features when method is "deviance}
+
+\item{km_num_embeds}{number of cell embeddings to use in dimension reduction}
+
+\item{km_nstart}{number of tries for k-means for reliability}
+
+\item{km_iter.max}{number of maximum iterations for kmeans}
 }
 \value{
 a list of clustering result for each level of k=1, 2, ... K.
@@ -62,7 +68,8 @@ HIPPO's hierarchical clustering computed using proportion of zeroes
 \examples{
 data(toydata)
 toydata = hippo(toydata,
-          method = "zero_inflation",
+          feature_method = "zero_inflation",
+          clustering_method = "kmeans",
           K = 4,
           outlier_proportion = 0.00001)
 data(toydata)
