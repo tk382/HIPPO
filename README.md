@@ -78,7 +78,7 @@ hippo_diagnostic_plot(sce,
                       zvalue_thresh = 3)
 ```
 
-![](README_files/figure-gfm/diagnostic-1.png)<!-- -->
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/diagnostic-1.png></a>
 
 ## Feature Selection and Hierarchical Clustering
 
@@ -130,14 +130,14 @@ sce = hippo_dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce)
 ```
 
-![](README_files/figure-gfm/umap-1.png)<!-- -->
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/umap-1.png></a>
 
 ``` r
 sce = hippo_dimension_reduction(sce, method="tsne")
 hippo_tsne_plot(sce)
 ```
 
-![](README_files/figure-gfm/tsne-1.png)<!-- -->
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/tsne-1.png></a>
 
 ## Visualize the selected features at each round
 
@@ -158,7 +158,7 @@ zero_proportion_plot(sce,
                      ref = ensg_hgnc)
 ```
 
-![](README_files/figure-gfm/featureselection-1.png)<!-- -->
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/featureselection-1.png></a>
 
 ``` r
 hippo_feature_heatmap(sce, k = 2, 
@@ -167,7 +167,7 @@ hippo_feature_heatmap(sce, k = 2,
                       top.n = 20)
 ```
 
-![](README_files/figure-gfm/featureselection-2.png)<!-- -->
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/featureselection-2.png></a>
 
 ``` r
 hippo_feature_heatmap(sce, k = 3, 
@@ -176,7 +176,7 @@ hippo_feature_heatmap(sce, k = 3,
                       top.n = 20)
 ```
 
-![](README_files/figure-gfm/featureselection-3.png)<!-- -->
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/featureselection-3.png></a>
 
 ## Differential Expression Example
 
@@ -197,7 +197,7 @@ sce = hippo_diffexp(sce,
                   ref = ensg_hgnc)
 ```
 
-![](README_files/figure-gfm/diffexp-1.png)<!-- -->
+<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/diffexp-1.png></a>
 
 Each round of differential expression test results are also saved in the
 list of data frames.
