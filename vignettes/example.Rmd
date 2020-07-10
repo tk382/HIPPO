@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.width = 6,
                       fig.height = 4)
 library(HIPPO)
+source("../R/hippo.R")
 library(SingleCellExperiment)
 set.seed(20200505)
 ```
@@ -91,6 +92,7 @@ K is the maximum number of clusters that you want. HIPPO will return the cluster
 z_threshold is the feature selection criterion. For each round of hierarchical clustering, hippo will find outlier genes where the z-value of significance is greater than the threshold. For example, if you would like to select genes with p-values less than 0.05, z_threshold would be 1.96. The default threshold is 2, but users can use their discretion to change this value.
 
 outlier_proportion is the number of outlier genes to allow. The default is 0.01 (1%) which means the clustering procedure will automatically stop if there are less than 1% of genes remain as important features. With the example data set, the default choice has empirically worked well.
+
 
 ```{r, warning = FALSE}
 set.seed(20200610)

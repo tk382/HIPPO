@@ -42,8 +42,10 @@ number, the clustering terminates.}
 
 \item{verbose}{if set to TRUE, it shows progress of the algorithm}
 
-\item{method}{string, either "zero-inflation" or "deviance", for feature
+\item{feature_method}{string, either "zero-inflation" or "deviance", for feature
 selection method}
+
+\item{clustering_method}{string, one of "kmeans", "louvian", and "clustering"}
 
 \item{deviance_threshold}{numeric > 0 as a deviance threshold for
 selecting the features when method is "deviance}
