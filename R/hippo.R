@@ -63,6 +63,7 @@ hippo_select_features = function(subdf,
 }
 
 hippo_clustering = function(subX,
+                            subdf,
                             clustering_method,
                             features,
                             km_num_embeds,
@@ -127,6 +128,7 @@ hippo_one_level = function(subX,
   }
   else {
     clustering_output = hippo_clustering(subX = subX,
+                                         subdf = subdf,
                                          clustering_method = clustering_method,
                                          features = features,
                                          km_num_embeds = km_num_embeds,
