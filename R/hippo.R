@@ -7,6 +7,22 @@ pois_deviance = function(x){
   return(2*sum(x*log(x/mu),na.rm=TRUE)-2*sum(x-mu))
 }
 
+pois_prob_zero = function(lambda) {
+  exp(-lambda)
+}
+
+nb_prob_zero = function(lambda, theta) {
+  if (theta == 0) {
+    return(exp(-lambda))
+  } else {
+    return((1/(lambda * theta + 1))^(1/theta))
+  }
+}
+
+zinb_prob_zero = function(lambda, theta, pi) {
+  return(pi + (1-pi) * nb_prob_zero(lambda, theta))
+}
+
 compute_test_statistic = function(df) {
   ind = which(df$gene_mean == 0)
   if (length(ind)) {
@@ -32,91 +48,227 @@ compute_test_statistic = function(df) {
   return(df)
 }
 
-
-one_level_clustering = function(subX,
-                                method = c("zero_inflation", "deviance"),
+hippo_select_features = function(subdf,
+                                feature_method,
                                 z_threshold,
-                                deviance_threshold,
-                                num_embeds = 10,
-                                nstart = 50){
-
-
-  subdf = preprocess_heterogeneous(subX)
-  subdf = compute_test_statistic(subdf)
-
-  if (method == "zero_inflation"){
+                                deviance_threshold){
+  if (feature_method == "zero_inflation"){
     features = subdf[subdf$zvalue > z_threshold, ]
-  }else if(method=="deviance"){
+  }else if(feature_method=="deviance"){
     features = subdf[subdf$deviance > deviance_threshold, ]
   }else{
     stop("method should be either 'zero_inflation' or 'deviance'")
   }
+  return(features)
+}
 
-  ## create empty data frame with desired column names
+hippo_clustering = function(subX,
+                            clustering_method,
+                            features,
+                            km_num_embeds,
+                            km_nstart,
+                            km_iter.max,
+                            null_result){
+  if(clustering_method == "kmeans"){
+    pcs = tryCatch(expr = {
+      irlba::irlba(log(subX[features$gene, ] + 1),
+                   min(km_num_embeds - 1,
+                       nrow(features) -1,
+                       ncol(subX) - 1))$v
+    }, error = function(e) NA, warning = function(w) NA)
+    if (is.na(pcs[1])) {
+      return(null_result)
+    }
+    unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features$gene,])) + 1),
+                                     n = min(km_num_embeds - 1,
+                                             nrow(features) - 1,
+                                             ncol(subX) - 1),
+                                     scale. = FALSE, center = FALSE)$x
+    km = kmeans(pcs, 2, nstart = km_nstart, iter.max = km_iter.max)
+    return(list(features = features,
+                pcs = pcs,
+                km = km,
+                unscaled_pcs = unscaledpc,
+                subdf = subdf))
+  }else if(clustering_method == "louvain"){
+
+  }else if(clustering_method == "consensus"){
+
+  }else{
+    return(null_result)
+  }
+
+}
+
+hippo_one_level = function(subX,
+                           feature_method = c("zero_inflation", "deviance"),
+                           clustering_method = c("kmeans",
+                                                 "louvain",
+                                                 "consensus"),
+                           z_threshold,
+                           deviance_threshold,
+                           km_num_embeds = 10,
+                           km_nstart = 50,
+                           km_iter.max = 50){
+  subdf = preprocess_heterogeneous(subX)
+  subdf = compute_test_statistic(subdf)
+  features = hippo_select_features(subdf,
+                                   feature_method,
+                                   z_threshold,
+                                   deviance_threshold)
   nullfeatures = data.frame(matrix(ncol = 11, nrow = 0))
   colnames(nullfeatures) = c("gene", "gene_mean", "zero_proportion",
                              "gene_var", "samplesize", "expected_pi", "se",
                              "minus_logp","zvalue", "subsetK", "K")
-
+  null_result = list(features = nullfeatures,
+                     pcs = NA, km = NA, unscaled_pcs = NA, subdf = NA)
   if (nrow(features) < 10) {
-    return(list(features = nullfeatures, pcs = NA, km = NA,
-                unscaled_pcs = NA,subdf = NA))
+    return(null_result)
   }
+  else {
+    clustering_output = hippo_clustering(subX = subX,
+                                         clustering_method = clustering_method,
+                                         features = features,
+                                         km_num_embeds = km_num_embeds,
+                                         km_nstart = km_nstart,
+                                         km_iter.max = km_iter.max,
+                                         null_result = null_result)
+    return(clustering_output)
+  }
+}
 
-  pcs = tryCatch(expr = {
-    irlba::irlba(log(subX[features$gene, ] + 1),
-                 min(num_embeds - 1,
-                     nrow(features) -1,
-                     ncol(subX) - 1))$v
-  }, error = function(e) {
-    NA
-  }, warning = function(w) {
-    NA
-  })
-
-  if (is.na(pcs[1])) {
-    return(list(features = nullfeatures, pcs = NA, km = NA,
-                unscaled_pcs = NA,
-                subdf = NA))
+#' HIPPO's hierarchical clustering
+#'
+#' @param sce SingleCellExperiment object
+#' @param K maximum number of clusters
+#' @param method string, either "zero-inflation" or "deviance", for feature
+#' selection method
+#' @param z_threshold numeric > 0 as a z-value threshold
+#' for selecting the features
+#' @param deviance_threshold numeric > 0 as a deviance threshold for
+#' selecting the features when method is "deviance
+#' @param outlier_proportion numeric between 0 and 1, a cut-off
+#' so that when the proportion of important features reach this
+#' number, the clustering terminates
+#' @param verbose if set to TRUE, shows progress of the algorithm
+#' @param km_num_embeds number of cell embeddings to use in dimension reduction
+#' @param km_nstart number of tries for k-means for reliability
+#' @param km_iter.max number of maximum iterations for kmeans
+#' @examples
+#' data(toydata)
+#' toydata = hippo(toydata,
+#'           feature_method = "zero_inflation",
+#'           clustering_method = "kmeans",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
+#' @return a list of clustering result for each level of k=1, 2, ... K.
+#' @export
+hippo = function(sce, K = 20,
+                 feature_method = c("zero_inflation", "deviance"),
+                 clustering_method = c("kmeans", "louvain", ""),
+                 z_threshold = 2,
+                 deviance_threshold = 200,
+                 outlier_proportion = 0.001,
+                 km_num_embeds = 10,
+                 km_nstart = 50,
+                 km_iter.max = 50,
+                 verbose = TRUE) {
+  if (is(sce, "SingleCellExperiment")) {
+    X = SingleCellExperiment::counts(sce)
+  } else if (is(sce, "matrix")) {
+    sce = SingleCellExperiment::SingleCellExperiment(assays=list(counts = sce))
+    X = SingleCellExperiment::counts(sce)
   } else {
-
-    unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features$gene,])) + 1),
-                                     n = min(num_embeds - 1,
-                                             nrow(features) - 1,
-                                             ncol(subX) - 1),
-                                     scale. = FALSE, center = FALSE)$x
-
-    km = kmeans(pcs, 2, nstart = nstart, iter.max = 50)
+    stop("input must be either matrix or SingleCellExperiment object")
   }
-
-  return(list(features = features,
-              pcs = pcs,
-              km = km,
-              unscaled_pcs = unscaledpc,
-              subdf = subdf))
-}
-
-pois_prob_zero = function(lambda) {
-  exp(-lambda)
-}
-
-nb_prob_zero = function(lambda, theta) {
-  if (theta == 0) {
-    return(exp(-lambda))
-  } else {
-    return((1/(lambda * theta + 1))^(1/theta))
+  if (outlier_proportion > 1 | outlier_proportion < 0) {
+    stop("Outlier_proportion must be a number between 0 and 1.
+         Default is 5%")
   }
-}
-
-zinb_prob_zero = function(lambda, theta, pi) {
-  return(pi + (1-pi) * nb_prob_zero(lambda, theta))
+  param = list(z_threshold = z_threshold,
+               outlier_proportion = outlier_proportion,
+               maxK = K)
+  outlier_number = nrow(X) * outlier_proportion
+  labelmatrix = matrix(NA, ncol(X), K)
+  labelmatrix[, 1] = 1
+  eachlevel = list()
+  subX = X
+  subXind = seq(ncol(X))
+  withinss = rep(0, K)
+  oldk = 1
+  features = list()
+  featuredata = list()
+  for (k in 2:K) {
+    thisk = hippo_one_level(subX,
+                            feature_method = feature_method,
+                            clustering_method = clustering_method,
+                            z_threshold = z_threshold,
+                            deviance_threshold = deviance_threshold,
+                            km_num_embeds = km_num_embeds,
+                            km_nstart = km_nstart,
+                            km_iter.max = km_iter.max)
+    if (is.na(thisk$features$gene[1])) {
+      if(verbose){
+        message("not enough important features left; terminate the procedure")
+      }
+      labelmatrix = labelmatrix[, seq((k - 1))]
+      break
+    }
+    if (nrow(thisk$features) < outlier_number) {
+      if(verbose){
+        message("not enough important features left; terminate the procedure")
+      }
+      labelmatrix = labelmatrix[, seq((k - 1))]
+      break
+    }
+    if (verbose) {message(paste0("K = ", k, ".."))}
+    labelmatrix[, k] = labelmatrix[, k - 1]
+    labelmatrix[subXind[thisk$km$cluster == 2], k] = k
+    oneind = thisk$km$cluster == 1
+    twoind = thisk$km$cluster == 2
+    if(sum(oneind) >= 2){
+      withinss[oldk] = sum(apply(thisk$unscaled_pcs[oneind, ],1, var)^2)
+    }else{
+      withinss[oldk] = var(as.numeric(thisk$unscaled_pcs[oneind,]))^2
+    }
+    if(sum(twoind) >= 2){
+      withinss[k] = sum(apply(thisk$unscaled_pcs[twoind, ], 1, var)^2)
+    }else{
+      withinss[k] = var(as.numeric(thisk$unscaled_pcs[twoind,]))^2
+    }
+    ind = which(table(thisk$km$cluster) <= 5)
+    if (length(ind) >= 1){
+      valid_indices = seq(k-1)[-ind]
+      oldk = which(withinss == max(withinss[valid_indices]))
+    }else{
+      oldk = which.max(withinss[seq(k-1)])
+    }
+    if (sum(labelmatrix[, k] == oldk) < 2) {
+      if(verbose){
+        message("too few cells in one cluster; terminating the procedure")
+      }
+      labelmatrix = labelmatrix[, seq(k)]
+      break
+    }
+    subX = X[thisk$features$gene, which(labelmatrix[, k] == oldk)]
+    subXind = which(labelmatrix[, k] == oldk)
+    thisk$features$subsetK = oldk
+    thisk$features$K = k
+    features[[k - 1]] = thisk$features
+  }
+  sce@int_metadata$hippo = list(X = X,
+                                features = features,labelmatrix = labelmatrix,
+                                z_threshold = z_threshold, param = param,
+                                outlier_proportion = outlier_proportion)
+  return(sce)
 }
 
 
 preprocess_heterogeneous = function(X) {
-  pois_deviance = function(x){
-    mu = mean(x); return(2*sum(x*log(x/mu),na.rm=TRUE)-2*sum(x-mu))
-  }
+  # pois_deviance = function(x){
+  #   mu = mean(x)
+  #   return(2*sum(x*log(x/mu),na.rm=TRUE)-2*sum(x-mu))
+  # }
   df = data.frame(gene = rownames(X),
                   gene_mean = Matrix::rowMeans(X),
                   zero_proportion = Matrix::rowMeans(X == 0))
@@ -245,7 +397,8 @@ hippo_diagnostic_plot = function(sce,
 #' data(toydata)
 #' set.seed(20200505)
 #' toydata = hippo(toydata,
-#'           method = "zero_inflation",
+#'           feature_method = "zero_inflation",
+#'           clustering_method = "kmeans",
 #'           K = 4,
 #'           outlier_proportion = 0.00001)
 #' hippo_object = get_hippo(toydata)
@@ -260,128 +413,6 @@ get_hippo = function(sce) {
 }
 
 
-
-
-#' HIPPO's hierarchical clustering
-#'
-#' @param sce SingleCellExperiment object
-#' @param K maximum number of clusters
-#' @param method string, either "zero-inflation" or "deviance", for feature
-#' selection method
-#' @param z_threshold numeric > 0 as a z-value threshold
-#' for selecting the features
-#' @param deviance_threshold numeric > 0 as a deviance threshold for
-#' selecting the features when method is "deviance
-#' @param outlier_proportion numeric between 0 and 1, a cut-off
-#' so that when the proportion of important features reach this
-#' number, the clustering terminates
-#' @param verbose if set to TRUE, shows progress of the algorithm
-#' @param num_embeds number of cell embeddings to use in dimension reduction
-#' @param nstart number of tries for k-means for reliability
-#' @examples
-#' data(toydata)
-#' toydata = hippo(toydata,
-#'           method = "zero_inflation",
-#'           K = 4,
-#'           outlier_proportion = 0.00001)
-#' @return a list of clustering result for each level of k=1, 2, ... K.
-#' @export
-hippo = function(sce, K = 20,
-                 method = "deviance",
-                 z_threshold = 2,
-                 featurenum = 2000,
-                 deviance_threshold = 200,
-                 outlier_proportion = 0.001,
-                 num_embeds = 10,
-                 nstart = 50,
-                 verbose = TRUE) {
-  if (is(sce, "SingleCellExperiment")) {
-    X = SingleCellExperiment::counts(sce)
-  } else if (is(sce, "matrix")) {
-    sce = SingleCellExperiment::SingleCellExperiment(assays=list(counts = sce))
-    X = SingleCellExperiment::counts(sce)
-  } else {
-    stop("input must be either matrix or SingleCellExperiment object")
-  }
-  if (outlier_proportion > 1 | outlier_proportion < 0) {
-    stop("Outlier_proportion must be a number between 0 and 1.
-         Default is 5%")
-  }
-  param = list(z_threshold = z_threshold,
-               outlier_proportion = outlier_proportion,
-               maxK = K)
-  outlier_number = nrow(X) * outlier_proportion
-  labelmatrix = matrix(NA, ncol(X), K)
-  labelmatrix[, 1] = 1
-  eachlevel = list()
-  subX = X
-  subXind = seq(ncol(X))
-  withinss = rep(0, K)
-  oldk = 1
-  features = list()
-  featuredata = list()
-  for (k in 2:K) {
-    thisk = one_level_clustering(subX,
-                                 method = method,
-                                 z_threshold = z_threshold,
-                                 deviance_threshold = deviance_threshold,
-                                 num_embeds = num_embeds,
-                                 nstart = nstart)
-    if (is.na(thisk$features$gene[1])) {
-      if(verbose){
-        message("not enough important features left; terminate the procedure")
-      }
-      labelmatrix = labelmatrix[, seq((k - 1))]
-      break
-    }
-    if (nrow(thisk$features) < outlier_number) {
-      if(verbose){
-        message("not enough important features left; terminate the procedure")
-      }
-      labelmatrix = labelmatrix[, seq((k - 1))]
-      break
-    }
-    if (verbose) {message(paste0("K = ", k, ".."))}
-    labelmatrix[, k] = labelmatrix[, k - 1]
-    labelmatrix[subXind[thisk$km$cluster == 2], k] = k
-    oneind = thisk$km$cluster == 1
-    twoind = thisk$km$cluster == 2
-    if(sum(oneind) >= 2){
-      withinss[oldk] = sum(apply(thisk$unscaled_pcs[oneind, ],1, var)^2)
-    }else{
-      withinss[oldk] = var(as.numeric(thisk$unscaled_pcs[oneind,]))^2
-    }
-    if(sum(twoind) >= 2){
-      withinss[k] = sum(apply(thisk$unscaled_pcs[twoind, ], 1, var)^2)
-    }else{
-      withinss[k] = var(as.numeric(thisk$unscaled_pcs[twoind,]))^2
-    }
-    ind = which(table(thisk$km$cluster) <= 5)
-    if (length(ind) >= 1){
-      valid_indices = seq(k-1)[-ind]
-      oldk = which(withinss == max(withinss[valid_indices]))
-    }else{
-      oldk = which.max(withinss[seq(k-1)])
-    }
-    if (sum(labelmatrix[, k] == oldk) < 2) {
-      if(verbose){
-        message("too few cells in one cluster; terminating the procedure")
-      }
-      labelmatrix = labelmatrix[, seq(k)]
-      break
-    }
-    subX = X[thisk$features$gene, which(labelmatrix[, k] == oldk)]
-    subXind = which(labelmatrix[, k] == oldk)
-    thisk$features$subsetK = oldk
-    thisk$features$K = k
-    features[[k - 1]] = thisk$features
-  }
-  sce@int_metadata$hippo = list(X = X,
-                                features = features,labelmatrix = labelmatrix,
-                                z_threshold = z_threshold, param = param,
-                                outlier_proportion = outlier_proportion)
-  return(sce)
-  }
 
 
 #' visualize each round of hippo through zero proportion plot
@@ -401,7 +432,8 @@ hippo = function(sce, K = 20,
 #' data(toydata)
 #' set.seed(20200505)
 #' toydata = hippo(toydata,
-#'           method = "zero_inflation",
+#'           feature_method = "zero_inflation",
+#'           clustering_method = "kmeans",
 #'           K = 4,
 #'           outlier_proportion = 0.00001)
 #' data(ensg_hgnc)
@@ -488,7 +520,8 @@ zero_proportion_plot = function(sce,
 #' data(toydata)
 #' set.seed(20200505)
 #' toydata = hippo(toydata,
-#'           method = "zero_inflation",
+#'           feature_method = "zero_inflation",
+#'           clustering_method = "kmeans",
 #'           K = 4,
 #'           outlier_proportion = 0.00001)
 #' toydata = hippo_dimension_reduction(toydata, method="tsne")
@@ -548,7 +581,8 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
 #' data(toydata)
 #' set.seed(20200505)
 #' toydata = hippo(toydata,
-#'           method = "zero_inflation",
+#'           feature_method = "zero_inflation",
+#'           clustering_method = "kmeans",
 #'           K = 4,
 #'           outlier_proportion = 0.00001)
 #' toydata = hippo_dimension_reduction(toydata, method="umap")
@@ -602,7 +636,8 @@ hippo_umap_plot = function(sce,
 #' data(toydata)
 #' set.seed(20200505)
 #' toydata = hippo(toydata,
-#'           method = "zero_inflation",
+#'           feature_method = "zero_inflation",
+#'           clustering_method = "kmeans",
 #'           K = 4,
 #'           outlier_proportion = 0.00001)
 #' toydata = hippo_dimension_reduction(toydata, method="tsne")
@@ -656,7 +691,8 @@ hippo_tsne_plot = function(sce,
 #' data(toydata)
 #' set.seed(20200505)
 #' toydata = hippo(toydata,
-#'           method = "zero_inflation",
+#'           feature_method = "zero_inflation",
+#'           clustering_method = "kmeans",
 #'           K = 4,
 #'           outlier_proportion = 0.00001)
 #' hippo_pca_plot(toydata, k = 2:3)
@@ -721,7 +757,8 @@ hippo_pca_plot = function(sce,
 #' data(toydata)
 #' set.seed(20200505)
 #' toydata = hippo(toydata,
-#'           method = "zero_inflation",
+#'           feature_method = "zero_inflation",
+#'           clustering_method = "kmeans",
 #'           K = 4,
 #'           outlier_proportion = 0.00001)
 #' result = hippo_diffexp(toydata, method = "gaus")
@@ -863,7 +900,8 @@ diffexp_subfunction_gaus = function(count, features, group1, group2){
 #' data(toydata)
 #' set.seed(20200505)
 #' toydata = hippo(toydata,
-#'           method = "zero_inflation",
+#'           feature_method = "zero_inflation",
+#'           clustering_method = "kmeans",
 #'           K = 4,
 #'           outlier_proportion = 0.00001)
 #' hippo_feature_heatmap(toydata)
@@ -937,7 +975,8 @@ ensg_to_hgnc = function(ensg) {
 #' data(toydata)
 #' set.seed(20200505)
 #' toydata = hippo(toydata,
-#'           method = "zero_inflation",
+#'           feature_method = "zero_inflation",
+#'           clustering_method = "kmeans",
 #'           K = 4,
 #'           outlier_proportion = 0.00001)
 #' toydata = hippo_diffexp(toydata, method = "gaus")
