@@ -18,7 +18,7 @@ Access hippo object from SingleCellExperiment object.
 \examples{
 data(toydata)
 set.seed(20200505)
-toydata = HIPPO: hippo(toydata,
+toydata = hippo(toydata,
           feature_method = "zero_inflation",
           clustering_method = "kmeans",
           K = 4,
