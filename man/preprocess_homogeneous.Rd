@@ -19,6 +19,6 @@ Create data frame with gene-level information for each cell type
 }
 \examples{
 data(toydata)
-labels = SingleCellExperiment::colData(toydata)$phenoid
+labels = SummarizedExperiment::colData(toydata)$phenoid
 df = preprocess_homogeneous(toydata, label = labels)
 }

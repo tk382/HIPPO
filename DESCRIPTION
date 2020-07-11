@@ -31,6 +31,8 @@ Imports:
     irlba,
     Matrix,
     SingleCellExperiment,
-    ggrepel
+    ggrepel,
+    SC3,
+    SummarizedExperiment
 RoxygenNote: 7.1.0
 biocViews: Sequencing, SingleCell, GeneExpression, DifferentialExpression, Clustering

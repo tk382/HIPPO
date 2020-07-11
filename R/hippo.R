@@ -63,16 +63,22 @@ hippo_select_features = function(subdf,
 }
 
 hippo_clustering = function(subX,
-                            subdf,
                             clustering_method,
                             features,
                             km_num_embeds,
                             km_nstart,
                             km_iter.max,
-                            null_result){
+                            null_result,
+                            sc3_n_cores){
+  subX = subX[features$gene,]
+  unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX)) + .1),
+                                   n = min(km_num_embeds - 1,
+                                           nrow(features) - 1,
+                                           ncol(subX) - 1),
+                                   scale. = FALSE, center = FALSE)$x
   if(clustering_method == "kmeans"){
     pcs = tryCatch(expr = {
-      irlba::irlba(log(subX[features$gene, ] + 1),
+      irlba::irlba(log(subX + 1),
                    min(km_num_embeds - 1,
                        nrow(features) -1,
                        ncol(subX) - 1))$v
@@ -80,39 +86,40 @@ hippo_clustering = function(subX,
     if (is.na(pcs[1])) {
       return(null_result)
     }
-    unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX[features$gene,])) + 1),
-                                     n = min(km_num_embeds - 1,
-                                             nrow(features) - 1,
-                                             ncol(subX) - 1),
-                                     scale. = FALSE, center = FALSE)$x
     km = kmeans(pcs, 2, nstart = km_nstart, iter.max = km_iter.max)
     return(list(features = features,
-                pcs = pcs,
-                km = km,
-                unscaled_pcs = unscaledpc,
-                subdf = subdf))
+                cluster = km$cluster,
+                unscaled_pcs = unscaledpc))
   }else if(clustering_method == "louvain"){
 
-  }else if(clustering_method == "consensus"){
-
+  }else if(clustering_method == "SC3"){
+    subX = as.matrix(subX)
+    tmp = SingleCellExperiment::SingleCellExperiment(assays = list(counts = subX,
+                                              logcounts = log(subX + 1)),
+                                colData = DataFrame(barcodes = colnames(subX)))
+    rowData(tmp)$feature_symbol = features$gene
+    tmp = suppressMessages(SC3::sc3(tmp, ks = 2, n_cores = sc3_n_cores))
+    return(list(features = features,
+                cluster = SummarizedExperiment::colData(tmp)$sc3_2_clusters,
+                unscaled_pcs = unscaledpc))
   }else{
-    return(null_result)
+    stop("clustering_method must be one of 'kmeans', 'SC3', and 'louvain'.")
   }
-
 }
 
 hippo_one_level = function(subX,
-                           feature_method = c("zero_inflation", "deviance"),
+                           feature_method = c("zero_inflation",
+                                              "deviance"),
                            clustering_method = c("kmeans",
                                                  "louvain",
-                                                 "consensus"),
+                                                 "SC3"),
                            z_threshold,
                            deviance_threshold,
                            km_num_embeds = 10,
                            km_nstart = 50,
-                           km_iter.max = 50){
+                           km_iter.max = 50,
+                           sc3_n_cores = 1){
   subdf = preprocess_heterogeneous(subX)
-  subdf = compute_test_statistic(subdf)
   features = hippo_select_features(subdf,
                                    feature_method,
                                    z_threshold,
@@ -128,54 +135,18 @@ hippo_one_level = function(subX,
   }
   else {
     clustering_output = hippo_clustering(subX = subX,
-                                         subdf = subdf,
                                          clustering_method = clustering_method,
                                          features = features,
                                          km_num_embeds = km_num_embeds,
                                          km_nstart = km_nstart,
                                          km_iter.max = km_iter.max,
-                                         null_result = null_result)
+                                         null_result = null_result,
+                                         sc3_n_cores = sc3_n_cores)
     return(clustering_output)
   }
 }
 
-#' HIPPO's hierarchical clustering
-#'
-#' @param sce SingleCellExperiment object
-#' @param K maximum number of clusters
-#' @param feature_method string, either "zero-inflation" or "deviance"
-#' @param clustering_method string, one of "kmeans", "louvian", and "consensus"
-#' @param z_threshold numeric > 0 as a z-value threshold
-#' for selecting the features
-#' @param deviance_threshold numeric > 0 as a deviance threshold for
-#' selecting the features when method is "deviance
-#' @param outlier_proportion numeric between 0 and 1, a cut-off
-#' so that when the proportion of important features reach this
-#' number, the clustering terminates
-#' @param verbose if set to TRUE, shows progress of the algorithm
-#' @param km_num_embeds number of cell embeddings to use in dimension reduction
-#' @param km_nstart number of tries for k-means for reliability
-#' @param km_iter.max number of maximum iterations for kmeans
-#' @examples
-#' data(toydata)
-#' toydata = hippo(toydata,
-#'           feature_method = "zero_inflation",
-#'           clustering_method = "kmeans",
-#'           K = 4,
-#'           outlier_proportion = 0.00001)
-#' @return a list of clustering result for each level of k=1, 2, ... K.
-#' @export
-hippo = function(sce,
-                 K = 20,
-                 feature_method = c("zero_inflation", "deviance"),
-                 clustering_method = c("kmeans", "louvain", "consensus"),
-                 z_threshold = 2,
-                 deviance_threshold = 200,
-                 outlier_proportion = 0.001,
-                 km_num_embeds = 10,
-                 km_nstart = 50,
-                 km_iter.max = 50,
-                 verbose = TRUE) {
+preliminary_check = function(sce, outlier_proportion){
   if (is(sce, "SingleCellExperiment")) {
     X = SingleCellExperiment::counts(sce)
   } else if (is(sce, "matrix")) {
@@ -188,13 +159,56 @@ hippo = function(sce,
     stop("Outlier_proportion must be a number between 0 and 1.
          Default is 5%")
   }
+  return(sce)
+}
+
+#' HIPPO's hierarchical clustering
+#'
+#' @param sce SingleCellExperiment object
+#' @param K maximum number of clusters
+#' @param feature_method string, either "zero-inflation" or "deviance"
+#' @param clustering_method string, one of "kmeans", "louvian", and "SC3"
+#' @param z_threshold numeric > 0 as a z-value threshold
+#' for selecting the features
+#' @param deviance_threshold numeric > 0 as a deviance threshold for
+#' selecting the features when method is "deviance
+#' @param outlier_proportion numeric between 0 and 1, a cut-off
+#' so that when the proportion of important features reach this
+#' number, the clustering terminates
+#' @param km_num_embeds number of cell embeddings to use in dimension reduction
+#' @param km_nstart number of tries for k-means for reliability
+#' @param km_iter.max number of maximum iterations for kmeans
+#' @param sc_n_cores number of cores to use if your method is "SC3"
+#' @param verbose if set to TRUE, shows progress of the algorithm
+#' @examples
+#' data(toydata)
+#' toydata = hippo(toydata,
+#'           feature_method = "zero_inflation",
+#'           clustering_method = "kmeans",
+#'           K = 4,
+#'           outlier_proportion = 0.00001)
+#' @return a list of clustering result for each level of k=1, 2, ... K.
+#' @export
+hippo = function(sce,
+                 K = 20,
+                 feature_method = c("zero_inflation", "deviance"),
+                 clustering_method = c("kmeans", "louvain", "SC3"),
+                 z_threshold = 2,
+                 deviance_threshold = 200,
+                 outlier_proportion = 0.001,
+                 km_num_embeds = 10,
+                 km_nstart = 50,
+                 km_iter.max = 50,
+                 sc3_n_cores = NA,
+                 verbose = TRUE){
+  sce = preliminary_check(sce, outlier_proportion)
+  X = SingleCellExperiment::counts(sce)
   param = list(z_threshold = z_threshold,
                outlier_proportion = outlier_proportion,
-               maxK = K)
-  outlier_number = nrow(X) * outlier_proportion
+               maxK = K,
+               outlier_number = nrow(X) * outlier_proportion)
   labelmatrix = matrix(NA, ncol(X), K)
   labelmatrix[, 1] = 1
-  eachlevel = list()
   subX = X
   subXind = seq(ncol(X))
   withinss = rep(0, K)
@@ -202,6 +216,7 @@ hippo = function(sce,
   features = list()
   featuredata = list()
   for (k in 2:K) {
+    if (verbose) {message(paste0("K = ", k, ".."))}
     thisk = hippo_one_level(subX,
                             feature_method = feature_method,
                             clustering_method = clustering_method,
@@ -209,69 +224,52 @@ hippo = function(sce,
                             deviance_threshold = deviance_threshold,
                             km_num_embeds = km_num_embeds,
                             km_nstart = km_nstart,
-                            km_iter.max = km_iter.max)
-    if (is.na(thisk$features$gene[1])) {
-      if(verbose){
-        message("not enough important features left; terminate the procedure")
-      }
-      labelmatrix = labelmatrix[, seq((k - 1))]
+                            km_iter.max = km_iter.max,
+                            sc3_n_cores = sc3_n_cores)
+    if (nrow(thisk$features) < param$outlier_number){
+      if(verbose){message("not enough important features left;
+                          terminate the procedure")}
+      labelmatrix = labelmatrix[,seq(k-1)]
       break
-    }
-    if (nrow(thisk$features) < outlier_number) {
-      if(verbose){
-        message("not enough important features left; terminate the procedure")
-      }
-      labelmatrix = labelmatrix[, seq((k - 1))]
+    }else if(min(table(thisk$cluster)) < 10){
+      if(verbose){message("cluster size too small; terminate the procedure")}
+      labelmatrix = labelmatrix[,seq(k-1)]
       break
-    }
-    if (verbose) {message(paste0("K = ", k, ".."))}
-    labelmatrix[, k] = labelmatrix[, k - 1]
-    labelmatrix[subXind[thisk$km$cluster == 2], k] = k
-    oneind = thisk$km$cluster == 1
-    twoind = thisk$km$cluster == 2
-    if(sum(oneind) >= 2){
-      withinss[oldk] = sum(apply(thisk$unscaled_pcs[oneind, ],1, var)^2)
     }else{
-      withinss[oldk] = var(as.numeric(thisk$unscaled_pcs[oneind,]))^2
-    }
-    if(sum(twoind) >= 2){
-      withinss[k] = sum(apply(thisk$unscaled_pcs[twoind, ], 1, var)^2)
-    }else{
-      withinss[k] = var(as.numeric(thisk$unscaled_pcs[twoind,]))^2
-    }
-    ind = which(table(thisk$km$cluster) <= 5)
-    if (length(ind) >= 1){
-      valid_indices = seq(k-1)[-ind]
-      oldk = which(withinss == max(withinss[valid_indices]))
-    }else{
+      labelmatrix[, k] = labelmatrix[, k - 1]
+      labelmatrix[subXind[thisk$cluster == 2], k] = k
+
+      ## update withinss
+      oneind = thisk$cluster == 1
+      twoind = thisk$cluster == 2
+      withinss[oldk] = sum(apply(thisk$unscaled_pcs[oneind, ],1, var))
+      withinss[k] = sum(apply(thisk$unscaled_pcs[twoind, ], 1, var))
+
+      ## update oldk
       oldk = which.max(withinss[seq(k-1)])
+
+      ## set up next round of clustering
+      subX = X[thisk$features$gene, which(labelmatrix[, k] == oldk)]
+      subXind = which(labelmatrix[, k] == oldk)
+      thisk$features$subsetK = oldk
+      thisk$features$K = k
+      features[[k-1]] = thisk$features
     }
-    if (sum(labelmatrix[, k] == oldk) < 2) {
-      if(verbose){
-        message("too few cells in one cluster; terminating the procedure")
-      }
-      labelmatrix = labelmatrix[, seq(k)]
-      break
-    }
-    subX = X[thisk$features$gene, which(labelmatrix[, k] == oldk)]
-    subXind = which(labelmatrix[, k] == oldk)
-    thisk$features$subsetK = oldk
-    thisk$features$K = k
-    features[[k - 1]] = thisk$features
   }
+  ## edit colData to save labelmatrix
+  SummarizedExperiment::colData(sce) =
+    cbind(SummarizedExperiment::colData(sce), labelmatrix)
+
+  ## update HIPPO object
   sce@int_metadata$hippo = list(X = X,
-                                features = features,labelmatrix = labelmatrix,
-                                z_threshold = z_threshold, param = param,
-                                outlier_proportion = outlier_proportion)
+                                features = features,
+                                labelmatrix = labelmatrix,
+                                param = param)
   return(sce)
 }
 
 
 preprocess_heterogeneous = function(X) {
-  # pois_deviance = function(x){
-  #   mu = mean(x)
-  #   return(2*sum(x*log(x/mu),na.rm=TRUE)-2*sum(x-mu))
-  # }
   df = data.frame(gene = rownames(X),
                   gene_mean = Matrix::rowMeans(X),
                   zero_proportion = Matrix::rowMeans(X == 0))
@@ -293,7 +291,7 @@ preprocess_heterogeneous = function(X) {
 #' @return data frame with cell-type specific gene information in each row
 #' @examples
 #' data(toydata)
-#' labels = SingleCellExperiment::colData(toydata)$phenoid
+#' labels = SummarizedExperiment::colData(toydata)$phenoid
 #' df = preprocess_homogeneous(toydata, label = labels)
 #' @export
 preprocess_homogeneous = function(sce, label) {
@@ -682,24 +680,7 @@ hippo_tsne_plot = function(sce,
   }
 }
 
-#' visualize each round of hippo through t-SNE
-#' @param sce SincleCellExperiment object with hippo and t-SNE result in it
-#' @param k number of rounds of clustering that you'd like to see result.
-#' Default is 1 to K
-#' @param pointsize size of the point for the plot (default 0.5)
-#' @param pointalpha transparency level of points for the plot (default 0.5)
-#' @param plottitle title for the ggplot
-#' @return ggplot for pca in each round
-#' @examples
-#' data(toydata)
-#' set.seed(20200505)
-#' toydata = hippo(toydata,
-#'           feature_method = "zero_inflation",
-#'           clustering_method = "kmeans",
-#'           K = 4,
-#'           outlier_proportion = 0.00001)
-#' hippo_pca_plot(toydata, k = 2:3)
-#' @export
+
 hippo_pca_plot = function(sce,
                           k = NA,
                           pointsize = 0.5,

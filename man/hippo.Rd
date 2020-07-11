@@ -8,13 +8,14 @@ hippo(
   sce,
   K = 20,
   feature_method = c("zero_inflation", "deviance"),
-  clustering_method = c("kmeans", "louvain", "consensus"),
+  clustering_method = c("kmeans", "louvain", "SC3"),
   z_threshold = 2,
   deviance_threshold = 200,
   outlier_proportion = 0.001,
   km_num_embeds = 10,
   km_nstart = 50,
   km_iter.max = 50,
+  sc3_n_cores = NA,
   verbose = TRUE
 )
 }
@@ -25,7 +26,7 @@ hippo(
 
 \item{feature_method}{string, either "zero-inflation" or "deviance"}
 
-\item{clustering_method}{string, one of "kmeans", "louvian", and "consensus"}
+\item{clustering_method}{string, one of "kmeans", "louvian", and "SC3"}
 
 \item{z_threshold}{numeric > 0 as a z-value threshold
 for selecting the features}
@@ -44,6 +45,8 @@ number, the clustering terminates}
 \item{km_iter.max}{number of maximum iterations for kmeans}
 
 \item{verbose}{if set to TRUE, shows progress of the algorithm}
+
+\item{sc_n_cores}{number of cores to use if your method is "SC3"}
 }
 \value{
 a list of clustering result for each level of k=1, 2, ... K.

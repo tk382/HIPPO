@@ -13,10 +13,11 @@ knitr::opts_chunk$set(echo = TRUE,
                       comment = NA,
                       fig.width = 6,
                       fig.height = 4)
-library(HIPPO)
+suppressMessages(library(HIPPO))
 source("../R/hippo.R")
-library(SingleCellExperiment)
-library(dplyr)
+suppressMessages(library(SingleCellExperiment))
+suppressMessages(library(dplyr))
+suppressMessages(library(SC3))
 set.seed(20200505)
 ```
 
@@ -99,13 +100,16 @@ outlier_proportion is the number of outlier genes to allow. The default is 0.01 
 set.seed(20200610)
 toydata = hippo(toydata, 
                 feature_method = "zero_inflation",
+                z_threshold = 1.5,
                 clustering_method = "kmeans",
                 K = 4, 
                 outlier_proportion = 0.00001)
 
 toydata = hippo(toydata, 
                 feature_method = "deviance",
-                clustering_method = "kmeans",
+                deviance_threshold = 50,
+                clustering_method = "SC3",
+                sc3_n_cores = 1,
                 K = 4, 
                 outlier_proportion = 0.00001)
 ```
