@@ -78,7 +78,7 @@ hippo_diagnostic_plot(sce,
                       zvalue_thresh = 3)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/diagnostic-1.png></a>
+![](README_files/figure-gfm/diagnostic-1.png)<!-- -->
 
 ## Feature Selection and Hierarchical Clustering
 
@@ -115,7 +115,8 @@ well.
 ``` r
 set.seed(20200610)
 sce = hippo(sce, 
-            method = "zero_inflation",
+            feature_method = "zero_inflation",
+            clustering_method = "kmeans",
             K = 3, 
             outlier_proportion = 0.00001)
 ```
@@ -130,14 +131,14 @@ sce = hippo_dimension_reduction(sce, method="umap")
 hippo_umap_plot(sce)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/umap-1.png></a>
+![](README_files/figure-gfm/umap-1.png)<!-- -->
 
 ``` r
 sce = hippo_dimension_reduction(sce, method="tsne")
 hippo_tsne_plot(sce)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/tsne-1.png></a>
+![](README_files/figure-gfm/tsne-1.png)<!-- -->
 
 ## Visualize the selected features at each round
 
@@ -158,7 +159,7 @@ zero_proportion_plot(sce,
                      ref = ensg_hgnc)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/featureselection-1.png></a>
+![](README_files/figure-gfm/featureselection-1.png)<!-- -->
 
 ``` r
 hippo_feature_heatmap(sce, k = 2, 
@@ -167,7 +168,7 @@ hippo_feature_heatmap(sce, k = 2,
                       top.n = 20)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/featureselection-2.png></a>
+![](README_files/figure-gfm/featureselection-2.png)<!-- -->
 
 ``` r
 hippo_feature_heatmap(sce, k = 3, 
@@ -176,7 +177,7 @@ hippo_feature_heatmap(sce, k = 3,
                       top.n = 20)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/featureselection-3.png></a>
+![](README_files/figure-gfm/featureselection-3.png)<!-- -->
 
 ## Differential Expression Example
 
@@ -192,12 +193,12 @@ separated in the dimension reduction plot.
 
 ``` r
 sce = hippo_diffexp(sce, 
-                  top.n = 5, 
+                  top.n = 15, 
                   switch_to_hgnc = TRUE, 
                   ref = ensg_hgnc)
 ```
 
-<a href="https://github.com/tk382/HIPPO"><img src=https://github.com/tk382/hippo_artifacts/blob/master/figures/diffexp-1.png></a>
+![](README_files/figure-gfm/diffexp-1.png)<!-- -->
 
 Each round of differential expression test results are also saved in the
 list of data frames.

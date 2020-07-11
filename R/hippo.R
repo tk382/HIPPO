@@ -143,9 +143,8 @@ hippo_one_level = function(subX,
 #'
 #' @param sce SingleCellExperiment object
 #' @param K maximum number of clusters
-#' @param feature_method string, either "zero-inflation" or "deviance", for feature
-#' selection method
-#' @param clustering_method string, one of "kmeans", "louvian", and "clustering"
+#' @param feature_method string, either "zero-inflation" or "deviance"
+#' @param clustering_method string, one of "kmeans", "louvian", and "consensus"
 #' @param z_threshold numeric > 0 as a z-value threshold
 #' for selecting the features
 #' @param deviance_threshold numeric > 0 as a deviance threshold for
@@ -166,7 +165,8 @@ hippo_one_level = function(subX,
 #'           outlier_proportion = 0.00001)
 #' @return a list of clustering result for each level of k=1, 2, ... K.
 #' @export
-hippo = function(sce, K = 20,
+hippo = function(sce,
+                 K = 20,
                  feature_method = c("zero_inflation", "deviance"),
                  clustering_method = c("kmeans", "louvain", "consensus"),
                  z_threshold = 2,

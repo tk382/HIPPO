@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE,
 library(HIPPO)
 source("../R/hippo.R")
 library(SingleCellExperiment)
+library(dplyr)
 set.seed(20200505)
 ```
 
