@@ -62,6 +62,114 @@ hippo_select_features = function(subdf,
   return(features)
 }
 
+
+clustering_kmeans = function(subX,
+                             clustering_method,
+                             features,
+                             km_num_embeds,
+                             km_nstart,
+                             km_iter.max,
+                             null_result,
+                             sc3_n_cores){
+  subX = subX[features$gene,]
+  unscaledpc = suppressWarnings(irlba::prcomp_irlba(log(Matrix::t((subX)) + .1),
+                                   n = min(km_num_embeds - 1,
+                                           nrow(features) - 1,
+                                           ncol(subX) - 1),
+                                   scale. = FALSE, center = FALSE)$x)
+  pcs = tryCatch(expr = {
+    irlba::irlba(log(subX + 1),
+                 min(km_num_embeds - 1,
+                     nrow(features) -1,
+                     ncol(subX) - 1))$v
+  }, error = function(e) NA, warning = function(w) NA)
+  if (is.na(pcs[1])) {
+    return(null_result)
+  }
+  km = kmeans(pcs, 2, nstart = km_nstart, iter.max = km_iter.max)
+  return(list(features = features,
+              cluster = km$cluster,
+              unscaled_pcs = unscaledpc))
+}
+
+clustering_Seurat = function(subX,
+                             clustering_method,
+                             features,
+                             km_num_embeds,
+                             km_nstart,
+                             km_iter.max,
+                             null_result,
+                             sc3_n_cores){
+  tmp = SingleCellExperiment::SingleCellExperiment(
+    assays = list(counts = subX,
+                  logcounts = log(subX + 1)),
+    colData = DataFrame(barcodes= colnames(subX)))
+  subX = subX[features$gene,]
+  unscaledpc = suppressWarnings(irlba::prcomp_irlba(log(Matrix::t((subX))+.1),
+                                   n = min(km_num_embeds - 1,
+                                           nrow(features) - 1,
+                                           ncol(subX) - 1),
+                                   scale. = FALSE, center = FALSE)$x)
+  SingleCellExperiment::logcounts(tmp) = log(SingleCellExperiment::counts(tmp)+1)
+  tmp = Seurat::as.Seurat(tmp)
+  Seurat::VariableFeatures(tmp) = features$gene
+  tmp = suppressWarnings(suppressMessages(Seurat::ScaleData(tmp)))
+  tmp = suppressWarnings(
+    suppressMessages(Seurat::RunPCA(tmp,
+                                features = Seurat::VariableFeatures(object = tmp),
+                                npcs = 10)))
+  tmp = suppressWarnings(
+    suppressMessages(Seurat::FindNeighbors(tmp, dims = 1:10)))
+  res = 0.5
+  tmp = suppressWarnings(
+    suppressMessages(Seurat::FindClusters(tmp, resolution = res)))
+  while(length(unique(Seurat::Idents(tmp))) == 1){
+    print("increasing resolution..")
+    res = res + 0.1
+    tmp = suppressMessages(Seurat::FindClusters(tmp, resolution = res))
+  }
+  cluster = as.numeric(Seurat::Idents(tmp))
+  cluster[cluster>=2] = 2
+  return(list(features = features,
+              cluster = cluster,
+              unscaled_pcs = unscaledpc))
+}
+
+clustering_SC3 = function(subX,
+                          clustering_method,
+                          features,
+                          km_num_embeds,
+                          km_nstart,
+                          km_iter.max,
+                          null_result,
+                          sc3_n_cores){
+  if(is.na(sc3_n_cores)){
+    message("core number not specified: using only 1 core")
+    sc3_n_cores = 1
+  }
+  tmp = SingleCellExperiment::SingleCellExperiment(
+    assays = list(counts = subX,
+                  logcounts = log(subX + 1)),
+    colData = DataFrame(barcodes= colnames(subX)))
+  subX = subX[features$gene,]
+  unscaledpc = suppressWarnings(irlba::prcomp_irlba(log(Matrix::t((subX)) + .1),
+                                   n = min(km_num_embeds - 1,
+                                           nrow(features) - 1,
+                                           ncol(subX) - 1),
+                                   scale. = FALSE, center = FALSE)$x)
+  subX = as.matrix(subX)
+  rowData(tmp)$feature_symbol = features$gene
+  tmp = suppressMessages(SC3::sc3(tmp,
+                                  ks = 2,
+                                  n_cores = sc3_n_cores,
+                                  kmeans_nstart = km_start,
+                                  kmeans_iter_max = km_iter.max))
+  cluster = SummarizedExperiment::colData(tmp)$sc3_2_clusters
+  return(list(features = features,
+              cluster = cluster,
+              unscaled_pcs = unscaledpc))
+}
+
 hippo_clustering = function(subX,
                             clustering_method,
                             features,
@@ -70,48 +178,45 @@ hippo_clustering = function(subX,
                             km_iter.max,
                             null_result,
                             sc3_n_cores){
-  subX = subX[features$gene,]
-  unscaledpc = irlba::prcomp_irlba(log(Matrix::t((subX)) + .1),
-                                   n = min(km_num_embeds - 1,
-                                           nrow(features) - 1,
-                                           ncol(subX) - 1),
-                                   scale. = FALSE, center = FALSE)$x
   if(clustering_method == "kmeans"){
-    pcs = tryCatch(expr = {
-      irlba::irlba(log(subX + 1),
-                   min(km_num_embeds - 1,
-                       nrow(features) -1,
-                       ncol(subX) - 1))$v
-    }, error = function(e) NA, warning = function(w) NA)
-    if (is.na(pcs[1])) {
-      return(null_result)
-    }
-    km = kmeans(pcs, 2, nstart = km_nstart, iter.max = km_iter.max)
-    return(list(features = features,
-                cluster = km$cluster,
-                unscaled_pcs = unscaledpc))
-  }else if(clustering_method == "louvain"){
-
+    return(clustering_kmeans(subX,
+                             clustering_method,
+                             features,
+                             km_num_embeds,
+                             km_nstart,
+                             km_iter.max,
+                             null_result,
+                             sc3_n_cores))
+  }else if(clustering_method == "Seurat"){
+    return(clustering_Seurat(subX,
+                             clustering_method,
+                             features,
+                             km_num_embeds,
+                             km_nstart,
+                             km_iter.max,
+                             null_result,
+                             sc3_n_cores))
   }else if(clustering_method == "SC3"){
-    subX = as.matrix(subX)
-    tmp = SingleCellExperiment::SingleCellExperiment(assays = list(counts = subX,
-                                              logcounts = log(subX + 1)),
-                                colData = DataFrame(barcodes = colnames(subX)))
-    rowData(tmp)$feature_symbol = features$gene
-    tmp = suppressMessages(SC3::sc3(tmp, ks = 2, n_cores = sc3_n_cores))
-    return(list(features = features,
-                cluster = SummarizedExperiment::colData(tmp)$sc3_2_clusters,
-                unscaled_pcs = unscaledpc))
+    return(clustering_SC3(subX,
+                             clustering_method,
+                             features,
+                             km_num_embeds,
+                             km_nstart,
+                             km_iter.max,
+                             null_result,
+                             sc3_n_cores))
   }else{
-    stop("clustering_method must be one of 'kmeans', 'SC3', and 'louvain'.")
+    stop("clustering_method must be one of 'kmeans', 'SC3', and 'Seurat'.")
   }
 }
+
+
 
 hippo_one_level = function(subX,
                            feature_method = c("zero_inflation",
                                               "deviance"),
                            clustering_method = c("kmeans",
-                                                 "louvain",
+                                                 "Seurat",
                                                  "SC3"),
                            z_threshold,
                            deviance_threshold,
@@ -167,7 +272,7 @@ preliminary_check = function(sce, outlier_proportion){
 #' @param sce SingleCellExperiment object
 #' @param K maximum number of clusters
 #' @param feature_method string, either "zero-inflation" or "deviance"
-#' @param clustering_method string, one of "kmeans", "louvian", and "SC3"
+#' @param clustering_method string, one of "kmeans", "Seurat", and "SC3"
 #' @param z_threshold numeric > 0 as a z-value threshold
 #' for selecting the features
 #' @param deviance_threshold numeric > 0 as a deviance threshold for
@@ -178,7 +283,7 @@ preliminary_check = function(sce, outlier_proportion){
 #' @param km_num_embeds number of cell embeddings to use in dimension reduction
 #' @param km_nstart number of tries for k-means for reliability
 #' @param km_iter.max number of maximum iterations for kmeans
-#' @param sc_n_cores number of cores to use if your method is "SC3"
+#' @param sc3_n_cores number of cores to use if your method is "SC3"
 #' @param verbose if set to TRUE, shows progress of the algorithm
 #' @examples
 #' data(toydata)
@@ -192,9 +297,9 @@ preliminary_check = function(sce, outlier_proportion){
 hippo = function(sce,
                  K = 20,
                  feature_method = c("zero_inflation", "deviance"),
-                 clustering_method = c("kmeans", "louvain", "SC3"),
-                 z_threshold = 2,
-                 deviance_threshold = 200,
+                 clustering_method = c("kmeans", "Seurat", "SC3"),
+                 z_threshold = 1.5,
+                 deviance_threshold = 150,
                  outlier_proportion = 0.001,
                  km_num_embeds = 10,
                  km_nstart = 50,
@@ -691,8 +796,8 @@ hippo_pca_plot = function(sce,
   }
   hippo_object = sce@int_metadata$hippo
   count = SingleCellExperiment::counts(sce)
-  pc = irlba::irlba(log(count[hippo_object$features[[1]]$gene,
-                               ] + 1), v = 2)$v
+  pc = suppressWarnings(irlba::irlba(log(count[hippo_object$features[[1]]$gene,
+                               ] + 1), v = 2)$v)
   pcadf = data.frame()
   for (kk in k) {
     pcadf = rbind(pcadf, data.frame(PC1 = pc[, 1], PC2 = pc[, 2],K = kk,
@@ -759,17 +864,24 @@ hippo_diffexp = function(sce,
          ENSG ids to HGNC symbols")
   }
   hippo_object = get_hippo(sce)
-  if (is.na(k[1])) {k = seq(2,ncol(hippo_object$labelmatrix))}
   param = hippo_object$param
+  if (is.na(k[1])) {k = seq(2,ncol(hippo_object$labelmatrix))}
+  if(max(k) > ncol(get_hippo(sce)$labelmatrix)){
+    k = k[which(k < ncol(get_hippo(sce)$labelmatrix))]
+  }
   featureind = cellind = result = list()
   featureind[[1]] = seq(nrow(hippo_object$X))
   cellind[[1]] = seq(ncol(hippo_object$X))
   labelmatrix = hippo_object$labelmatrix
-  count = hippo_object$X
+  count = counts(sce)
   finalnewcount = data.frame()
   ind = 1
   for (kk in k) {
+    print(kk)
     features = hippo_object$features[[ind]]
+    if(top.n > nrow(features)){
+      top.n = nrow(features)
+    }
     cellind = which(labelmatrix[, kk-1] ==
                       labelmatrix[which(labelmatrix[,kk - 1] !=
                                           labelmatrix[, kk])[1], kk - 1])
@@ -782,10 +894,9 @@ hippo_diffexp = function(sce,
     }else if (method == "gaus"){
       rowdata = diffexp_subfunction_gaus(count,features, cellgroup1, cellgroup2)
     }
-
     topgenes = as.character(rowdata$genes[seq(top.n)])
     tmpx = cbind(count[topgenes,cellgroup1],
-                 count[topgenes, cellgroup2])
+                 count[topgenes,cellgroup2])
     newcount = as.data.frame(Matrix::t(log(tmpx+1)))
     if (switch_to_hgnc) {
       colnames(newcount) = ref$hgnc[match(colnames(newcount), ref$ensg)]

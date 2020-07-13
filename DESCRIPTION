@@ -33,6 +33,7 @@ Imports:
     SingleCellExperiment,
     ggrepel,
     SC3,
-    SummarizedExperiment
+    SummarizedExperiment,
+    Seurat
 RoxygenNote: 7.1.0
 biocViews: Sequencing, SingleCell, GeneExpression, DifferentialExpression, Clustering

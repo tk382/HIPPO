@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.width = 6,
                       fig.height = 4)
 suppressMessages(library(HIPPO))
+suppressMessages(library(Seurat))
 source("../R/hippo.R")
 suppressMessages(library(SingleCellExperiment))
 suppressMessages(library(dplyr))
@@ -96,22 +97,23 @@ z_threshold is the feature selection criterion. For each round of hierarchical c
 outlier_proportion is the number of outlier genes to allow. The default is 0.01 (1%) which means the clustering procedure will automatically stop if there are less than 1% of genes remain as important features. With the example data set, the default choice has empirically worked well.
 
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, message = FALSE, warning=FALSE}
 set.seed(20200610)
+
 toydata = hippo(toydata, 
                 feature_method = "zero_inflation",
-                z_threshold = 1.5,
+                z_threshold = 1,
                 clustering_method = "kmeans",
                 K = 4, 
                 outlier_proportion = 0.00001)
 
 toydata = hippo(toydata, 
-                feature_method = "deviance",
-                deviance_threshold = 50,
-                clustering_method = "SC3",
-                sc3_n_cores = 1,
+                feature_method = "zero_inflation",
+                z_threshold = 2,
+                clustering_method = "Seurat",
                 K = 4, 
                 outlier_proportion = 0.00001)
+
 ```
 
 ## Dimension Reduction for Each Round of HIPPO
@@ -128,11 +130,15 @@ toydata = hippo_dimension_reduction(toydata, method="tsne")
 hippo_tsne_plot(toydata)
 ```
 
+```{r}
+table(get_hippo(toydata)$labelmatrix[,4], colData(toydata)$phenoid)
+```
+
 ## Visualize the selected features at each round
 
 This function shows how the zero-inflation decreases as HIPPO proceeds in the clustering. This function has arguments called switch_to_hgnc and ref. These aim to provide the users an option to change the gene names from ENSG IDs to HGNC symbols for ease of understanding. Many SingleCellExperiment objects have such data embedded in rowData(toydata). Users can create a data frame with ensg and hgnc columns for the genes, and HIPPO will automatically switch the row names of the count matrix from ENSG IDs to HGNC symbols. The default is set to FALSE, assuming that the row names are already HGNC symbols.
 
-```{r, fig.width = 6, fig.height = 3}
+```{r, fig.width = 6, fig.height = 3, warning=FALSE, message=FALSE}
 data(ensg_hgnc)
 zero_proportion_plot(toydata, 
                      switch_to_hgnc = TRUE, 
@@ -151,7 +157,7 @@ This function also has an option to switch the gene names to HGNC symbols. top.n
 
 The labels of boxplots are aligned with the t-SNE or UMAP plots above. When K is equal to 2, the color codes match with the cell groups as separated in the dimension reduction plot. 
 
-```{r}
+```{r, fig.width = 5, fig.height = 7}
 toydata = hippo_diffexp(toydata, 
                         method = "pois",
                         top.n = 15, 
