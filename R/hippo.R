@@ -351,7 +351,7 @@ hippo = function(sce,
       withinss[k] = sum(apply(thisk$unscaled_pcs[twoind, ], 1, var))
 
       ## update oldk
-      oldk = which.max(withinss[seq(k-1)])
+      oldk = which.max(withinss[seq(k)])
 
       ## set up next round of clustering
       subX = X[thisk$features$gene, which(labelmatrix[, k] == oldk)]
