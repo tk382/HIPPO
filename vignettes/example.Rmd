@@ -19,6 +19,7 @@ source("../R/hippo.R")
 suppressMessages(library(SingleCellExperiment))
 suppressMessages(library(dplyr))
 suppressMessages(library(SC3))
+suppressMessages(library(SummarizedExperiment))
 set.seed(20200505)
 ```
 
@@ -101,19 +102,22 @@ outlier_proportion is the number of outlier genes to allow. The default is 0.01 
 set.seed(20200610)
 
 toydata = hippo(toydata, 
-                feature_method = "deviance",
-                deviance_threshold = 100,
-                clustering_method = "kmeans",
-                K = 4, 
-                outlier_proportion = 0.00001)
-
-toydata = hippo(toydata, 
                 feature_method = "zero_inflation",
-                z_threshold = 2,
+                z_threshold = 1,
                 clustering_method = "Seurat",
                 K = 4, 
                 outlier_proportion = 0.00001)
+```
 
+```{r}
+set.seed(20200610)
+toydata = hippo(toydata, 
+                feature_method = "deviance",
+                z_threshold = 2,
+                deviance_threshold = 50,
+                clustering_method = "kmeans",
+                K = 4, 
+                outlier_proportion = 0.00001)
 ```
 
 ## Dimension Reduction for Each Round of HIPPO
