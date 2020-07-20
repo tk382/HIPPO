@@ -49,9 +49,9 @@ compute_test_statistic = function(df) {
 }
 
 hippo_select_features = function(subdf,
-                                feature_method,
-                                z_threshold,
-                                deviance_threshold){
+                                 feature_method,
+                                 z_threshold,
+                                 deviance_threshold){
   if (feature_method == "zero_inflation"){
     features = subdf[subdf$zvalue > z_threshold, ]
   }else if(feature_method=="deviance"){
@@ -63,6 +63,22 @@ hippo_select_features = function(subdf,
 }
 
 
+preliminary_check = function(sce, outlier_proportion){
+  if (is(sce, "SingleCellExperiment")) {
+    X = SingleCellExperiment::counts(sce)
+  } else if (is(sce, "matrix")) {
+    sce = SingleCellExperiment::SingleCellExperiment(assays=list(counts = sce))
+    X = SingleCellExperiment::counts(sce)
+  } else {
+    stop("input must be either matrix or SingleCellExperiment object")
+  }
+  if (outlier_proportion > 1 | outlier_proportion < 0) {
+    stop("Outlier_proportion must be a number between 0 and 1.
+         Default is 5%")
+  }
+  return(sce)
+}
+
 clustering_kmeans = function(subX,
                              clustering_method,
                              features,
@@ -73,10 +89,10 @@ clustering_kmeans = function(subX,
                              sc3_n_cores){
   subX = subX[features$gene,]
   unscaledpc = suppressWarnings(irlba::prcomp_irlba(log(Matrix::t((subX)) + .1),
-                                   n = min(km_num_embeds - 1,
-                                           nrow(features) - 1,
-                                           ncol(subX) - 1),
-                                   scale. = FALSE, center = FALSE)$x)
+                                                    n = min(km_num_embeds - 1,
+                                                            nrow(features) - 1,
+                                                            ncol(subX) - 1),
+                                                    scale. = FALSE, center = FALSE)$x)
   pcs = tryCatch(expr = {
     irlba::irlba(log(subX + 1),
                  min(km_num_embeds - 1,
@@ -106,20 +122,23 @@ clustering_Seurat = function(subX,
     colData = DataFrame(barcodes= colnames(subX)))
   subX = subX[features$gene,]
   unscaledpc = suppressWarnings(irlba::prcomp_irlba(log(Matrix::t((subX))+.1),
-                                   n = min(km_num_embeds - 1,
-                                           nrow(features) - 1,
-                                           ncol(subX) - 1),
-                                   scale. = FALSE, center = FALSE)$x)
+                                                    n = min(km_num_embeds - 1,
+                                                            nrow(features) - 1,
+                                                            ncol(subX) - 1),
+                                                    scale. = FALSE, center = FALSE)$x)
   SingleCellExperiment::logcounts(tmp) = log(SingleCellExperiment::counts(tmp)+1)
+  tmp = tmp[!duplicated(rownames(tmp)), ]
   tmp = Seurat::as.Seurat(tmp)
   Seurat::VariableFeatures(tmp) = features$gene
   tmp = suppressWarnings(suppressMessages(Seurat::ScaleData(tmp)))
   tmp = suppressWarnings(
     suppressMessages(Seurat::RunPCA(tmp,
-                                features = Seurat::VariableFeatures(object = tmp),
-                                npcs = 10)))
+                                    features = Seurat::VariableFeatures(object = tmp),
+                                    npcs = min(10,
+                                               ncol(subX)-1))))
   tmp = suppressWarnings(
-    suppressMessages(Seurat::FindNeighbors(tmp, dims = 1:10)))
+    suppressMessages(Seurat::FindNeighbors(tmp, dims = seq(1,min(10,
+                                                                 ncol(subX)-1)))))
   res = 0.5
   tmp = suppressWarnings(
     suppressMessages(Seurat::FindClusters(tmp, resolution = res)))
@@ -129,7 +148,7 @@ clustering_Seurat = function(subX,
     tmp = suppressMessages(Seurat::FindClusters(tmp, resolution = res))
   }
   cluster = as.numeric(Seurat::Idents(tmp))
-  cluster[cluster>=2] = 2
+  # cluster[cluster>=2] = 2
   return(list(features = features,
               cluster = cluster,
               unscaled_pcs = unscaledpc))
@@ -153,10 +172,10 @@ clustering_SC3 = function(subX,
     colData = DataFrame(barcodes= colnames(subX)))
   subX = subX[features$gene,]
   unscaledpc = suppressWarnings(irlba::prcomp_irlba(log(Matrix::t((subX)) + .1),
-                                   n = min(km_num_embeds - 1,
-                                           nrow(features) - 1,
-                                           ncol(subX) - 1),
-                                   scale. = FALSE, center = FALSE)$x)
+                                                    n = min(km_num_embeds - 1,
+                                                            nrow(features) - 1,
+                                                            ncol(subX) - 1),
+                                                    scale. = FALSE, center = FALSE)$x)
   subX = as.matrix(subX)
   rowData(tmp)$feature_symbol = features$gene
   tmp = suppressMessages(SC3::sc3(tmp,
@@ -198,13 +217,13 @@ hippo_clustering = function(subX,
                              sc3_n_cores))
   }else if(clustering_method == "SC3"){
     return(clustering_SC3(subX,
-                             clustering_method,
-                             features,
-                             km_num_embeds,
-                             km_nstart,
-                             km_iter.max,
-                             null_result,
-                             sc3_n_cores))
+                          clustering_method,
+                          features,
+                          km_num_embeds,
+                          km_nstart,
+                          km_iter.max,
+                          null_result,
+                          sc3_n_cores))
   }else{
     stop("clustering_method must be one of 'kmeans', 'SC3', and 'Seurat'.")
   }
@@ -229,16 +248,16 @@ hippo_one_level = function(subX,
                                    feature_method,
                                    z_threshold,
                                    deviance_threshold)
+  subX = subX[features$gene, ]
   nullfeatures = data.frame(matrix(ncol = 11, nrow = 0))
   colnames(nullfeatures) = c("gene", "gene_mean", "zero_proportion",
                              "gene_var", "samplesize", "expected_pi", "se",
-                             "minus_logp","zvalue", "subsetK", "K")
+                             "minus_logp","zvalue","Round")
   null_result = list(features = nullfeatures,
                      pcs = NA, km = NA, unscaled_pcs = NA, subdf = NA)
   if (nrow(features) < 10) {
     return(null_result)
-  }
-  else {
+  }else {
     clustering_output = hippo_clustering(subX = subX,
                                          clustering_method = clustering_method,
                                          features = features,
@@ -251,21 +270,7 @@ hippo_one_level = function(subX,
   }
 }
 
-preliminary_check = function(sce, outlier_proportion){
-  if (is(sce, "SingleCellExperiment")) {
-    X = SingleCellExperiment::counts(sce)
-  } else if (is(sce, "matrix")) {
-    sce = SingleCellExperiment::SingleCellExperiment(assays=list(counts = sce))
-    X = SingleCellExperiment::counts(sce)
-  } else {
-    stop("input must be either matrix or SingleCellExperiment object")
-  }
-  if (outlier_proportion > 1 | outlier_proportion < 0) {
-    stop("Outlier_proportion must be a number between 0 and 1.
-         Default is 5%")
-  }
-  return(sce)
-}
+
 
 #' HIPPO's hierarchical clustering
 #'
@@ -298,17 +303,18 @@ hippo = function(sce,
                  K = 20,
                  feature_method = c("zero_inflation", "deviance"),
                  clustering_method = c("kmeans", "Seurat", "SC3"),
-                 z_threshold = 1.5,
-                 deviance_threshold = 150,
+                 z_threshold = 1,
+                 deviance_threshold = 50,
                  outlier_proportion = 0.001,
                  km_num_embeds = 10,
-                 km_nstart = 50,
+                 km_nstart = 10,
                  km_iter.max = 50,
                  sc3_n_cores = NA,
                  verbose = TRUE){
   sce = preliminary_check(sce, outlier_proportion)
   X = SingleCellExperiment::counts(sce)
   param = list(z_threshold = z_threshold,
+               deviance_threshold = deviance_threshold,
                outlier_proportion = outlier_proportion,
                maxK = K,
                outlier_number = nrow(X) * outlier_proportion)
@@ -317,11 +323,12 @@ hippo = function(sce,
   subX = X
   subXind = seq(ncol(X))
   withinss = rep(0, K)
-  oldk = 1
+  oldk = 1; k = 2
   features = list()
-  featuredata = list()
-  for (k in 2:K) {
-    if (verbose) {message(paste0("K = ", k, ".."))}
+  round = 1
+  while (k < K) {
+    if (verbose) {message(paste0("Round = ", round, "..", "K = ", k,".."))}
+    round = round + 1
     thisk = hippo_one_level(subX,
                             feature_method = feature_method,
                             clustering_method = clustering_method,
@@ -334,33 +341,49 @@ hippo = function(sce,
     if (nrow(thisk$features) < param$outlier_number){
       if(verbose){message("not enough important features left;
                           terminate the procedure")}
-      labelmatrix = labelmatrix[,seq(k-1)]
+      labelmatrix = labelmatrix[,seq(round-1)]
       break
     }else if(min(table(thisk$cluster)) < 10){
       if(verbose){message("cluster size too small; terminate the procedure")}
-      labelmatrix = labelmatrix[,seq(k-1)]
+      labelmatrix = labelmatrix[,seq(round-1)]
       break
     }else{
-      labelmatrix[, k] = labelmatrix[, k - 1]
-      labelmatrix[subXind[thisk$cluster == 2], k] = k
-
+      newc = thisk$cluster
+      labelmatrix[, round] = labelmatrix[, round-1]
+      origclusternum = labelmatrix[subXind, round-1][1]
+      origind = which(newc == 1)
+      updateind = which(newc != 1)
+      labelmatrix[subXind[updateind], round] =
+        max(labelmatrix[, round]) + newc[updateind]-1
+      labelmatrix[subXind[origind], round] = origclusternum
+      allk = sort(unique(labelmatrix[,round]))
+      newk = c(origclusternum, allk[! allk %in% labelmatrix[,round-1]])
+      k = max(allk)
       ## update withinss
-      oneind = thisk$cluster == 1
-      twoind = thisk$cluster == 2
-      withinss[oldk] = sum(apply(thisk$unscaled_pcs[oneind, ],1, var))
-      withinss[k] = sum(apply(thisk$unscaled_pcs[twoind, ], 1, var))
+      for (kk in newk){
+        if(kk==origclusternum){
+          withinss[kk] = sum(apply(thisk$unscaled_pcs[which(newc==1), ], 1, var))
+        }
+        else{
+          secondind = which(newc==(kk-max(labelmatrix[, round-1])+1))
+          withinss[kk] = sum(apply(thisk$unscaled_pcs[secondind,],1,var))
+        }
+      }
+      # print(withinss)
 
       ## update oldk
       oldk = which.max(withinss[seq(k)])
 
       ## set up next round of clustering
-      subX = X[thisk$features$gene, which(labelmatrix[, k] == oldk)]
-      subXind = which(labelmatrix[, k] == oldk)
-      thisk$features$subsetK = oldk
-      thisk$features$K = k
-      features[[k-1]] = thisk$features
+      subXind = which(labelmatrix[, round] == oldk)
+      subX = X[thisk$features$gene, subXind]
+
+      thisk$features$Round = round
+      features[[round-1]] = thisk$features
     }
   }
+  nonnaind = which(colSums(is.na(labelmatrix)) == 0)
+  labelmatrix = labelmatrix[, nonnaind]
   ## edit colData to save labelmatrix
   SummarizedExperiment::colData(sce) =
     cbind(SummarizedExperiment::colData(sce), labelmatrix)
@@ -557,12 +580,12 @@ zero_proportion_plot = function(sce,
                                 pointalpha = 0.5,
                                 textsize = 3) {
   df = do.call(rbind, sce@int_metadata$hippo$features)
-  featurelength = as.numeric(table(df$K))
-  df$featurecount = featurelength[df$K - 1]
+  featurelength = as.numeric(table(df$Round))
+  df$featurecount = featurelength[df$Round - 1]
   if (is.na(k[1])) {
     k = 2:ncol(sce@int_metadata$hippo$labelmatrix)
   } else {
-    df = df[df$K %in% k, ]
+    df = df[df$Round %in% k, ]
 
   }
   if (show_topmarkers){
@@ -579,7 +602,7 @@ zero_proportion_plot = function(sce,
   g = ggplot2::ggplot(df,ggplot2::aes(x = .data$gene_mean,
                                       y = .data$zero_proportion)) +
     ggplot2::geom_point(size = pointsize, alpha = pointalpha) +
-    ggplot2::facet_wrap(~.data$K, ncol = 4) +
+    ggplot2::facet_wrap(~.data$Round, ncol = 4) +
     ggplot2::geom_line(ggplot2::aes(x = .data$gene_mean,
                                     y = exp(-.data$gene_mean)),
                        col = "black") +
@@ -643,9 +666,9 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
     dimred = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
                                              ]) + 1))$layout
   }else{
-    dimred = tsne = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
-                                                      ]) + 1), perplexity = perplexity,
-                                 check_duplicates = FALSE)$Y
+    dimred = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
+                                               ]) + 1), perplexity = perplexity,
+                          check_duplicates = FALSE)$Y
   }
   dimred = as.data.frame(dimred)
   dimreddf = data.frame()
@@ -797,7 +820,7 @@ hippo_pca_plot = function(sce,
   hippo_object = sce@int_metadata$hippo
   count = SingleCellExperiment::counts(sce)
   pc = suppressWarnings(irlba::irlba(log(count[hippo_object$features[[1]]$gene,
-                               ] + 1), v = 2)$v)
+                                               ] + 1), v = 2)$v)
   pcadf = data.frame()
   for (kk in k) {
     pcadf = rbind(pcadf, data.frame(PC1 = pc[, 1], PC2 = pc[, 2],K = kk,
@@ -934,7 +957,7 @@ hippo_diffexp = function(sce,
   gridExtra::grid.arrange(g, nrow = 1, ncol = 1)
   sce@int_metadata$hippo$diffexp$plot = g
   return(sce)
-  }
+}
 
 
 diffexp_subfunction_pois = function(count, features, group1, group2){
