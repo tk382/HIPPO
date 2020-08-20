@@ -660,14 +660,17 @@ hippo_dimension_reduction = function(sce, method = c("umap", "tsne"),
                                      perplexity = 30,
                                      featurelevel = 1) {
   hippo_object = sce@int_metadata$hippo
+  log_mtx_t = log(t(hippo_object$X[hippo_object$features[[1]]$gene,])+1)
+  if(!is.matrix(log_mtx_t)){
+    log_mtx_t = as.matrix(log_mtx_t)
+  }
   dflist = list()
   K = ncol(hippo_object$labelmatrix)
   if (method == "umap"){
-    dimred = umap::umap(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
-                                             ]) + 1))$layout
+    dimred = umap::umap(log_mtx_t)$layout
   }else{
-    dimred = Rtsne::Rtsne(log(t(hippo_object$X[hippo_object$features[[1]]$gene,
-                                               ]) + 1), perplexity = perplexity,
+    dimred = Rtsne::Rtsne(log_mtx_t,
+                          perplexity = perplexity,
                           check_duplicates = FALSE)$Y
   }
   dimred = as.data.frame(dimred)
