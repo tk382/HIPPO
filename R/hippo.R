@@ -183,7 +183,7 @@ clustering_SC3 = function(subX,
                                   n_cores = sc3_n_cores,
                                   kmeans_nstart = km_nstart,
                                   kmeans_iter_max = km_iter.max))
-  cluster = SummarizedExperiment::colData(tmp)$sc3_2_clusters
+  cluster = as.numeric(SummarizedExperiment::colData(tmp)$sc3_2_clusters)
   return(list(features = features,
               cluster = cluster,
               unscaled_pcs = unscaledpc))
@@ -323,7 +323,7 @@ hippo = function(sce,
   subX = X
   subXind = seq(ncol(X))
   withinss = rep(0, K)
-  oldk = 1; k = 2
+  oldk = 1; k = 1
   features = list()
   round = 1
   while (k < K) {
