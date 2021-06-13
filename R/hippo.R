@@ -42,7 +42,7 @@ compute_test_statistic = function(df) {
     dplyr::mutate(pvalue = pnorm(.data$zero_proportion,
                                  .data$expected_pi,
                                  .data$se,
-                                 lower.tail = TRUE)) %>%
+                                 lower.tail = FALSE)) %>%
     dplyr::mutate(minus_logp = -log(.data$pvalue))
   df$gene = as.character(df$gene)
   return(df)
@@ -303,7 +303,7 @@ hippo = function(sce,
                  K = 20,
                  feature_method = c("zero_inflation", "deviance"),
                  clustering_method = c("kmeans", "Seurat", "SC3"),
-                 z_threshold = 1,
+                 z_threshold = 2,
                  deviance_threshold = 50,
                  outlier_proportion = 0.001,
                  km_num_embeds = 10,
