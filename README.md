@@ -12,8 +12,8 @@ These instructions will get you a copy of the project up and running on
 your local machine for development and testing purposes. See deployment
 for notes on how to deploy the project on a live system.
 
-\#\#Prerequisites HIPPO works on the SingleCellExperiment object. You
-can install the library like the following.
+Prerequisites 
+HIPPO works on the SingleCellExperiment object. You can install the library like the following.
 
 ``` r
 if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -23,8 +23,7 @@ BiocManager::install("SingleCellExperiment")
 
 ## Installing
 
-HIPPO is under review for Bioconductor and CRAN submission. You can
-download the developer version as below. Please allow up to 5 minutes to
+You can download the most recent version of HIPPO package as below. Please allow up to 5 minutes to
 completely compile the vignette.
 
 ``` r
