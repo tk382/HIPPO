@@ -400,7 +400,7 @@ hippo = function(sce,
 preprocess_heterogeneous = function(X) {
   df = data.frame(gene = rownames(X),
                   gene_mean = Matrix::rowMeans(X),
-                  zero_proportion = Matrix::rowMeans(X == 0))
+                  zero_proportion = 1-Matrix::rowSums(X > 0)/ncol(X))
   where = which(df$gene_mean > 0)
   gene_var = rep(NA, nrow(X))
   gene_var[where] = RowVar(X[where, ])
